@@ -1,9 +1,9 @@
 # ADR-003 — Certificado de assinatura de código
 
-**Estado:** ⏸ **Pendente — decisão da direção + levantamento de preço**
+**Estado:** ✅ **Aceita — nenhum certificado na v1**
 **Data de abertura:** 2026-07-29
-**Prazo:** antes do início da Fase 3
-**Bloqueia:** Fase 3 (etapa de assinatura no CI)
+**Data da decisão:** 2026-07-29
+**Bloqueia:** nada. A Fase 3 sai sem etapa de assinatura no CI
 **Referência:** doc técnico §8.4 e §11 ponto 3
 
 ## Contexto
@@ -20,9 +20,9 @@ O perfil comportamental da ferramenta é exatamente o que um EDR moderno bloquei
 | **Certificado OV** | Reduz o problema, mas precisa acumular reputação — leva tempo e volume de downloads | Mais barato |
 | **Nenhum na v1** | Zero custo | Aviso de SmartScreen em toda máquina, toda vez. Atrito direto na frente do cliente |
 
-## Levantamento necessário antes de decidir
+## Levantamento adiado
 
-Preço e requisitos de emissão mudam com frequência. Levantar com autoridade certificadora, na Fase 0:
+O levantamento abaixo **não foi feito** e não é pré-requisito de nenhuma fase. Fica registrado para quando a decisão for revisitada:
 
 - [ ] Preço anual OV e EV
 - [ ] Requisito atual de armazenamento de chave (token físico, HSM, serviço de assinatura em nuvem)
@@ -39,8 +39,22 @@ Estas entram na Fase 3 mesmo sem certificado:
 
 ## Decisão registrada
 
-_A preencher._
+- **Escolha:** nenhum certificado na v1. O binário sai sem assinatura.
+- **Quem decidiu:** Gabriel Oss
+- **Data:** 2026-07-29
 
-- Escolha:
-- Quem decidiu:
-- Data:
+## Consequências assumidas
+
+Isto não é postergar a decisão, é escolher a terceira opção da tabela com os olhos abertos:
+
+1. **SmartScreen avisa em toda máquina, toda vez.** O técnico precisa saber disso antes de chegar no cliente, não descobrir na frente dele. Entra no procedimento de campo da Fase 3.
+2. **O EDR do cliente bloqueia com mais frequência** do que bloquearia um binário assinado. Isso **eleva** o fallback PowerShell de contingência a caminho rotineiro — que é exatamente o que a [ADR-009](009-prototipo-powershell-e-fallback-permanente.md) previu. Reforça a decisão de manter o `.ps1` legível e num arquivo único: é ele que salva a visita.
+3. As três mitigações da seção acima passam de "valem independentemente" a **obrigatórias** na Fase 3, em especial o `SHA256SUMS` e o procedimento documentado de exceção.
+
+## Quando revisitar
+
+Não há prazo. Os gatilhos são:
+
+- atrito de SmartScreen ou bloqueio de EDR virar reclamação recorrente de cliente ou perda de visita;
+- o parque atendido crescer ao ponto de o custo do certificado ficar abaixo do custo do atrito;
+- exigência contratual de cliente corporativo por binário assinado.

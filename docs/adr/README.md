@@ -8,7 +8,7 @@ Os nove pontos abertos da seção 11 do documento técnico. Uma decisão por arq
 |---|---|---|---|
 | [001](001-alvo-net-framework.md) | Alvo .NET Framework 4.7.2 | ✅ Aceita | — |
 | [002](002-distribuicao-do-binario.md) | Repositório **público**, download via GitHub Releases | ✅ Aceita | — |
-| [003](003-certificado-de-assinatura.md) | Certificado de assinatura de código OV / EV / nenhum | ⏸ **Pendente — direção** | Fase 3 |
+| [003](003-certificado-de-assinatura.md) | **Nenhum certificado** de assinatura na v1 | ✅ Aceita | — |
 | [004](004-nao-embutir-smartctl.md) | Não embutir `smartctl` na v1 | ✅ Aceita | — |
 | [005](005-tabela-de-builds-do-windows.md) | Manter tabela de builds com `validUntil` | ✅ Aceita | — |
 | [006](006-lista-de-cpus-windows-11.md) | Embutir lista de CPUs suportadas para Windows 11 | ✅ Aceita | — |
