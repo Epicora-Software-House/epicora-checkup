@@ -45,8 +45,11 @@
     Alvo: Windows PowerShell 5.1, presente em toda instalação de Windows desde o 10.
     Não usa recursos de PowerShell 7 — exigir instalação anularia a razão de existir do fallback.
 
-    Roda COM e SEM elevação. Sem elevação, os coletores privilegiados são marcados
-    "Ignorado — sem privilégio" e o relatório sai parcial e honesto.
+    Roda COM e SEM elevação. Medido em campo: apenas TPM (Win32_Tpm), BitLocker
+    (Win32_EncryptableVolume) e SMART (MSStorageDriver_FailurePredictStatus) exigem
+    privilégio. Nenhum coletor é ignorado por falta de elevação — cada uma dessas três
+    fontes degrada para null isoladamente, e as regras que dependem delas resolvem
+    Indeterminate. O relatório sai parcial e honesto, não truncado.
 #>
 [CmdletBinding()]
 param(
@@ -263,7 +266,7 @@ Write-Host ''
 Write-Host 'Esta ferramenta lê apenas metadados de hardware, software e configuração.' -ForegroundColor DarkGray
 Write-Host 'Não acessa conteúdo de arquivos, e-mails, mensagens ou histórico de navegação.' -ForegroundColor DarkGray
 Write-Host ''
-Write-Host ("Elevado: {0}" -f $(if ($script:Elevated) { 'SIM' } else { 'NÃO — coletores privilegiados serão ignorados' })) `
+Write-Host ("Elevado: {0}" -f $(if ($script:Elevated) { 'SIM' } else { 'NÃO — TPM, BitLocker e SMART não serão lidos' })) `
     -ForegroundColor $(if ($script:Elevated) { 'Cyan' } else { 'Yellow' })
 Write-Host ''
 
@@ -537,6 +540,22 @@ Invoke-Collector -Id 'storage' -DisplayName 'Armazenamento e saúde de disco' -R
         if ($md) { $partStyle = switch ([int]$md.PartitionStyle) { 1 { 'MBR' } 2 { 'GPT' } default { 'Unknown' } } }
     } catch { }
 
+    # TRIM. A sonda confirmou que "fsutil behavior query" responde SEM elevação — só
+    # "behavior set" exige. A saída é LOCALIZADA, então o padrão ancora no número e nunca
+    # na prosa; em pt-BR a linha vem como:
+    #   "NTFS DisableDeleteNotify = 0  (Permite que operações TRIM sejam enviadas ...)"
+    # Windows mais antigo devolve só "DisableDeleteNotify = 0", sem o prefixo do sistema
+    # de arquivos — daí o segundo padrão. ReFS tem linha própria e é ignorada de propósito.
+    $trim = $null
+    try {
+        $fsu = (& fsutil.exe behavior query DisableDeleteNotify 2>&1 | Out-String)
+        $m = [regex]::Match($fsu, '(?im)^\s*NTFS\s+DisableDeleteNotify\s*=\s*(\d+)')
+        if (-not $m.Success) { $m = [regex]::Match($fsu, '(?im)^\s*DisableDeleteNotify\s*=\s*(\d+)') }
+        # 0 = notificação de exclusão HABILITADA, ou seja TRIM ligado. A polaridade é
+        # invertida no nome da chave — ler como "TRIM desabilitado?" leva a erro.
+        if ($m.Success) { $trim = ([int]$m.Groups[1].Value -eq 0) }
+    } catch { }
+
     $winOld = Join-Path $sysDrive 'Windows.old'
 
     [ordered]@{
@@ -547,7 +566,7 @@ Invoke-Collector -Id 'storage' -DisplayName 'Armazenamento e saúde de disco' -R
                 model = $sysDisk.model; sizeBytes = $sysDisk.sizeBytes
                 mediaType = $sysDisk.mediaType; busType = $sysDisk.busType
                 healthStatus = $sysDisk.healthStatus; failurePredicted = $sysDisk.failurePredicted
-                trimEnabled = $null          # confiança B, ver STO-006 — não afirmamos
+                trimEnabled = $trim          # medido via fsutil; null se o padrão não casar
                 fragmentationPercent = $null # análise de volume é lenta demais para os 90 s
                 partitionStyle = $partStyle
             }
@@ -735,7 +754,10 @@ Invoke-Collector -Id 'updates' -DisplayName 'Atualizações do Windows' -Require
 
 # ---------------------------------------------------------------- 8. Windows 11
 
-Invoke-Collector -Id 'win11' -DisplayName 'Compatibilidade com Windows 11' -RequiresElevation $true -Script {
+# RequiresElevation $false: MEDIDO EM CAMPO que só o Win32_Tpm exige privilégio. Secure
+# Boot (registro) e modo de firmware respondem sem elevação. Gatear o coletor inteiro
+# perdia W11-004 e W11-005 de graça. O TPM degrada sozinho para null no seu try/catch.
+Invoke-Collector -Id 'win11' -DisplayName 'Compatibilidade com Windows 11' -RequiresElevation $false -Script {
     $tpm = [ordered]@{ present = $null; specVersionRaw = $null; majorVersion = $null; enabled = $null; activated = $null }
     try {
         $t = Get-CimInstance -Namespace 'root\CIMV2\Security\MicrosoftTpm' -ClassName Win32_Tpm -ErrorAction Stop | Select-Object -First 1
@@ -798,7 +820,11 @@ Invoke-Collector -Id 'win11' -DisplayName 'Compatibilidade com Windows 11' -Requ
 
 # ---------------------------------------------------------------- 9. segurança
 
-Invoke-Collector -Id 'security' -DisplayName 'Segurança e criptografia' -RequiresElevation $true -Script {
+# RequiresElevation $false: MEDIDO EM CAMPO que só o Win32_EncryptableVolume exige
+# privilégio. Firewall, RDP, SMBv1 e UAC respondem sem elevação — e eram perdidos de
+# graça (SEC-006, SEC-008, SEC-009). Cada sub-leitura tem try/catch próprio; o BitLocker
+# degrada para null e SEC-004/005 resolvem Indeterminate, que é o correto.
+Invoke-Collector -Id 'security' -DisplayName 'Segurança e criptografia' -RequiresElevation $false -Script {
     $sysDrive = $env:SystemDrive
 
     $bl = [ordered]@{ available = $null; systemVolumeProtected = $null; volumes = $null }
@@ -822,8 +848,14 @@ Invoke-Collector -Id 'security' -DisplayName 'Segurança e criptografia' -Requir
         $sys = $list | Where-Object { $_.driveLetter -eq $sysDrive } | Select-Object -First 1
         if ($sys) { $bl.systemVolumeProtected = ($sys.protectionStatus -eq 'On') }
     } catch {
-        # Edição Home não tem o namespace. Fica null → Indeterminate, não "sem BitLocker".
-        $bl.available = $false
+        # A sonda mediu que o namespace EXISTE em Windows 11 Home — a premissa de que só
+        # Pro o tem estava errada. Então distinguir os dois erros passa a importar:
+        #   acesso negado (sessão sem elevação) → null, não sabemos
+        #   qualquer outro (namespace ausente)  → false, capacidade ausente de fato
+        # Marcar false por falta de privilégio faria a ausência de criptografia parecer
+        # medida quando só houve falta de permissão.
+        if ($_.CategoryInfo.Category -eq 'PermissionDenied') { $bl.available = $null }
+        else { $bl.available = $false }
     }
 
     $fw = [ordered]@{ anyProfileDisabled = $null; profiles = $null }
@@ -883,7 +915,11 @@ Invoke-Collector -Id 'security' -DisplayName 'Segurança e criptografia' -Requir
 
 # ---------------------------------------------------------------- 10. antivírus
 
-Invoke-Collector -Id 'antivirus' -DisplayName 'Antivírus' -RequiresElevation $true -Script {
+# RequiresElevation $false: MEDIDO EM CAMPO que NENHUMA fonte deste coletor exige
+# privilégio — root\SecurityCenter2 e MSFT_MpComputerStatus respondem sem elevação. O
+# gate anterior descartava SEC-001/002/003 e SW-005, a família mais valiosa do relatório,
+# em toda visita em que o técnico não conseguisse elevar.
+Invoke-Collector -Id 'antivirus' -DisplayName 'Antivírus' -RequiresElevation $false -Script {
     $available = $null; $products = @()
     try {
         $raw = @(Get-CimInstance -Namespace 'root\SecurityCenter2' -ClassName AntiVirusProduct -ErrorAction Stop)
@@ -1099,8 +1135,13 @@ Invoke-Collector -Id 'startup' -DisplayName 'Programas de inicialização' -Requ
 
     $tasks = $null
     try {
+        # O "$null -ne $_" NÃO é redundante: tarefa sem gatilho tem Triggers = $null, e
+        # mandar $null para o pipeline gera UMA iteração com $_ = $null. Aí $_.CimClass
+        # lança sob StrictMode 2.0 e o try/catch abaixo engole — o campo saía null em
+        # toda máquina, silenciosamente. Medido em campo pela sonda.
         $tasks = @(Get-ScheduledTask -ErrorAction Stop | Where-Object {
-            $_.State -ne 'Disabled' -and ($_.Triggers | Where-Object { $_.CimClass.CimClassName -eq 'MSFT_TaskLogonTrigger' })
+            $_.State -ne 'Disabled' -and ($_.Triggers | Where-Object {
+                $null -ne $_ -and $_.CimClass.CimClassName -eq 'MSFT_TaskLogonTrigger' })
         }).Count
     } catch { }
 
@@ -1127,6 +1168,17 @@ Invoke-Collector -Id 'network' -DisplayName 'Rede' -RequiresElevation $false -Sc
         }
     } catch { }
 
+    # MEDIDO EM CAMPO: MSFT_NetAdapter NÃO tem PhysicalMediaType, MediaType, LinkSpeed,
+    # MacAddress nem Status neste build — todas voltam ausentes. Quem existe e responde é
+    # NdisPhysicalMedium (enum NDIS_PHYSICAL_MEDIUM). Valores confirmados pela sonda:
+    # 9 = Native802_11 (Wi-Fi) e 14 = 802_3 (Ethernet).
+    #
+    # Antes disto, 'Wired' era INALCANÇÁVEL: a propriedade lida não existia, o tipo caía em
+    # Unknown e só o regex de descrição salvava — e ele só reconhece Wi-Fi. Máquina com cabo
+    # saía Unknown e NET-002 perdia a base.
+    $ndisWireless = @(1, 8, 9, 12)                       # WirelessLan, WirelessWan, Native802_11, WiMax
+    $ndisWired    = @(2, 3, 4, 5, 6, 7, 14, 15, 17, 18)  # CableModem, PhoneLine, PowerLine, DSL, FibreChannel, 1394, 802_3, 802_5, WiredWan, WiredCoWanDsl
+
     $adapters = @(); $primary = $null
     foreach ($a in @(Get-CimInstance Win32_NetworkAdapter -Filter 'PhysicalAdapter=TRUE')) {
         $mac = Prop $a 'MACAddress'
@@ -1141,10 +1193,21 @@ Invoke-Collector -Id 'network' -DisplayName 'Rede' -RequiresElevation $false -Sc
         $connType = 'Unknown'
         if ($isVirtual) { $connType = 'Virtual' }
         elseif ($ext) {
-            $pm = Prop $ext 'PhysicalMediaType'
-            if ($null -ne $pm) { $connType = if ([int]$pm -in @(9, 16)) { 'Wireless' } else { 'Wired' } }
+            $npm = Prop $ext 'NdisPhysicalMedium'
+            if ($null -ne $npm) {
+                if ([int]$npm -in $ndisWireless)  { $connType = 'Wireless' }
+                elseif ([int]$npm -in $ndisWired) { $connType = 'Wired' }
+            }
+            # Builds antigos podem expor PhysicalMediaType. Se existir, vale como segunda opinião.
+            if ($connType -eq 'Unknown') {
+                $pm = Prop $ext 'PhysicalMediaType'
+                if ($null -ne $pm) { $connType = if ([int]$pm -in @(9, 16)) { 'Wireless' } else { 'Wired' } }
+            }
         }
-        if ($connType -eq 'Unknown' -and $desc -match '(?i)wi-?fi|wireless|802\.11') { $connType = 'Wireless' }
+        # Último recurso, quando o adaptador não casou por MAC com nenhum MSFT_NetAdapter.
+        # Wi-Fi primeiro: "Wireless-AC Ethernet Adapter" existe e casaria no padrão de cabo.
+        if ($connType -eq 'Unknown' -and $desc -match '(?i)wi-?fi|wireless|802\.11|wlan') { $connType = 'Wireless' }
+        elseif ($connType -eq 'Unknown' -and $desc -match '(?i)ethernet|gigabit|\bgbe\b') { $connType = 'Wired' }
 
         $link = if ($ext) { Prop $ext 'Speed' } else { Prop $a 'Speed' }
         $max  = Prop $a 'MaxSpeed'
@@ -1236,7 +1299,31 @@ Invoke-Collector -Id 'accounts' -DisplayName 'Contas e privilégios' -RequiresEl
 
     $id = [Security.Principal.WindowsIdentity]::GetCurrent()
     $groupSids = @($id.Groups | ForEach-Object { $_.Value })
+    $currentSid = $id.User.Value
     $cs = Get-CimInstance Win32_ComputerSystem
+
+    # SEC-007 é High. Um falso negativo aqui faz a regra dizer "conforme" numa máquina
+    # que não é — é a regra 1 violada pelo outro lado, e pior que Indeterminate.
+    #
+    # NÃO confiar só no token: MEDIDO EM CAMPO (sonda, 2026-07-29, duas rodadas) que o
+    # token filtrado do UAC NÃO carrega S-1-5-32-544 numa sessão sem elevação, mesmo
+    # para quem é administrador local. Só o token daria isLocalAdmin=false para um admin.
+    #
+    # Ordem de decisão:
+    #   true  — está direto na lista de membros (legível SEM elevação) OU o token traz o
+    #           SID do grupo (pega membro indireto, mas só quando elevado)
+    #   null  — nenhum dos dois E existe GRUPO entre os membros: a associação pode ser
+    #           indireta por esse grupo e não há como saber. Nunca false por ignorância.
+    #   false — nenhum dos dois e não há grupo entre os membros
+    $directMember   = @($admins | Where-Object { $_.sid -eq $currentSid }).Count -gt 0
+    $tokenHasAdmin  = $groupSids -contains $adminSid
+    $groupInMembers = @($admins | Where-Object { $_.principalType -eq 'Group' }).Count -gt 0
+
+    $isLocalAdmin = $null
+    if (-not $resolvedBySid)                    { $isLocalAdmin = $null }
+    elseif ($directMember -or $tokenHasAdmin)   { $isLocalAdmin = $true }
+    elseif ($groupInMembers)                    { $isLocalAdmin = $null }
+    else                                        { $isLocalAdmin = $false }
 
     $locals = @(); $guest = $null
     try {
@@ -1256,10 +1343,8 @@ Invoke-Collector -Id 'accounts' -DisplayName 'Contas e privilégios' -RequiresEl
         localAdministrators = ArrOrNull $admins
         currentUser = [ordered]@{
             name = $id.Name
-            sid = $id.User.Value
-            # Pertence ao grupo, direta ou indiretamente. Sem elevação, o token
-            # filtrado do UAC ainda carrega o SID do grupo — por isso funciona.
-            isLocalAdmin = if ($resolvedBySid) { $groupSids -contains $adminSid } else { $null }
+            sid = $currentSid
+            isLocalAdmin = $isLocalAdmin
             isDomainAccount = if ($cs.PartOfDomain) { $id.Name -like "$($cs.Domain.Split('.')[0])\*" } else { $false }
         }
         localAccounts = ArrOrNull $locals
@@ -1278,19 +1363,71 @@ Invoke-Collector -Id 'accounts' -DisplayName 'Contas e privilégios' -RequiresEl
 
 Invoke-Collector -Id 'battery' -DisplayName 'Bateria' -RequiresElevation $false `
     -NotApplicable { @(Get-CimInstance Win32_Battery -ErrorAction SilentlyContinue).Count -eq 0 } -Script {
+    # Win32_Battery NÃO entrega capacidade nem ciclos: a sonda confirmou DesignCapacity e
+    # FullChargeCapacity nulos e nenhuma propriedade de ciclos. Quem entrega:
+    #
+    #   root\wmi BatteryCycleCount.CycleCount            -> ciclos
+    #   root\wmi BatteryFullChargedCapacity              -> carga plena, em mWh
+    #   Win32_PortableBattery.DesignCapacity             -> capacidade de projeto, em mWh
+    #
+    # As três foram validadas contra powercfg /batteryreport na mesma máquina: ciclos e
+    # carga plena bateram EXATAMENTE, projeto ficou a 1 mWh. Nada disto escreve arquivo,
+    # que era a única razão de o powercfg estar fora do protótipo.
+    #
+    # Só o par de classes root\wmi correlaciona por Tag — a sonda mostrou as duas com o
+    # mesmo Tag e o mesmo InstanceName. Elas podem exigir elevação (as outras classes de
+    # root\wmi exigem); se exigirem, caem no catch e os campos ficam null.
+    $rw = @{}
+    foreach ($cls in @('BatteryFullChargedCapacity', 'BatteryCycleCount')) {
+        try {
+            foreach ($i in @(Get-CimInstance -Namespace 'root\wmi' -ClassName $cls -ErrorAction Stop)) {
+                $tag = [string](Prop $i 'Tag')
+                if (-not $rw.ContainsKey($tag)) { $rw[$tag] = @{ full = $null; cycles = $null } }
+                if ($cls -eq 'BatteryFullChargedCapacity') { $rw[$tag].full = Prop $i 'FullChargedCapacity' }
+                else { $rw[$tag].cycles = Prop $i 'CycleCount' }
+            }
+        } catch { }
+    }
+    $rwTags = @($rw.Keys | Sort-Object)
+
+    $portable = @()
+    try { $portable = @(Get-CimInstance Win32_PortableBattery -ErrorAction Stop) } catch { }
+
+    $bats = @(Get-CimInstance Win32_Battery)
     $list = @()
-    foreach ($b in @(Get-CimInstance Win32_Battery)) {
+    for ($n = 0; $n -lt $bats.Count; $n++) {
+        $b = $bats[$n]
+
+        # Correlação por posição. Com uma bateria — o caso normal — é exata. Com mais de
+        # uma, só vale se a fonte trouxer a MESMA quantidade de instâncias; caso contrário
+        # fica null em vez de arriscar atribuir o dado de uma bateria à outra.
+        $full = $null; $cycles = $null
+        if ($rwTags.Count -eq $bats.Count -and $n -lt $rwTags.Count) {
+            $full   = $rw[$rwTags[$n]].full
+            $cycles = $rw[$rwTags[$n]].cycles
+        }
+        if ($null -eq $full) { $full = Prop $b 'FullChargeCapacity' }
+
+        $design = Prop $b 'DesignCapacity'
+        if ($null -eq $design -and $portable.Count -eq $bats.Count -and $n -lt $portable.Count) {
+            # NÃO multiplicar por CapacityMultiplier: DesignCapacity já vem em mWh.
+            # Verificado contra o powercfg — multiplicar daria 10x e desgaste negativo.
+            $design = Prop $portable[$n] 'DesignCapacity'
+        }
+
         $list += [ordered]@{
             name = Prop $b 'Name'
+            # Chemistry = 2 ('Unknown') é o que o hardware realmente reporta em campo.
+            # Código fora do mapa vira null, não um palpite.
             chemistry = switch ([int](Prop $b 'Chemistry')) {
                 3 { 'Lead Acid' } 4 { 'NiCd' } 5 { 'NiMH' } 6 { 'Li-ion' } 8 { 'LiP' } default { $null } }
             currentChargePercent = Prop $b 'EstimatedChargeRemaining'
-            # DesignCapacity retorna nulo na maioria dos notebooks. Não confiamos.
-            designCapacityMwh = Prop $b 'DesignCapacity'
-            fullChargeCapacityMwh = Prop $b 'FullChargeCapacity'
-            cycleCount = $null
+            designCapacityMwh = if ($null -ne $design) { [int]$design } else { $null }
+            fullChargeCapacityMwh = if ($null -ne $full) { [int]$full } else { $null }
+            cycleCount = if ($null -ne $cycles) { [int]$cycles } else { $null }
         }
     }
+
     $wear = $null; $src = 'unavailable'
     $b0 = @($list)[0]
     if ($b0 -and $b0.designCapacityMwh -and $b0.fullChargeCapacityMwh -and $b0.designCapacityMwh -gt 0) {
@@ -1298,13 +1435,15 @@ Invoke-Collector -Id 'battery' -DisplayName 'Bateria' -RequiresElevation $false 
         if ($wear -lt 0) { $wear = 0 }
         $src = 'wmi'
     }
-    # powercfg /batteryreport escreveria arquivo. O protótipo não escreve fora da
-    # pasta de saída — o parsing entra na Fase 2, depois da sonda confirmar o formato.
     [ordered]@{ present = ($list.Count -gt 0); batteries = ArrOrNull $list
                 wearPercent = $wear; wearSource = $src }
 } -Summary {
     param($d)
-    if ($null -ne $d.wearPercent) { "Desgaste de $($d.wearPercent)%" } else { 'Desgaste não pôde ser calculado' }
+    # $b0 pode ser null: guardar antes de acessar membro, senão StrictMode 2.0 lança.
+    $b0 = @($d.batteries)[0]
+    $cyc = if ($b0 -and $null -ne $b0.cycleCount) { ", $($b0.cycleCount) ciclos" } else { '' }
+    if ($null -ne $d.wearPercent) { "Desgaste de $($d.wearPercent)%$cyc" }
+    else { "Desgaste não pôde ser calculado$cyc" }
 }
 
 # ---------------------------------------------------------------- 16. eventos

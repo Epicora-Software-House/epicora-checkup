@@ -20,7 +20,7 @@ Cada coletor é uma chamada isolada de `Invoke-Collector` com o mesmo contrato d
 ## Requisitos
 
 - **Windows PowerShell 5.1** — presente em toda instalação de Windows desde o 10. Não requer PowerShell 7, não instala nada.
-- Elevação é **opcional**. Sem ela, os coletores privilegiados aparecem como *Ignorado — sem privilégio* e o relatório sai parcial e honesto.
+- Elevação é **opcional**, e custa menos do que se supunha. A sonda mediu que só três fontes exigem privilégio: **TPM** (`Win32_Tpm`), **BitLocker** (`Win32_EncryptableVolume`) e **SMART** (`MSStorageDriver_FailurePredictStatus`). Nenhum coletor é ignorado por falta de elevação — cada uma dessas três degrada para `null` isoladamente e as regras que dependem delas resolvem `Indeterminate`. Tudo o mais, inclusive antivírus, ativação, firewall, SMBv1, RDP, Secure Boot e tipo de mídia do disco, responde sem elevação.
 
 ## Como rodar
 
@@ -96,9 +96,9 @@ Todas deliberadas, todas registradas:
 | `os.buildFreshness.evaluated` | sempre `false` | tabela de builds vazia — [ADR-005](../../docs/adr/005-tabela-de-builds-do-windows.md) |
 | `events.evaluated` | sempre `false` | `rules/event-ids.json` vazio — IDs não confirmados |
 | `antivirus.*.interpretation.confidence` | sempre `None` | `productState` é máscara não documentada; decodificar exige dados de campo |
-| `storage.systemDisk.trimEnabled` | sempre `null` | confiança baixa, ver STO-006 |
+| `storage.systemDisk.trimEnabled` | **medido** | via `fsutil behavior query`, que responde sem elevação; padrão ancorado no número porque a saída é localizada |
 | `storage.systemDisk.fragmentationPercent` | sempre `null` | análise de volume é lenta demais para a meta de 90 s |
 | SMART detalhado | ausente | [ADR-004](../../docs/adr/004-nao-embutir-smartctl.md) |
-| `battery.wearPercent` | via WMI apenas | `powercfg /batteryreport` escreveria arquivo; parsing entra na Fase 2 |
+| `battery.wearPercent` e `cycleCount` | **medidos** | `root\wmi` (`BatteryCycleCount`, `BatteryFullChargedCapacity`) + `Win32_PortableBattery.DesignCapacity`, validados contra `powercfg /batteryreport` na mesma máquina. Sem escrever arquivo. **Não** multiplicar por `CapacityMultiplier` |
 
 Cada uma dessas faz a regra correspondente resolver `Indeterminate` e aparecer no bloco *"não foi possível verificar"* do relatório. **Nenhuma vira achado negativo.**

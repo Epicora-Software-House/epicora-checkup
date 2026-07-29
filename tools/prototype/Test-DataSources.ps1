@@ -398,8 +398,12 @@ Invoke-Probe -Id 'startupCoverage' -Confidence 'M' `
     }
     $logonTasks = $null
     try {
+        # "$null -ne $_" obrigatorio: tarefa sem gatilho tem Triggers = $null, e $null
+        # mandado ao pipeline gera uma iteracao com $_ = $null — $_.CimClass lanca sob
+        # StrictMode 2.0. Foi assim que esta probe falhou na primeira rodada de campo.
         $logonTasks = @(Get-ScheduledTask -ErrorAction Stop |
-            Where-Object { $_.State -ne 'Disabled' -and ($_.Triggers | Where-Object { $_.CimClass.CimClassName -eq 'MSFT_TaskLogonTrigger' }) } |
+            Where-Object { $_.State -ne 'Disabled' -and ($_.Triggers | Where-Object {
+                $null -ne $_ -and $_.CimClass.CimClassName -eq 'MSFT_TaskLogonTrigger' }) } |
             ForEach-Object { [pscustomobject]@{ TaskName = $_.TaskName; TaskPath = $_.TaskPath; Author = $_.Author } })
     } catch { $logonTasks = "<<Get-ScheduledTask falhou: $($_.Exception.Message)>>" }
 
