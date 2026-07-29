@@ -1,13 +1,13 @@
 @echo off
 REM ============================================================================
-REM  Epicora Checkup - protótipo PowerShell (Fase 1) e fallback permanente.
+REM  Epicora Checkup - prototipo PowerShell (Fase 1) e fallback permanente.
 REM
-REM  Contorna a ExecutionPolicy sem alterá-la na máquina do cliente:
+REM  Contorna a ExecutionPolicy sem altera-la na maquina do cliente:
 REM  -ExecutionPolicy Bypass vale apenas para este processo.
 REM
-REM  Rode como Administrador para a coleta completa. Sem elevação também roda:
-REM  os coletores privilegiados aparecem como "Ignorado - sem privilégio"
-REM  e o relatório sai parcial e honesto.
+REM  Rode como Administrador para a coleta completa. Sem elevacao tambem roda:
+REM  os coletores privilegiados aparecem como "Ignorado - sem privilegio"
+REM  e o relatorio sai parcial e honesto.
 REM ============================================================================
 setlocal
 

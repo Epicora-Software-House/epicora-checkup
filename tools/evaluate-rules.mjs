@@ -11,6 +11,10 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+/** JSON vindo de máquina Windows pode ter BOM UTF-8, e JSON.parse rejeita BOM. */
+const readJson = (p) => JSON.parse(readFileSync(p, 'utf8').replace(/^\uFEFF/, ''));
+
+
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const RULES_DIR = join(ROOT, 'rules');
 const SUPPORT = new Set(['startup-exclusions.json', 'event-ids.json', 'windows-builds.json', 'win11-cpu-support.json', 'README.md']);
@@ -25,12 +29,12 @@ if (!target) {
   process.exit(2);
 }
 
-const doc = JSON.parse(readFileSync(target, 'utf8'));
+const doc = readJson(target);
 
 const rules = readdirSync(RULES_DIR)
   .filter((f) => f.endsWith('.json') && !SUPPORT.has(f))
   .sort()
-  .flatMap((f) => JSON.parse(readFileSync(join(RULES_DIR, f), 'utf8')).rules);
+  .flatMap((f) => readJson(join(RULES_DIR, f)).rules);
 
 // ---------------------------------------------------------------- leitura de valor
 

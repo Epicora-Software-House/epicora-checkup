@@ -15,6 +15,10 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 
+/** JSON vindo de máquina Windows pode ter BOM UTF-8, e JSON.parse rejeita BOM. */
+const readJson = (p) => JSON.parse(readFileSync(p, 'utf8').replace(/^\uFEFF/, ''));
+
+
 const args = process.argv.slice(2);
 const flagIdx = args.indexOf('--rotulo');
 const label = flagIdx >= 0 ? args[flagIdx + 1] : null;
@@ -27,7 +31,7 @@ if (!input) {
   process.exit(2);
 }
 
-const doc = JSON.parse(readFileSync(input, 'utf8'));
+const doc = readJson(input);
 
 /** Pseudônimo estável e curto derivado do valor original. Não é reversível. */
 const seen = new Map();

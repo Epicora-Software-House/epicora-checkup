@@ -15,6 +15,10 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+/** JSON vindo de máquina Windows pode ter BOM UTF-8, e JSON.parse rejeita BOM. */
+const readJson = (p) => JSON.parse(readFileSync(p, 'utf8').replace(/^\uFEFF/, ''));
+
+
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const RULES_DIR = join(ROOT, 'rules');
 const SCHEMA_PATH = join(ROOT, 'schema', 'checkup-1.0.schema.json');
@@ -44,7 +48,7 @@ const SUPPORT_FILES = new Set([
   'startup-exclusions.json', 'event-ids.json', 'windows-builds.json', 'win11-cpu-support.json',
 ]);
 
-const schema = JSON.parse(readFileSync(SCHEMA_PATH, 'utf8'));
+const schema = readJson(SCHEMA_PATH);
 const errors = [];
 const warnings = [];
 
@@ -234,7 +238,7 @@ function validateSupportFile(name, doc) {
 for (const file of readdirSync(RULES_DIR).filter((f) => f.endsWith('.json')).sort()) {
   let doc;
   try {
-    doc = JSON.parse(readFileSync(join(RULES_DIR, file), 'utf8'));
+    doc = readJson(join(RULES_DIR, file));
   } catch (err) {
     errors.push(`${file}: JSON inválido — ${err.message}`);
     continue;

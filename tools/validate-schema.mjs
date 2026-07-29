@@ -7,6 +7,10 @@ import { join, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Ajv from 'ajv/dist/2020.js';
 
+/** JSON vindo de máquina Windows pode ter BOM UTF-8, e JSON.parse rejeita BOM. */
+const readJson = (p) => JSON.parse(readFileSync(p, 'utf8').replace(/^\uFEFF/, ''));
+
+
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SCHEMA = join(ROOT, 'schema', 'checkup-1.0.schema.json');
 const FIXTURES = join(ROOT, 'tests', 'fixtures');
@@ -16,7 +20,7 @@ const green = (s) => `\x1b[32m${s}\x1b[0m`;
 const dim = (s) => `\x1b[2m${s}\x1b[0m`;
 
 const ajv = new Ajv({ allErrors: true, strict: false });
-const validate = ajv.compile(JSON.parse(readFileSync(SCHEMA, 'utf8')));
+const validate = ajv.compile(readJson(SCHEMA));
 
 const targets = process.argv.slice(2).length
   ? process.argv.slice(2)
@@ -34,7 +38,7 @@ let failed = 0;
 for (const file of targets) {
   let doc;
   try {
-    doc = JSON.parse(readFileSync(file, 'utf8'));
+    doc = readJson(file);
   } catch (err) {
     console.log(`${red('✗')} ${basename(file)} — JSON inválido: ${err.message}`);
     failed++;

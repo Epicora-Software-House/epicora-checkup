@@ -12,6 +12,10 @@ import { readFileSync } from 'node:fs';
 import { join, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+/** JSON vindo de máquina Windows pode ter BOM UTF-8, e JSON.parse rejeita BOM. */
+const readJson = (p) => JSON.parse(readFileSync(p, 'utf8').replace(/^\uFEFF/, ''));
+
+
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const FILES = ['tools/prototype/Invoke-EpicoraCheckup.ps1', 'tools/prototype/Test-DataSources.ps1'];
 
@@ -90,7 +94,7 @@ for (const rel of FILES) {
 
 // ---------------------------------------------------------------- cobertura de coletores
 
-const schema = JSON.parse(readFileSync(join(ROOT, 'schema', 'checkup-1.0.schema.json'), 'utf8'));
+const schema = readJson(join(ROOT, 'schema', 'checkup-1.0.schema.json'));
 const schemaIds = schema.$defs.collectorId.enum;
 const main = readFileSync(join(ROOT, 'tools', 'prototype', 'Invoke-EpicoraCheckup.ps1'), 'utf8');
 const implemented = [...main.matchAll(/Invoke-Collector -Id '([a-z0-9]+)'/g)].map((m) => m[1]);

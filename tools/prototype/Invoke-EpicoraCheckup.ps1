@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Epicora Checkup — coletor portátil de inventário e diagnóstico. Protótipo da Fase 1
     e fallback permanente para quando o EDR do cliente bloquear o executável (ADR-009).
@@ -1408,9 +1408,15 @@ $document = [ordered]@{
 $jsonPath = Join-Path $OutputPath "$baseName.json"
 $logPath  = Join-Path $OutputPath "$baseName.log"
 
+# UTF-8 SEM BOM. Set-Content -Encoding UTF8 no PowerShell 5.1 escreve COM BOM, e um
+# BOM no início do arquivo faz JSON.parse falhar — o consolidador e as ferramentas
+# Node não conseguiriam ler a saída. A RFC 8259 também diz que implementações não
+# devem acrescentar BOM a JSON.
+$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+
 # -Depth 10 é OBRIGATÓRIO: o padrão do PowerShell 5.1 é 2 e trunca em silêncio.
-$document | ConvertTo-Json -Depth 10 | Set-Content -Path $jsonPath -Encoding UTF8
-$script:LogLines | Set-Content -Path $logPath -Encoding UTF8
+[IO.File]::WriteAllText($jsonPath, ($document | ConvertTo-Json -Depth 10), $utf8NoBom)
+[IO.File]::WriteAllText($logPath, (($script:LogLines -join "`r`n") + "`r`n"), $utf8NoBom)
 
 $ok      = @($script:Results | Where-Object { $_.status -eq 'Completed' }).Count
 $skipped = @($script:Results | Where-Object { $_.status -eq 'Skipped' }).Count

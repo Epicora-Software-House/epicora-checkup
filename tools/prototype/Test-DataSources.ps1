@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Sonda de fontes de dados do Epicora Checkup. NÃO produz relatório.
 
@@ -510,8 +510,10 @@ if (-not (Test-Path $OutputPath)) { $null = New-Item -ItemType Directory -Path $
 $suffix = if ($elevated) { 'elevado' } else { 'sem-elevacao' }
 $file = Join-Path $OutputPath ("sonda_{0}_{1}_{2}.json" -f $env:COMPUTERNAME, (Get-Date -Format 'yyyyMMdd-HHmmss'), $suffix)
 
+# UTF-8 SEM BOM: Set-Content -Encoding UTF8 no 5.1 escreve COM BOM, e BOM quebra JSON.parse.
 # -Depth 10 e OBRIGATORIO: o padrao do PowerShell 5.1 e 2 e trunca em silencio.
-$document | ConvertTo-Json -Depth 10 | Set-Content -Path $file -Encoding UTF8
+$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+[IO.File]::WriteAllText($file, ($document | ConvertTo-Json -Depth 10), $utf8NoBom)
 
 $okCount = @($script:Probes.Values | Where-Object { $_.ok }).Count
 $failCount = @($script:Probes.Values).Count - $okCount
