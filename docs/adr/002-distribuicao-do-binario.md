@@ -1,10 +1,8 @@
 # ADR-002 — Distribuição do binário
 
-**Estado:** ⏸ **Pendente — decisão da direção**
+**Estado:** ✅ **Aceita — opção A, repositório público**
 **Data de abertura:** 2026-07-29
-**Prazo:** antes do início da Fase 3
-**Bloqueia:** Fase 3 (distribuição, verificação de versão, CI de release)
-**Não bloqueia:** Fases 0, 1 e 2
+**Data da decisão:** 2026-07-29
 **Referência:** doc técnico §8.2 e §11 ponto 2
 
 ## Contexto
@@ -19,23 +17,46 @@ Trilema, sem opção indolor:
 | **B. Repositório privado + PAT** | Código protegido | Token embutido no launcher **é token vazado**. Token digitado pelo técnico é atrito em cada máquina |
 | **C. Fonte privado + distribuição separada** | Código protegido e download trivial | Mais uma peça de infraestrutura para manter |
 
-## Recomendação técnica
+## Recomendação técnica original
 
-**Opção C.** Repositório de código privado no GitHub; o CI publica o binário em bucket S3 com CloudFront (a Epicora já opera AWS), atrás de uma URL curta própria. Custo mensal desprezível para um arquivo de poucos MB, e a URL fica sob controle da Epicora — o que permite revogar acesso e trocar de host sem alterar o procedimento do técnico.
+A recomendação deste ADR era a **opção C** — repositório privado com o binário publicado em S3/CloudFront sob URL própria da Epicora. A opção A foi registrada como legítima se a direção não considerasse o código um ativo a proteger.
 
-A opção A é legítima se a direção não considerar o código um ativo a proteger. **É decisão de negócio, não técnica.**
+## Decisão
 
-## O que muda no código conforme a escolha
+**Opção A — repositório público**, em `github.com/Epicora-Software-House/epicora-checkup`.
 
-- **Opção C:** verificação de versão lê um `latest.json` estático ao lado do binário. Simples, sem limite de requisição.
-- **Opção A:** verificação de versão usa a API de releases do GitHub, que tem limite para chamadas não autenticadas (a ordem de grandeza precisa ser confirmada na documentação atual). Vários técnicos atrás do mesmo IP de cliente podem esbarrar nisso.
+- Escolhida por: direção da Epicora
+- Data: 2026-07-29
+- Contexto: a decisão foi tomada no momento da publicação do repositório, com a exposição abaixo apresentada e reafirmada.
 
-Em qualquer cenário, requisito fixo: **falha na verificação de versão nunca bloqueia a execução.** Timeout de 3 segundos, erro silencioso, segue em frente.
+## Consequências aceitas
 
-## Decisão registrada
+O que passa a ser público, e é mais do que código-fonte:
 
-_A preencher quando a direção decidir._
+| O que fica visível | Por que importa |
+|---|---|
+| `docs/01-especificacao-funcional.md` §2 | Os quatro movimentos comerciais, a tensão entre otimização gratuita e venda, e a estratégia de conversão do diagnóstico |
+| `rules/*.json` — campos `clientText` | Texto de proposta pronto, que vai com pouca ou nenhuma edição para dentro da oferta ao cliente |
+| A matriz de regras inteira | O critério de avaliação da Epicora: o que ela considera risco, com que peso, e que veredito deriva disso |
+| `rules/startup-exclusions.json` | O acervo de fabricantes e sistemas que a Epicora aprendeu a proteger — conhecimento de campo acumulado |
+| Este ADR e o ADR-003 | Deliberação interna sobre proteger o código e sobre orçamento de certificado |
 
-- Escolha:
-- Quem decidiu:
-- Data:
+Um concorrente pode ler a matriz e replicar o critério de diagnóstico. Isso é conhecido e foi aceito.
+
+**A publicação é irreversível na prática.** Conteúdo no GitHub é indexado, clonado e espelhado; tornar o repositório privado depois não recupera o que já foi lido.
+
+## O que isso destrava
+
+- Download em `https://github.com/Epicora-Software-House/epicora-checkup/releases/latest/download/EpicoraCheckup.exe`, que resolve sempre para o asset mais recente sem mudar de URL. Requisito: o asset precisa ter **nome fixo entre releases**, sem número de versão no nome.
+- Nenhum Personal Access Token no caminho do técnico. Zero atrito por máquina.
+- Nenhuma infraestrutura extra para manter.
+
+## O que isso impõe ao código da Fase 3
+
+A verificação de versão passa a usar a API de releases do GitHub, que tem **limite de requisições para chamadas não autenticadas** — a ordem de grandeza precisa ser confirmada na documentação atual do GitHub antes de implementar. Vários técnicos atrás do mesmo IP de cliente podem esbarrar nisso.
+
+Requisito fixo, que já valia e continua valendo: **falha na verificação de versão nunca bloqueia a execução.** Timeout de 3 segundos, erro silencioso, segue em frente. Com o limite de requisição em jogo, isso deixa de ser cortesia e vira necessidade.
+
+## Se a decisão for revista
+
+Voltar para privado é possível e continua útil — impede *novas* leituras e futuras versões da matriz. Mas o que já foi publicado até o momento da troca deve ser considerado público para sempre. A revisão, se vier, precisa vir acompanhada de uma decisão sobre o que fazer com os `clientText` já expostos.

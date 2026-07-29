@@ -15,7 +15,9 @@ Produz, por máquina: um **inventário** completo, uma **lista de riscos** em li
 | [`docs/03-matriz-riscos-otimizacoes.md`](docs/03-matriz-riscos-otimizacoes.md) | Matriz de regras, modelo de score, textos de cliente, catálogo de otimizações |
 | [`docs/adr/`](docs/adr/) | Decisões da Fase 0, uma por arquivo |
 
-Os três documentos de especificação são a fonte de verdade. Divergência entre código e documento é bug de um dos dois — resolver, não contornar.
+Os três documentos de especificação são a fonte de verdade sobre **o que o produto é e o que ele não pode fazer**. Divergência entre código e documento é bug de um dos dois — resolver, não contornar.
+
+Sobre **decisões**, quem manda é `docs/adr/`. Os três documentos são registros datados da versão 1.0 e listam vários pontos como "pendente de decisão"; o [índice de ADRs](docs/adr/README.md) diz o que foi decidido desde então. Quando os dois discordarem, o ADR vence.
 
 ## Estrutura
 
