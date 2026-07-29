@@ -427,6 +427,46 @@ Invoke-Probe -Id 'netAdapterType' -Confidence 'M' `
 
 # ---------------------------------------------------------------- bateria
 
+Invoke-Probe -Id 'batteryRootWmi' -Confidence 'B' `
+    -Source 'Classes de bateria em root\wmi' `
+    -Question 'CONTAGEM DE CICLOS: BatteryCycleCount responde nesta maquina ou o firmware nao expoe? DesignedCapacity + FullChargedCapacity permitem calcular desgaste sem powercfg? Exige elevacao?' {
+    # Win32_Battery NAO tem contagem de ciclos em propriedade nenhuma, e devolve
+    # DesignCapacity nulo na maioria dos notebooks. Estas classes leem o driver da
+    # bateria direto, SEM escrever arquivo — diferente de powercfg /batteryreport.
+    #
+    # Cada uma depende do firmware da bateria expor o dado via
+    # IOCTL_BATTERY_QUERY_INFORMATION. Muitos fabricantes nao expoem ciclos por esse
+    # caminho e so entregam pelo utilitario proprio. E por isso que isto e SONDA:
+    # sem confirmar em varias maquinas, nao se preenche o campo no coletor.
+    $classes = @('BatteryStaticData','BatteryFullChargedCapacity','BatteryCycleCount','BatteryStatus','BatteryRuntime')
+    $out = [ordered]@{}
+    foreach ($c in $classes) {
+        try {
+            $inst = @(Get-CimInstance -Namespace 'root\wmi' -ClassName $c -ErrorAction Stop)
+            $rows = @()
+            foreach ($i in $inst) {
+                $h = [ordered]@{}
+                foreach ($p in $i.CimInstanceProperties) {
+                    # Serial da bateria nao tem valor diagnostico. ManufactureDate tem.
+                    if ($p.Name -eq 'SerialNumber' -or $p.Name -eq 'UniqueId') { continue }
+                    $h[$p.Name] = $p.Value
+                }
+                $rows += [pscustomobject]$h
+            }
+            $out[$c] = [ordered]@{ count = $inst.Count; instances = $rows }
+        }
+        catch {
+            $out[$c] = [ordered]@{ count = 0; error = $_.Exception.Message }
+        }
+    }
+    # Comparativo deliberado com o WMI classico, para provar a diferenca.
+    $out['win32Battery'] = Select-Raw (Get-CimInstance Win32_Battery -ErrorAction SilentlyContinue) `
+        @('Name','DesignCapacity','FullChargeCapacity','EstimatedChargeRemaining','DesignVoltage','Chemistry','BatteryStatus')
+    $out['win32PortableBattery'] = Select-Raw (Get-CimInstance Win32_PortableBattery -ErrorAction SilentlyContinue) `
+        @('Name','DesignCapacity','DesignVoltage','Chemistry','ManufactureDate','SmartBatteryVersion','CapacityMultiplier')
+    $out
+}
+
 if (-not $SkipBatteryReport) {
     Invoke-Probe -Id 'batteryReport' -Confidence 'M' `
         -Source 'powercfg /batteryreport + Win32_Battery' `

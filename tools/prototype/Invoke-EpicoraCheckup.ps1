@@ -103,6 +103,20 @@ function Prop { param($Obj, [string]$Name)
     return $v
 }
 function AsArray { param($x) if ($null -eq $x) { return @() } return @($x) }
+# Valor de array para o JSON. A virgula na frente do return e OBRIGATORIA: sem ela o
+# array volta pela pipeline e e desenrolado, e uma colecao de UM item vira objeto
+# solto — o JSON sai fora do schema, que exige array. Nunca escreva
+# "chave = if ($x.Count) { $x } else { $null }" no lugar disto.
+function ArrOrNull { param($x)
+    if ($null -eq $x) { return $null }
+    $a = @($x)
+    if ($a.Count -eq 0) { return $null }
+    return ,$a
+}
+function ArrOrEmpty { param($x)
+    if ($null -eq $x) { return ,@() }
+    return ,@($x)
+}
 '@
 
 <#
@@ -276,7 +290,9 @@ Invoke-Collector -Id 'machine' -DisplayName 'Identificação da máquina' -Requi
 
     # Chassi é mal preenchido por vários fabricantes. Bateria é a confirmação secundária.
     $portableCodes = @(8, 9, 10, 11, 12, 14, 18, 21, 30, 31, 32)
-    $chassisSaysLaptop = ($chassis | Where-Object { $portableCodes -contains $_ }).Count -gt 0
+    # O @() e obrigatorio: com um unico codigo de chassi, o Where-Object devolve escalar
+    # e .Count em escalar lanca excecao sob Set-StrictMode -Version 2.0.
+    $chassisSaysLaptop = @($chassis | Where-Object { $portableCodes -contains $_ }).Count -gt 0
     $hasBattery = @(Get-CimInstance Win32_Battery -ErrorAction SilentlyContinue).Count -gt 0
 
     if ($chassis.Count -eq 0) {
@@ -305,7 +321,7 @@ Invoke-Collector -Id 'machine' -DisplayName 'Identificação da máquina' -Requi
         model         = Prop $cs 'Model'
         uuid          = Prop $csp 'UUID'
         productSerial = Prop $csp 'IdentifyingNumber'
-        chassisTypes  = if ($chassis.Count) { $chassis } else { $null }
+        chassisTypes  = ArrOrNull $chassis
         chassisTypeName = $chassisName
         isLaptop      = $isLaptop
         isLaptopBasis = $basis
@@ -419,7 +435,7 @@ Invoke-Collector -Id 'memory' -DisplayName 'Memória' -RequiresElevation $false 
         freeSlots        = $freeSlots
         maxCapacityBytes = $maxCap
         speedMismatch    = if ($speeds.Count -gt 0) { $speeds.Count -gt 1 } else { $null }
-        modules          = if ($list.Count) { $list } else { $null }
+        modules          = ArrOrNull $list
     }
 } -Summary {
     param($d)
@@ -519,8 +535,8 @@ Invoke-Collector -Id 'storage' -DisplayName 'Armazenamento e saúde de disco' -R
     $winOld = Join-Path $sysDrive 'Windows.old'
 
     [ordered]@{
-        physicalDisks = if ($disks.Count) { $disks } else { $null }
-        volumes       = if ($vols.Count) { $vols } else { $null }
+        physicalDisks = ArrOrNull $disks
+        volumes       = ArrOrNull $vols
         systemDisk = if ($sysDisk) {
             [ordered]@{
                 model = $sysDisk.model; sizeBytes = $sysDisk.sizeBytes
@@ -581,7 +597,7 @@ Invoke-Collector -Id 'devices' -DisplayName 'Placa de vídeo e dispositivos' -Re
     }
 
     [ordered]@{
-        videoControllers   = if ($vids.Count) { $vids } else { $null }
+        videoControllers   = ArrOrNull $vids
         problemDevices     = $problems
         problemDeviceCount = $problems.Count
     }
@@ -698,7 +714,7 @@ Invoke-Collector -Id 'updates' -DisplayName 'Atualizações do Windows' -Require
     } catch { $wsus = $false }
 
     [ordered]@{
-        hotfixes            = if ($hf.Count) { $hf } else { $null }
+        hotfixes            = ArrOrNull $hf
         # SEMPRE true: a classe não lista atualizações cumulativas modernas.
         coverageIsPartial   = $true
         lastUpdateDate      = $last
@@ -797,7 +813,7 @@ Invoke-Collector -Id 'security' -DisplayName 'Segurança e criptografia' -Requir
                     0 { $null } 3 { 'Aes128' } 4 { 'Aes256' } 6 { 'XtsAes128' } 7 { 'XtsAes256' } default { $null } }
             }
         }
-        $bl.volumes = if ($list.Count) { $list } else { $null }
+        $bl.volumes = ArrOrNull $list
         $sys = $list | Where-Object { $_.driveLetter -eq $sysDrive } | Select-Object -First 1
         if ($sys) { $bl.systemVolumeProtected = ($sys.protectionStatus -eq 'On') }
     } catch {
@@ -907,7 +923,7 @@ Invoke-Collector -Id 'antivirus' -DisplayName 'Antivírus' -RequiresElevation $t
 
     [ordered]@{
         securityCenterAvailable = $available
-        products                = if ($products.Count) { $products } else { @() }
+        products                = ArrOrEmpty $products
         defender                = $def
         # Preenchidos na consolidação, que enxerga o coletor de software.
         securitySoftwareInInventory = $null
@@ -949,7 +965,11 @@ Invoke-Collector -Id 'software' -DisplayName 'Software instalado' -RequiresEleva
                 $iso = '{0}-{1}-{2}' -f "$idate".Substring(0,4), "$idate".Substring(4,2), "$idate".Substring(6,2)
             }
             $size = Prop $p 'EstimatedSize'
-            $progs += [ordered]@{
+            # [pscustomobject] e NAO [ordered] de proposito: Sort-Object -Property do
+            # PowerShell 5.1 nao enxerga chave de dicionario como propriedade, e com a
+            # chave de ordenacao nula o -Unique abaixo colapsaria a lista inteira em
+            # um item — falha silenciosa que destroi o inventario.
+            $progs += [pscustomobject][ordered]@{
                 displayName        = $name
                 displayVersion     = Prop $p 'DisplayVersion'
                 publisher          = Prop $p 'Publisher'
@@ -969,7 +989,11 @@ Invoke-Collector -Id 'software' -DisplayName 'Software instalado' -RequiresEleva
             $hay = "$($p.displayName) $($p.publisher)"
             foreach ($pat in $Patterns) { if ($hay -match $pat) { $hits += $p.displayName; break } }
         }
-        return @($hits | Select-Object -Unique)
+        # Dedupe manual: Select-Object -Unique com entrada vazia nao devolve array vazio
+        # no 5.1, e a virgula no return impede que a pipeline desenrole o resultado.
+        $uniq = @()
+        foreach ($h in $hits) { if ($uniq -notcontains $h) { $uniq += $h } }
+        return ,$uniq
     }
 
     $remote = MatchAny $progs @('(?i)teamviewer','(?i)anydesk','(?i)\bvnc\b','(?i)logmein','(?i)splashtop','(?i)gotoassist','(?i)ammyy','(?i)supremo','(?i)rustdesk','(?i)chrome remote desktop')
@@ -1008,7 +1032,7 @@ Invoke-Collector -Id 'software' -DisplayName 'Software instalado' -RequiresEleva
             # aguarda revisão do jurídico. Ver SW-004.
             licenseReviewCandidates = @()
         }
-        browsers         = if ($browsers.Count) { $browsers } else { $null }
+        browsers         = ArrOrNull $browsers
         outdatedBrowsers = @()
     }
 } -Summary { param($d) "$($d.count) programas instalados" }
@@ -1080,7 +1104,7 @@ Invoke-Collector -Id 'startup' -DisplayName 'Programas de inicialização' -Requ
         # Win32_StartupCommand e as chaves Run não cobrem tarefas agendadas nem
         # mecanismos modernos. Aceitável para inventário; insuficiente para a Fase 5.
         coverageIsPartial = $true
-        items = if ($items.Count) { $items } else { $null }
+        items = ArrOrNull $items
         scheduledLogonTaskCount = $tasks
     }
 } -Summary { param($d) "$($d.count) programas na inicialização" }
@@ -1124,7 +1148,9 @@ Invoke-Collector -Id 'network' -DisplayName 'Rede' -RequiresElevation $false -Sc
         $connected = ((Prop $a 'NetConnectionStatus') -eq 2)
         $ips = @(); $dns = @(); $gw = $null; $dhcp = $null
         if ($cfg) {
-            $ips  = @(AsArray (Prop $cfg 'IPAddress')) | Where-Object { $_ -notmatch '^fe80|^169\.254' }
+            # O @() envolve o Where-Object INTEIRO: com um unico IPv4 sobrevivendo ao
+            # filtro, $ips voltaria escalar e .Count lancaria excecao sob StrictMode 2.0.
+            $ips  = @(@(AsArray (Prop $cfg 'IPAddress')) | Where-Object { $_ -notmatch '^fe80|^169\.254' })
             $dns  = @(AsArray (Prop $cfg 'DNSServerSearchOrder'))
             $gw   = @(AsArray (Prop $cfg 'DefaultIPGateway'))[0]
             $dhcp = Prop $cfg 'DHCPEnabled'
@@ -1137,9 +1163,9 @@ Invoke-Collector -Id 'network' -DisplayName 'Rede' -RequiresElevation $false -Sc
             linkSpeedBps = if ($null -ne $link) { [int64]$link } else { $null }
             maxSpeedBps  = if ($null -ne $max) { [int64]$max } else { $null }
             dhcpEnabled = $dhcp
-            ipAddresses = if ($ips.Count) { $ips } else { $null }
+            ipAddresses = ArrOrNull $ips
             defaultGateway = $gw
-            dnsServers = if ($dns.Count) { $dns } else { $null }
+            dnsServers = ArrOrNull $dns
         }
         $adapters += $entry
         if ($connected -and -not $isVirtual -and $gw -and -not $primary) { $primary = $entry }
@@ -1161,7 +1187,7 @@ Invoke-Collector -Id 'network' -DisplayName 'Rede' -RequiresElevation $false -Sc
     }
 
     [ordered]@{
-        adapters = if ($adapters.Count) { $adapters } else { $null }
+        adapters = ArrOrNull $adapters
         primaryAdapterName = if ($primary) { $primary.name } else { $null }
         primaryConnectionType = if ($primary) { $primary.connectionType } else { $null }
         linkDowngraded = $downgraded
@@ -1222,7 +1248,7 @@ Invoke-Collector -Id 'accounts' -DisplayName 'Contas e privilégios' -RequiresEl
 
     [ordered]@{
         administratorsGroupResolvedBySid = $resolvedBySid
-        localAdministrators = if ($admins.Count) { $admins } else { $null }
+        localAdministrators = ArrOrNull $admins
         currentUser = [ordered]@{
             name = $id.Name
             sid = $id.User.Value
@@ -1231,7 +1257,7 @@ Invoke-Collector -Id 'accounts' -DisplayName 'Contas e privilégios' -RequiresEl
             isLocalAdmin = if ($resolvedBySid) { $groupSids -contains $adminSid } else { $null }
             isDomainAccount = if ($cs.PartOfDomain) { $id.Name -like "$($cs.Domain.Split('.')[0])\*" } else { $false }
         }
-        localAccounts = if ($locals.Count) { $locals } else { $null }
+        localAccounts = ArrOrNull $locals
         guestAccountEnabled = $guest
     }
 } -Summary {
@@ -1269,7 +1295,7 @@ Invoke-Collector -Id 'battery' -DisplayName 'Bateria' -RequiresElevation $false 
     }
     # powercfg /batteryreport escreveria arquivo. O protótipo não escreve fora da
     # pasta de saída — o parsing entra na Fase 2, depois da sonda confirmar o formato.
-    [ordered]@{ present = ($list.Count -gt 0); batteries = if ($list.Count) { $list } else { $null }
+    [ordered]@{ present = ($list.Count -gt 0); batteries = ArrOrNull $list
                 wearPercent = $wear; wearSource = $src }
 } -Summary {
     param($d)
@@ -1307,10 +1333,15 @@ if ($av) {
     if ($sw) {
         # CRUZAMENTO OBRIGATÓRIO (doc 03 §4.6): impede o pior falso positivo possível —
         # dizer "sem antivírus" para quem tem EDR corporativo que o Security Center não vê.
+        # Dedupe manual e atribuicao direta: assim a lista chega ao JSON como array
+        # mesmo com um unico item, e vazia vira [] em vez de objeto solto. Um objeto
+        # vazio aqui passaria pelo filtro de verdade e viraria um "produto" fantasma
+        # nesta lista, que e exatamente a que impede o falso positivo.
         $inv = @()
-        $inv += @($sw.classification.edrAgents)
-        $inv += @($sw.classification.antivirusProducts)
-        $av.securitySoftwareInInventory = @($inv | Where-Object { $_ } | Select-Object -Unique)
+        foreach ($n in (@($sw.classification.edrAgents) + @($sw.classification.antivirusProducts))) {
+            if ($n -is [string] -and $n.Trim() -and $inv -notcontains $n) { $inv += $n }
+        }
+        $av.securitySoftwareInInventory = $inv
     }
     if ($av.securityCenterAvailable -eq $true) {
         $av.anyProtectionDetected = (@($av.products).Count -gt 0)
