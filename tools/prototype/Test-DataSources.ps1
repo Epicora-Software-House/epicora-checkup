@@ -31,12 +31,28 @@
 #>
 [CmdletBinding()]
 param(
-    [string] $OutputPath = (Join-Path $PSScriptRoot 'EpicoraCheckup-Probes'),
+    [string] $OutputPath,
     [switch] $SkipBatteryReport
 )
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version 2.0
+
+# NAO usar $PSScriptRoot como valor padrao em param(): com "-File" ele esta vazio no
+# momento em que os parametros sao ligados, e Join-Path recusa string vazia. No corpo
+# ja esta populado; os fallbacks cobrem o caso de colar o script numa sessao interativa.
+function Get-ScriptDirectory {
+    if ($PSScriptRoot) { return $PSScriptRoot }
+    if ($MyInvocation.MyCommand -and $MyInvocation.MyCommand.Path) {
+        return (Split-Path -Parent $MyInvocation.MyCommand.Path)
+    }
+    return (Get-Location).Path
+}
+
+$script:ScriptDir = Get-ScriptDirectory
+if ([string]::IsNullOrWhiteSpace($OutputPath)) {
+    $OutputPath = Join-Path $script:ScriptDir 'EpicoraCheckup-Probes'
+}
 
 $script:Probes = [ordered]@{}
 
