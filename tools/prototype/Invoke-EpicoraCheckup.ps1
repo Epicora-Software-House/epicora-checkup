@@ -469,8 +469,13 @@ Invoke-Collector -Id 'storage' -DisplayName 'Armazenamento e saúde de disco' -R
     $disks = @()
     foreach ($d in $msft) {
         $mt = Prop $d 'MediaType'
+        # DeviceId do MSFT_PhysicalDisk vem STRING ("0"), e o schema exige inteiro.
+        # TryParse em vez de cast direto: se vier algo inesperado, fica null em vez
+        # de estourar o coletor inteiro por causa do indice.
+        $idx = $null; $idxParsed = 0
+        if ([int]::TryParse([string](Prop $d 'DeviceId'), [ref]$idxParsed)) { $idx = $idxParsed }
         $disks += [ordered]@{
-            index           = Prop $d 'DeviceId'
+            index           = $idx
             model           = Prop $d 'FriendlyName'
             serial          = if (Prop $d 'SerialNumber') { (Prop $d 'SerialNumber').Trim() } else { $null }
             sizeBytes       = Prop $d 'Size'
