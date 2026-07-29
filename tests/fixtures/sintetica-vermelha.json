@@ -1,0 +1,799 @@
+{
+  "schemaVersion": "1.0",
+  "tool": {
+    "name": "EpicoraCheckup",
+    "version": "0.1.0",
+    "commit": null,
+    "runtime": "powershell",
+    "rulesVersion": "2026.07.29"
+  },
+  "execution": {
+    "startedAt": "2026-07-29T14:03:11-03:00",
+    "finishedAt": "2026-07-29T14:04:28-03:00",
+    "durationSeconds": 77,
+    "elevated": true,
+    "technician": "Técnico Sintético",
+    "diagnosticId": "DIAG-SINT-VERMELHA",
+    "hostLocale": "pt-BR"
+  },
+  "client": {
+    "name": "Cliente Sintético",
+    "unit": "Filial"
+  },
+  "manual": {
+    "machineLabel": "SINT-VERMELHA",
+    "responsible": "Usuário Sintético",
+    "department": "Recepção",
+    "physicalLocation": "Balcão",
+    "assetTag": "PAT-00003",
+    "physicalCondition": "Muita poeira interna, ventoinha ruidosa",
+    "notes": "Fixture sintética: máquina crítica. Deve resolver veredito Substituir por múltiplas regras.",
+    "corporateEnvironment": true
+  },
+  "collectors": [
+    {
+      "id": "machine",
+      "displayName": "Identificação da máquina",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": false,
+      "durationMs": 520,
+      "timedOut": false,
+      "summary": "Desktop HP Compaq Pro 6300, aproximadamente 12 anos",
+      "errors": [],
+      "data": {
+        "hostname": "SINT-VERMELHA",
+        "domainJoined": true,
+        "domain": "sintetico.local",
+        "workgroup": null,
+        "manufacturer": "Hewlett-Packard",
+        "model": "HP Compaq Pro 6300 SFF",
+        "uuid": "00000000-0000-0000-0000-00000000r003",
+        "productSerial": "SINTVML3",
+        "chassisTypes": [
+          4
+        ],
+        "chassisTypeName": "Low Profile Desktop",
+        "isLaptop": false,
+        "isLaptopBasis": "both",
+        "bios": {
+          "manufacturer": "Hewlett-Packard",
+          "version": "K01 v03.07",
+          "serial": "SINTVML3",
+          "releaseDate": "2014-05-20"
+        },
+        "baseboard": {
+          "manufacturer": "Hewlett-Packard",
+          "product": "3397",
+          "serial": "SINTVML3-MB"
+        },
+        "approxAgeYears": 12.2,
+        "approxAgeBasis": "biosReleaseDate"
+      }
+    },
+    {
+      "id": "cpu",
+      "displayName": "Processador",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": false,
+      "durationMs": 140,
+      "timedOut": false,
+      "summary": "Intel Core i3-3220, 2 núcleos",
+      "errors": [],
+      "data": {
+        "name": "Intel(R) Core(TM) i3-3220 CPU @ 3.30GHz",
+        "normalizedName": "Intel Core i3-3220",
+        "manufacturer": "GenuineIntel",
+        "physicalCores": 2,
+        "logicalProcessors": 4,
+        "maxClockMhz": 3300,
+        "socket": "LGA1155",
+        "architecture": "x64",
+        "virtualizationFirmwareEnabled": false,
+        "win11Supported": null,
+        "win11SupportBasis": "listMissing"
+      }
+    },
+    {
+      "id": "memory",
+      "displayName": "Memória",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": false,
+      "durationMs": 230,
+      "timedOut": false,
+      "summary": "4 GB em 1 pente, 3 slots livres",
+      "errors": [],
+      "data": {
+        "totalBytes": 4294967296,
+        "totalGiB": 4,
+        "totalSlots": 4,
+        "usedSlots": 1,
+        "freeSlots": 3,
+        "maxCapacityBytes": 34359738368,
+        "speedMismatch": false,
+        "modules": [
+          {
+            "capacityBytes": 4294967296,
+            "speedMhz": 1600,
+            "configuredSpeedMhz": 1333,
+            "manufacturer": "Samsung",
+            "partNumber": "M378B5273DH0",
+            "bankLabel": "BANK 0",
+            "deviceLocator": "DIMM1",
+            "memoryTypeCode": 24,
+            "memoryTypeName": "DDR3",
+            "memoryTypeSource": "SMBIOSMemoryType"
+          }
+        ]
+      }
+    },
+    {
+      "id": "storage",
+      "displayName": "Armazenamento e saúde de disco",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": true,
+      "durationMs": 5900,
+      "timedOut": false,
+      "summary": "Disco de sistema: HDD 500 GB, 6% livre, falha prevista pelo SMART",
+      "errors": [],
+      "data": {
+        "physicalDisks": [
+          {
+            "index": 0,
+            "model": "WDC WD5000AAKX-60U6AA0",
+            "serial": "SINTVML-D0",
+            "sizeBytes": 500107862016,
+            "interfaceType": "IDE",
+            "mediaType": "HDD",
+            "mediaTypeSource": "MSFT_PhysicalDisk",
+            "busType": "SATA",
+            "healthStatus": "Warning",
+            "failurePredicted": true
+          }
+        ],
+        "volumes": [
+          {
+            "driveLetter": "C:",
+            "label": "OS",
+            "fileSystem": "NTFS",
+            "sizeBytes": 498000000000,
+            "freeBytes": 29880000000,
+            "freePercent": 6,
+            "isSystemVolume": true
+          }
+        ],
+        "systemDisk": {
+          "model": "WDC WD5000AAKX-60U6AA0",
+          "sizeBytes": 500107862016,
+          "mediaType": "HDD",
+          "busType": "SATA",
+          "healthStatus": "Warning",
+          "failurePredicted": true,
+          "trimEnabled": null,
+          "fragmentationPercent": 34,
+          "partitionStyle": "MBR"
+        },
+        "systemVolume": {
+          "driveLetter": "C:",
+          "sizeBytes": 498000000000,
+          "freeBytes": 29880000000,
+          "freePercent": 6
+        },
+        "windowsOldPresent": true,
+        "windowsOldSizeBytes": 24696061952
+      }
+    },
+    {
+      "id": "devices",
+      "displayName": "Placa de vídeo e dispositivos",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": false,
+      "durationMs": 310,
+      "timedOut": false,
+      "summary": "Intel HD Graphics 2500, 2 dispositivos com problema",
+      "errors": [],
+      "data": {
+        "videoControllers": [
+          {
+            "name": "Intel(R) HD Graphics 2500",
+            "driverVersion": "10.18.10.4358",
+            "driverDate": "2015-03-11",
+            "adapterRamBytes": 1073741824,
+            "currentResolution": "1366x768"
+          }
+        ],
+        "problemDevices": [
+          {
+            "name": "Controlador de Áudio Multimídia",
+            "deviceClass": "Unknown",
+            "configManagerErrorCode": 28,
+            "errorDescription": "Os drivers deste dispositivo não estão instalados"
+          },
+          {
+            "name": "Dispositivo PCI",
+            "deviceClass": "Unknown",
+            "configManagerErrorCode": 28,
+            "errorDescription": "Os drivers deste dispositivo não estão instalados"
+          }
+        ],
+        "problemDeviceCount": 2
+      }
+    },
+    {
+      "id": "os",
+      "displayName": "Sistema operacional e licenciamento",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": true,
+      "durationMs": 1800,
+      "timedOut": false,
+      "summary": "Windows 10 Home 22H2, não ativado",
+      "errors": [],
+      "data": {
+        "caption": "Microsoft Windows 10 Home",
+        "edition": "Core",
+        "productFamily": "Windows 10",
+        "isServer": false,
+        "isHomeEdition": true,
+        "version": "10.0.19045",
+        "buildNumber": 19045,
+        "ubr": 3803,
+        "displayVersion": "22H2",
+        "architecture": "64 bits",
+        "installDate": "2019-08-03",
+        "installAgeYears": 7,
+        "lastBootTime": "2026-05-22T08:15:00-03:00",
+        "uptimeDays": 68.2,
+        "activation": {
+          "status": "Notification",
+          "statusCode": 5,
+          "channel": "Retail"
+        },
+        "buildFreshness": {
+          "evaluated": false,
+          "reason": "tabela de builds não preenchida",
+          "latestKnownBuild": null,
+          "latestKnownUbr": null,
+          "tableValidUntil": null,
+          "isCurrent": null
+        }
+      }
+    },
+    {
+      "id": "updates",
+      "displayName": "Atualizações do Windows",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": false,
+      "durationMs": 1100,
+      "timedOut": false,
+      "summary": "Última atualização registrada há 401 dias",
+      "errors": [],
+      "data": {
+        "hotfixes": [
+          {
+            "hotfixId": "KB5039211",
+            "installedOn": "2025-06-23",
+            "description": "Security Update"
+          }
+        ],
+        "coverageIsPartial": true,
+        "lastUpdateDate": "2025-06-23",
+        "daysSinceLastUpdate": 401,
+        "windowsUpdateServiceEnabled": false,
+        "wsusConfigured": false
+      }
+    },
+    {
+      "id": "win11",
+      "displayName": "Compatibilidade com Windows 11",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": true,
+      "durationMs": 2100,
+      "timedOut": false,
+      "summary": "Não compatível com Windows 11: TPM ausente, firmware em modo legado",
+      "errors": [],
+      "data": {
+        "tpm": {
+          "present": false,
+          "specVersionRaw": null,
+          "majorVersion": null,
+          "enabled": null,
+          "activated": null
+        },
+        "secureBoot": {
+          "enabled": false,
+          "supported": false,
+          "source": "registry"
+        },
+        "firmware": {
+          "mode": "Legacy",
+          "detectionMethod": "firmware_type"
+        },
+        "requirements": {
+          "cpu": "Unknown",
+          "tpm": "Fail",
+          "secureBoot": "Fail",
+          "firmware": "Fail",
+          "ram": "Fail",
+          "storage": "Pass"
+        },
+        "eligible": false,
+        "blockers": [
+          "tpm",
+          "secureBoot",
+          "firmware",
+          "ram"
+        ],
+        "unknowns": [
+          "cpu"
+        ]
+      }
+    },
+    {
+      "id": "security",
+      "displayName": "Segurança e criptografia",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": true,
+      "durationMs": 3200,
+      "timedOut": false,
+      "summary": "Sem BitLocker, firewall desativado no perfil Público, SMBv1 ativo",
+      "errors": [],
+      "data": {
+        "bitlocker": {
+          "available": false,
+          "systemVolumeProtected": false,
+          "volumes": [
+            {
+              "driveLetter": "C:",
+              "protectionStatus": "Off",
+              "conversionStatus": "FullyDecrypted",
+              "encryptionMethod": null
+            }
+          ]
+        },
+        "firewall": {
+          "anyProfileDisabled": true,
+          "profiles": [
+            {
+              "name": "Domain",
+              "enabled": true
+            },
+            {
+              "name": "Private",
+              "enabled": true
+            },
+            {
+              "name": "Public",
+              "enabled": false
+            }
+          ]
+        },
+        "rdp": {
+          "enabled": true,
+          "nlaRequired": false,
+          "port": 3389
+        },
+        "smb1": {
+          "enabled": true,
+          "featureState": "Enabled"
+        },
+        "uac": {
+          "enabled": true,
+          "consentPromptLevel": 5
+        }
+      }
+    },
+    {
+      "id": "antivirus",
+      "displayName": "Antivírus",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": true,
+      "durationMs": 1400,
+      "timedOut": false,
+      "summary": "Nenhuma solução de segurança detectada",
+      "errors": [],
+      "data": {
+        "securityCenterAvailable": true,
+        "products": [],
+        "defender": {
+          "present": true,
+          "amServiceEnabled": false,
+          "realtimeProtectionEnabled": false,
+          "antivirusSignatureAgeDays": 388,
+          "isTamperProtected": false
+        },
+        "securitySoftwareInInventory": [],
+        "anyProtectionDetected": false,
+        "activeProductCount": 0,
+        "overallConfidence": "None",
+        "realtimeProtectionState": "Unknown",
+        "definitionsState": "Unknown"
+      }
+    },
+    {
+      "id": "software",
+      "displayName": "Software instalado",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": false,
+      "durationMs": 2400,
+      "timedOut": false,
+      "summary": "58 programas instalados",
+      "errors": [],
+      "data": {
+        "count": 58,
+        "programs": [
+          {
+            "displayName": "Google Chrome",
+            "displayVersion": "109.0.5414.120",
+            "publisher": "Google LLC",
+            "installDate": "2023-01-30",
+            "estimatedSizeBytes": 524288000,
+            "scope": "HKLM"
+          },
+          {
+            "displayName": "Java 7 Update 51",
+            "displayVersion": "7.0.510",
+            "publisher": "Oracle Corporation",
+            "installDate": "2015-02-11",
+            "estimatedSizeBytes": 132120576,
+            "scope": "HKLM-WOW6432"
+          },
+          {
+            "displayName": "Advanced SystemCare Free",
+            "displayVersion": "16.2.0",
+            "publisher": "IObit",
+            "installDate": "2024-09-18",
+            "estimatedSizeBytes": 104857600,
+            "scope": "HKLM"
+          },
+          {
+            "displayName": "TeamViewer",
+            "displayVersion": "15.28.6",
+            "publisher": "TeamViewer Germany GmbH",
+            "installDate": "2022-11-04",
+            "estimatedSizeBytes": 62914560,
+            "scope": "HKLM"
+          }
+        ],
+        "classification": {
+          "remoteAccessTools": [
+            "TeamViewer"
+          ],
+          "antivirusProducts": [],
+          "edrAgents": [],
+          "backupAgents": [],
+          "obsoleteRuntimes": [
+            "Java 7 Update 51"
+          ],
+          "potentiallyUnwanted": [
+            "Advanced SystemCare Free"
+          ],
+          "licenseReviewCandidates": []
+        },
+        "browsers": [
+          {
+            "name": "Google Chrome",
+            "version": "109.0.5414.120",
+            "latestKnownVersion": "142.0.7444.98",
+            "outdated": true
+          }
+        ],
+        "outdatedBrowsers": [
+          "Google Chrome"
+        ]
+      }
+    },
+    {
+      "id": "startup",
+      "displayName": "Programas de inicialização",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": false,
+      "durationMs": 810,
+      "timedOut": false,
+      "summary": "27 programas na inicialização",
+      "errors": [],
+      "data": {
+        "count": 27,
+        "coverageIsPartial": true,
+        "scheduledLogonTaskCount": 11,
+        "items": [
+          {
+            "name": "ASCTray",
+            "command": "C:\\Program Files (x86)\\IObit\\Advanced SystemCare\\ASCTray.exe",
+            "location": "HKLM-Run",
+            "publisher": "IObit",
+            "signed": true,
+            "enabled": true,
+            "protected": false,
+            "protectionReason": null
+          },
+          {
+            "name": "TeamViewer",
+            "command": "C:\\Program Files\\TeamViewer\\TeamViewer.exe",
+            "location": "HKLM-Run",
+            "publisher": "TeamViewer Germany GmbH",
+            "signed": true,
+            "enabled": true,
+            "protected": true,
+            "protectionReason": "Ferramenta de acesso remoto — pode ser o meio de suporte do cliente"
+          },
+          {
+            "name": "SetupApp",
+            "command": "C:\\Users\\Public\\bin\\setupapp.exe",
+            "location": "HKCU-Run",
+            "publisher": null,
+            "signed": false,
+            "enabled": true,
+            "protected": false,
+            "protectionReason": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "network",
+      "displayName": "Rede",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": false,
+      "durationMs": 610,
+      "timedOut": false,
+      "summary": "Cabo, 1 Gbps, DNS público configurado em rede com domínio",
+      "errors": [],
+      "data": {
+        "adapters": [
+          {
+            "name": "Ethernet",
+            "description": "Intel(R) 82579LM Gigabit Network Connection",
+            "macAddress": "00:00:00:00:00:03",
+            "connected": true,
+            "isVirtual": false,
+            "connectionType": "Wired",
+            "linkSpeedBps": 1000000000,
+            "maxSpeedBps": 1000000000,
+            "dhcpEnabled": false,
+            "ipAddresses": [
+              "192.168.10.199"
+            ],
+            "defaultGateway": "192.168.10.1",
+            "dnsServers": [
+              "8.8.8.8",
+              "1.1.1.1"
+            ]
+          }
+        ],
+        "primaryAdapterName": "Ethernet",
+        "linkDowngraded": false,
+        "publicDnsInDomainEnvironment": true,
+        "staticIpConfigured": true,
+        "primaryConnectionType": "Wired"
+      }
+    },
+    {
+      "id": "accounts",
+      "displayName": "Contas e privilégios",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": true,
+      "durationMs": 900,
+      "timedOut": false,
+      "summary": "Usuário do dia a dia é administrador local",
+      "errors": [],
+      "data": {
+        "administratorsGroupResolvedBySid": true,
+        "localAdministrators": [
+          {
+            "name": "SINT-VERMELHA\\Administrador",
+            "sid": "S-1-5-21-0-0-0-500",
+            "domain": "SINT-VERMELHA",
+            "principalType": "User",
+            "disabled": false
+          },
+          {
+            "name": "SINTETICO\\usuario.recepcao",
+            "sid": "S-1-5-21-0-0-0-1180",
+            "domain": "SINTETICO",
+            "principalType": "User",
+            "disabled": false
+          }
+        ],
+        "currentUser": {
+          "name": "SINTETICO\\usuario.recepcao",
+          "sid": "S-1-5-21-0-0-0-1180",
+          "isLocalAdmin": true,
+          "isDomainAccount": true
+        },
+        "localAccounts": [
+          {
+            "name": "Administrador",
+            "sid": "S-1-5-21-0-0-0-500",
+            "disabled": false,
+            "passwordRequired": true,
+            "passwordExpires": false
+          },
+          {
+            "name": "Convidado",
+            "sid": "S-1-5-21-0-0-0-501",
+            "disabled": false,
+            "passwordRequired": false,
+            "passwordExpires": false
+          }
+        ],
+        "guestAccountEnabled": true
+      }
+    },
+    {
+      "id": "battery",
+      "displayName": "Bateria",
+      "status": "Skipped",
+      "skipReason": "não aplicável — máquina sem bateria",
+      "requiresElevation": true,
+      "durationMs": 35,
+      "timedOut": false,
+      "summary": "Ignorado — desktop",
+      "errors": [],
+      "data": null
+    },
+    {
+      "id": "events",
+      "displayName": "Eventos críticos",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": false,
+      "durationMs": 6300,
+      "timedOut": false,
+      "summary": "9 desligamentos inesperados e 41 erros de disco em 30 dias",
+      "errors": [],
+      "data": {
+        "windowDays": 30,
+        "windowStartedAt": "2026-06-29T14:03:11-03:00",
+        "evaluated": true,
+        "reason": null,
+        "unexpectedShutdowns": 9,
+        "diskErrors": 41,
+        "criticalApplicationErrors": 3,
+        "matches": [
+          {
+            "category": "unexpectedShutdown",
+            "channel": "System",
+            "provider": "Microsoft-Windows-Kernel-Power",
+            "eventId": 41,
+            "count": 9,
+            "lastOccurrence": "2026-07-27T16:22:00-03:00"
+          },
+          {
+            "category": "diskError",
+            "channel": "System",
+            "provider": "disk",
+            "eventId": 7,
+            "count": 41,
+            "lastOccurrence": "2026-07-29T11:04:00-03:00"
+          },
+          {
+            "category": "criticalApplicationError",
+            "channel": "Application",
+            "provider": "Application Error",
+            "eventId": 1000,
+            "count": 3,
+            "lastOccurrence": "2026-07-25T09:47:00-03:00"
+          }
+        ]
+      }
+    }
+  ],
+  "findings": [
+    {
+      "ruleId": "OS-001",
+      "ruleVersion": 1,
+      "severity": "Critical",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 25,
+      "title": "Windows 10 — fora do suporte gratuito da Microsoft",
+      "clientText": "Esta máquina roda Windows 10, cujo suporte gratuito da Microsoft foi encerrado em outubro de 2025. Isso significa que ela deixou de receber correções de segurança pelo canal padrão. Máquinas nessa condição são alvo preferencial de ataques, porque as falhas descobertas depois do fim do suporte permanecem abertas.",
+      "recommendedAction": "Migrar para Windows 11, quando o hardware permitir, ou substituir a máquina.",
+      "evidence": {
+        "collectors.os.data.caption": "Microsoft Windows 10 Home",
+        "collectors.os.data.displayVersion": "22H2",
+        "collectors.os.data.buildNumber": 19045,
+        "collectors.win11.data.eligible": false
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "STO-002",
+      "ruleVersion": 1,
+      "severity": "Critical",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 20,
+      "title": "Espaço livre em disco abaixo de 10%",
+      "clientText": "O disco desta máquina está com menos de 10% de espaço livre. Além de causar lentidão, essa condição pode impedir a instalação de atualizações de segurança do Windows e, em casos extremos, travar a inicialização do sistema.",
+      "recommendedAction": "Liberar espaço agora e avaliar aumento de capacidade ou centralização de arquivos em servidor.",
+      "evidence": {
+        "collectors.storage.data.systemVolume.driveLetter": "C:",
+        "collectors.storage.data.systemVolume.freeBytes": 29880000000,
+        "collectors.storage.data.systemVolume.sizeBytes": 498000000000
+      },
+      "linkedOptimizations": [
+        "OPT-TEMP",
+        "OPT-WU",
+        "OPT-OLD",
+        "OPT-BIN"
+      ],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "SEC-012",
+      "ruleVersion": 1,
+      "severity": "High",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 15,
+      "title": "Nenhuma solução de backup identificada",
+      "clientText": "Não identificamos nenhuma solução de backup ativa nesta máquina. Se o disco falhar, se houver furto ou se um ransomware criptografar os arquivos, os dados armazenados localmente não têm rota de recuperação.",
+      "recommendedAction": "Definir política de backup — centralização em servidor, backup em nuvem, ou ambos.",
+      "evidence": {
+        "collectors.software.data.classification.backupAgents": [],
+        "collectors.software.data.count": 58
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "NET-001",
+      "ruleVersion": 1,
+      "severity": "Medium",
+      "state": "Compliant",
+      "indeterminateReason": null,
+      "weight": 6,
+      "title": "Adaptador gigabit negociando velocidade inferior",
+      "clientText": "A placa de rede desta máquina suporta 1 Gbps, mas está negociando velocidade inferior. Isso normalmente indica cabo danificado, conector mal crimpado ou porta de switch limitada — e resulta em lentidão perceptível no acesso a arquivos em rede, mesmo com internet rápida.",
+      "recommendedAction": "Verificar cabeamento e porta do switch.",
+      "evidence": null,
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "OS-004",
+      "ruleVersion": 1,
+      "severity": "Medium",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 8,
+      "title": "Edição Home do Windows em ambiente corporativo",
+      "clientText": "Esta máquina utiliza edição Home do Windows, que não permite ingresso em domínio, criptografia BitLocker completa nem aplicação de políticas centralizadas de segurança. Em ambiente corporativo, isso limita a padronização e o controle do parque.",
+      "recommendedAction": "Avaliar upgrade para edição Pro.",
+      "evidence": {
+        "collectors.os.data.caption": "Microsoft Windows 10 Home",
+        "collectors.os.data.edition": "Core",
+        "collectors.machine.data.domainJoined": true
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    }
+  ],
+  "score": {
+    "value": 32,
+    "band": "Red",
+    "verdict": "Keep",
+    "verdictDrivenBy": []
+  },
+  "optimization": null
+}

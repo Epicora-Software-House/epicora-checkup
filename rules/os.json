@@ -1,0 +1,204 @@
+{
+  "category": "Sistema operacional",
+  "docReference": "docs/03-matriz-riscos-otimizacoes.md §4.4",
+  "note": "OS-001 e OS-002 são mutuamente exclusivas: productFamily resolve para exatamente um valor.",
+  "rules": [
+    {
+      "id": "OS-001",
+      "version": 1,
+      "enabled": true,
+      "enabledBlockedBy": [],
+      "sourceConfidence": "A",
+      "validationNote": "ATENÇÃO EDITORIAL: o clientText NÃO menciona o programa de Extended Security Updates. O fim do suporte gratuito em 14/10/2025 é fato; as condições atuais do ESU precisam ser conferidas na página oficial da Microsoft antes de qualquer menção comercial (doc 03 §7).",
+      "category": "Sistema operacional",
+      "severity": "Critical",
+      "weight": 25,
+      "requires": ["collectors.os.data.productFamily"],
+      "indeterminateWhen": {
+        "path": "collectors.os.data.productFamily",
+        "operator": "equals",
+        "value": "Unknown"
+      },
+      "condition": {
+        "path": "collectors.os.data.productFamily",
+        "operator": "equals",
+        "value": "Windows 10"
+      },
+      "title": "Windows 10 — fora do suporte gratuito da Microsoft",
+      "clientText": "Esta máquina roda Windows 10, cujo suporte gratuito da Microsoft foi encerrado em outubro de 2025. Isso significa que ela deixou de receber correções de segurança pelo canal padrão. Máquinas nessa condição são alvo preferencial de ataques, porque as falhas descobertas depois do fim do suporte permanecem abertas.",
+      "recommendedAction": "Migrar para Windows 11, quando o hardware permitir, ou substituir a máquina.",
+      "evidenceFields": [
+        "collectors.os.data.caption",
+        "collectors.os.data.displayVersion",
+        "collectors.os.data.buildNumber",
+        "collectors.win11.data.eligible"
+      ],
+      "linkedOptimizations": [],
+      "verdictInfluence": null
+    },
+    {
+      "id": "OS-002",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText"],
+      "sourceConfidence": "A",
+      "validationNote": null,
+      "category": "Sistema operacional",
+      "severity": "Critical",
+      "weight": 30,
+      "requires": ["collectors.os.data.productFamily"],
+      "indeterminateWhen": {
+        "path": "collectors.os.data.productFamily",
+        "operator": "equals",
+        "value": "Unknown"
+      },
+      "condition": {
+        "path": "collectors.os.data.productFamily",
+        "operator": "inList",
+        "value": ["Windows 8.1", "Windows 8", "Windows 7", "Older"]
+      },
+      "title": "Windows em versão totalmente fora de suporte",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": ["collectors.os.data.caption", "collectors.os.data.buildNumber"],
+      "linkedOptimizations": [],
+      "verdictInfluence": "Replace"
+    },
+    {
+      "id": "OS-003",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText", "sourceValidation"],
+      "sourceConfidence": "M",
+      "validationNote": "SoftwareLicensingProduct pode retornar muitos registros, é lenta e exige elevação (doc 02 §4.4). Filtrar pela consulta, não em memória. Validar os valores de LicenseStatus em campo antes de habilitar.",
+      "category": "Sistema operacional",
+      "severity": "High",
+      "weight": 15,
+      "requires": ["collectors.os.data.activation.status"],
+      "indeterminateWhen": {
+        "path": "collectors.os.data.activation.status",
+        "operator": "equals",
+        "value": "Unknown"
+      },
+      "condition": {
+        "path": "collectors.os.data.activation.status",
+        "operator": "notEquals",
+        "value": "Licensed"
+      },
+      "title": "Windows não ativado",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": ["collectors.os.data.activation.status", "collectors.os.data.activation.channel"],
+      "linkedOptimizations": [],
+      "verdictInfluence": null
+    },
+    {
+      "id": "OS-004",
+      "version": 1,
+      "enabled": true,
+      "enabledBlockedBy": [],
+      "sourceConfidence": "A",
+      "validationNote": "Só dispara com indício de ambiente corporativo — máquina em domínio ou marcação manual do técnico. Sem esse contexto, gera ruído (doc 03 §4.4).",
+      "category": "Sistema operacional",
+      "severity": "Medium",
+      "weight": 8,
+      "requires": ["collectors.os.data.isHomeEdition"],
+      "indeterminateWhen": null,
+      "condition": {
+        "allOf": [
+          { "path": "collectors.os.data.isHomeEdition", "operator": "isTrue" },
+          {
+            "anyOf": [
+              { "path": "collectors.machine.data.domainJoined", "operator": "isTrue" },
+              { "path": "manual.corporateEnvironment", "operator": "isTrue" }
+            ]
+          }
+        ]
+      },
+      "title": "Edição Home do Windows em ambiente corporativo",
+      "clientText": "Esta máquina utiliza edição Home do Windows, que não permite ingresso em domínio, criptografia BitLocker completa nem aplicação de políticas centralizadas de segurança. Em ambiente corporativo, isso limita a padronização e o controle do parque.",
+      "recommendedAction": "Avaliar upgrade para edição Pro.",
+      "evidenceFields": ["collectors.os.data.caption", "collectors.os.data.edition", "collectors.machine.data.domainJoined"],
+      "linkedOptimizations": [],
+      "verdictInfluence": null
+    },
+    {
+      "id": "OS-005",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText", "sourceValidation"],
+      "sourceConfidence": "M",
+      "validationNote": "Depende de rules/windows-builds.json preenchido e dentro da validade (ADR-005). Se a tabela estiver vazia ou vencida, buildFreshness.evaluated é false e a regra resolve Indeterminate — nunca acusa máquina atualizada de estar desatualizada.",
+      "category": "Sistema operacional",
+      "severity": "High",
+      "weight": 10,
+      "requires": ["collectors.os.data.buildFreshness.evaluated"],
+      "indeterminateWhen": {
+        "path": "collectors.os.data.buildFreshness.evaluated",
+        "operator": "isFalse"
+      },
+      "condition": {
+        "path": "collectors.os.data.buildFreshness.isCurrent",
+        "operator": "isFalse"
+      },
+      "title": "Build do Windows desatualizada",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": [
+        "collectors.os.data.buildNumber",
+        "collectors.os.data.ubr",
+        "collectors.os.data.buildFreshness.latestKnownBuild"
+      ],
+      "linkedOptimizations": [],
+      "verdictInfluence": null
+    },
+    {
+      "id": "OS-006",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText"],
+      "sourceConfidence": "A",
+      "validationNote": null,
+      "category": "Sistema operacional",
+      "severity": "Low",
+      "weight": 2,
+      "requires": ["collectors.os.data.uptimeDays"],
+      "indeterminateWhen": null,
+      "condition": {
+        "path": "collectors.os.data.uptimeDays",
+        "operator": "greaterThan",
+        "value": 30
+      },
+      "title": "Máquina sem reiniciar há mais de 30 dias",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": ["collectors.os.data.lastBootTime", "collectors.os.data.uptimeDays"],
+      "linkedOptimizations": [],
+      "verdictInfluence": null
+    },
+    {
+      "id": "OS-007",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText"],
+      "sourceConfidence": "A",
+      "validationNote": null,
+      "category": "Sistema operacional",
+      "severity": "Low",
+      "weight": 3,
+      "requires": ["collectors.os.data.installAgeYears"],
+      "indeterminateWhen": null,
+      "condition": {
+        "path": "collectors.os.data.installAgeYears",
+        "operator": "greaterThan",
+        "value": 5
+      },
+      "title": "Sistema instalado há mais de 5 anos sem reinstalação",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": ["collectors.os.data.installDate"],
+      "linkedOptimizations": [],
+      "verdictInfluence": null
+    }
+  ]
+}

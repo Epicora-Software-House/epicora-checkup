@@ -1,0 +1,18 @@
+{
+  "name": "epicora-checkup-tools",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Utilitários de apoio ao Epicora Checkup: validação de schema, validação de regras, motor de regras de referência e anonimização de fixtures. Rodam no Mac do analista, não na máquina do cliente.",
+  "scripts": {
+    "check": "node tools/validate-schema.mjs && node tools/validate-rules.mjs && node tools/check-prototype.mjs",
+    "validate:schema": "node tools/validate-schema.mjs",
+    "validate:rules": "node tools/validate-rules.mjs",
+    "check:prototype": "node tools/check-prototype.mjs",
+    "evaluate": "node tools/evaluate-rules.mjs"
+  },
+  "devDependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1"
+  }
+}

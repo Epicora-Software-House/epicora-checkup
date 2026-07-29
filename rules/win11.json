@@ -1,0 +1,155 @@
+{
+  "category": "Compatibilidade com Windows 11",
+  "docReference": "docs/03-matriz-riscos-otimizacoes.md §4.5",
+  "note": "Categoria inteira depende de fontes de confiança M e B (TPM, Secure Boot, firmware). Nenhuma regra aqui pode ser habilitada antes de a sonda Test-DataSources.ps1 confirmar cada fonte em campo — em máquina com TPM 2.0, com TPM 1.2, sem TPM, e com BIOS legado.",
+  "rules": [
+    {
+      "id": "W11-001",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText", "sourceValidation"],
+      "sourceConfidence": "M",
+      "validationNote": "Win32_Tpm em root\\CIMV2\\Security\\MicrosoftTpm exige elevação. Distinguir 'TPM ausente' de 'não consegui consultar' é obrigatório — se o coletor falhar, é Indeterminate, não ausência.",
+      "category": "Compatibilidade com Windows 11",
+      "severity": "Critical",
+      "weight": 20,
+      "requires": ["collectors.win11.data.tpm.present"],
+      "indeterminateWhen": null,
+      "condition": { "path": "collectors.win11.data.tpm.present", "operator": "isFalse" },
+      "title": "TPM ausente",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": ["collectors.machine.data.model", "collectors.machine.data.approxAgeYears"],
+      "linkedOptimizations": [],
+      "verdictInfluence": "Replace"
+    },
+    {
+      "id": "W11-002",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText", "sourceValidation"],
+      "sourceConfidence": "M",
+      "validationNote": "SpecVersion vem como string com múltiplos campos separados por vírgula. Validar o parsing em máquina com TPM 1.2 real antes de habilitar.",
+      "category": "Compatibilidade com Windows 11",
+      "severity": "Critical",
+      "weight": 20,
+      "requires": ["collectors.win11.data.tpm.present", "collectors.win11.data.tpm.majorVersion"],
+      "indeterminateWhen": null,
+      "condition": {
+        "allOf": [
+          { "path": "collectors.win11.data.tpm.present", "operator": "isTrue" },
+          { "path": "collectors.win11.data.tpm.majorVersion", "operator": "lessThan", "value": 2 }
+        ]
+      },
+      "title": "TPM presente em versão inferior a 2.0",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": ["collectors.win11.data.tpm.specVersionRaw"],
+      "linkedOptimizations": [],
+      "verdictInfluence": "Replace"
+    },
+    {
+      "id": "W11-003",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText", "sourceValidation"],
+      "sourceConfidence": "M",
+      "validationNote": "Peso baixo de propósito: TPM 2.0 desativado no firmware resolve com uma visita e alguns minutos na BIOS. É achado de serviço, não de hardware. Distinguir de W11-001 é a diferença entre 'trocar a máquina' e 'habilitar uma opção'.",
+      "category": "Compatibilidade com Windows 11",
+      "severity": "High",
+      "weight": 5,
+      "requires": ["collectors.win11.data.tpm.present", "collectors.win11.data.tpm.majorVersion", "collectors.win11.data.tpm.enabled"],
+      "indeterminateWhen": null,
+      "condition": {
+        "allOf": [
+          { "path": "collectors.win11.data.tpm.present", "operator": "isTrue" },
+          { "path": "collectors.win11.data.tpm.majorVersion", "operator": "greaterThan", "value": 1.9 },
+          { "path": "collectors.win11.data.tpm.enabled", "operator": "isFalse" }
+        ]
+      },
+      "title": "TPM 2.0 presente mas desativado no firmware",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": ["collectors.win11.data.tpm.specVersionRaw", "collectors.machine.data.model"],
+      "linkedOptimizations": [],
+      "verdictInfluence": null
+    },
+    {
+      "id": "W11-004",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText", "sourceValidation"],
+      "sourceConfidence": "M",
+      "validationNote": "Só faz sentido em firmware UEFI. Em BIOS legado, Confirm-SecureBootUEFI lança exceção em vez de retornar falso — tratar a exceção, não deixar propagar (doc 02 §4.5).",
+      "category": "Compatibilidade com Windows 11",
+      "severity": "Medium",
+      "weight": 5,
+      "requires": ["collectors.win11.data.firmware.mode", "collectors.win11.data.secureBoot.enabled"],
+      "indeterminateWhen": {
+        "path": "collectors.win11.data.firmware.mode",
+        "operator": "equals",
+        "value": "Unknown"
+      },
+      "condition": {
+        "allOf": [
+          { "path": "collectors.win11.data.firmware.mode", "operator": "equals", "value": "UEFI" },
+          { "path": "collectors.win11.data.secureBoot.enabled", "operator": "isFalse" }
+        ]
+      },
+      "title": "Secure Boot desabilitado em firmware UEFI",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": ["collectors.win11.data.secureBoot.source"],
+      "linkedOptimizations": [],
+      "verdictInfluence": null
+    },
+    {
+      "id": "W11-005",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText", "sourceValidation"],
+      "sourceConfidence": "B",
+      "validationNote": "Não existe propriedade WMI direta e confiável para UEFI vs Legacy. Três caminhos candidatos (variável firmware_type, P/Invoke, estilo de partição) — prototipar na Fase 1 e escolher (doc 02 §4.5). Ação recomendada é 'avaliar conversão': BIOS legado pode virar UEFI sem reinstalar, mas é procedimento com risco e nem todo hardware suporta.",
+      "category": "Compatibilidade com Windows 11",
+      "severity": "High",
+      "weight": 10,
+      "requires": ["collectors.win11.data.firmware.mode"],
+      "indeterminateWhen": {
+        "path": "collectors.win11.data.firmware.mode",
+        "operator": "equals",
+        "value": "Unknown"
+      },
+      "condition": { "path": "collectors.win11.data.firmware.mode", "operator": "equals", "value": "Legacy" },
+      "title": "Firmware em modo BIOS legado",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": ["collectors.win11.data.firmware.detectionMethod", "collectors.storage.data.systemDisk.partitionStyle"],
+      "linkedOptimizations": [],
+      "verdictInfluence": null
+    },
+    {
+      "id": "W11-006",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText", "sourceValidation"],
+      "sourceConfidence": "M",
+      "validationNote": "REGRA AGREGADORA. Peso zero para não somar duas vezes com W11-001..005, mas carrega o veredito de substituição e produz a linha do relatório executivo: 'X das Y máquinas não migram'. eligible=null (há Unknown, nenhum Fail) resolve Indeterminate, não NonCompliant.",
+      "category": "Compatibilidade com Windows 11",
+      "severity": "Critical",
+      "weight": 0,
+      "requires": ["collectors.win11.data.eligible"],
+      "indeterminateWhen": null,
+      "condition": { "path": "collectors.win11.data.eligible", "operator": "isFalse" },
+      "title": "Máquina não atende aos requisitos do Windows 11",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": [
+        "collectors.win11.data.blockers",
+        "collectors.win11.data.unknowns",
+        "collectors.win11.data.requirements"
+      ],
+      "linkedOptimizations": [],
+      "verdictInfluence": "Replace"
+    }
+  ]
+}

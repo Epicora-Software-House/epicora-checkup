@@ -1,0 +1,68 @@
+{
+  "description": "Itens de inicialização que NÃO podem ser desativados pela Fase 5. Aparecem na tela 5 com marcação de bloqueio e não podem ser selecionados. Controle obrigatório do doc 03 §5.2, não opcional.",
+  "docReference": "docs/03-matriz-riscos-otimizacoes.md §5.2 · docs/adr/007-desativacao-de-item-de-inicializacao.md",
+  "version": 1,
+  "lastUpdated": "2026-07-29",
+  "policy": {
+    "unknownPublisherRequiresConfirmation": true,
+    "unsignedRequiresConfirmation": true,
+    "note": "Item de fabricante desconhecido ou sem assinatura digital exige confirmação adicional em diálogo separado — não é bloqueio, é atrito deliberado. Bloqueio total é só para o que está nas listas abaixo."
+  },
+  "byPublisher": [
+    { "match": "Veeam", "reason": "Agente de backup" },
+    { "match": "Acronis", "reason": "Agente de backup" },
+    { "match": "Datto", "reason": "Agente de backup e RMM" },
+    { "match": "Sophos", "reason": "Agente de EDR" },
+    { "match": "CrowdStrike", "reason": "Agente de EDR" },
+    { "match": "SentinelOne", "reason": "Agente de EDR" },
+    { "match": "Bitdefender", "reason": "Antivírus corporativo" },
+    { "match": "ESET", "reason": "Antivírus corporativo" },
+    { "match": "Kaspersky", "reason": "Antivírus corporativo" },
+    { "match": "Trend Micro", "reason": "Antivírus corporativo" },
+    { "match": "McAfee", "reason": "Antivírus corporativo" },
+    { "match": "Symantec", "reason": "Antivírus corporativo" },
+    { "match": "Broadcom", "reason": "Antivírus corporativo (Symantec)" },
+    { "match": "Fortinet", "reason": "Agente de VPN e endpoint" },
+    { "match": "Cisco", "reason": "Agente de VPN (AnyConnect)" },
+    { "match": "Palo Alto Networks", "reason": "Agente de VPN (GlobalProtect)" },
+    { "match": "SonicWall", "reason": "Agente de VPN" },
+    { "match": "WatchGuard", "reason": "Agente de VPN" },
+    { "match": "TeamViewer", "reason": "Ferramenta de acesso remoto — pode ser o meio de suporte do cliente" },
+    { "match": "AnyDesk", "reason": "Ferramenta de acesso remoto — pode ser o meio de suporte do cliente" },
+    { "match": "RealVNC", "reason": "Ferramenta de acesso remoto" },
+    { "match": "LogMeIn", "reason": "Ferramenta de acesso remoto e RMM" },
+    { "match": "NinjaOne", "reason": "Agente de RMM" },
+    { "match": "Microsoft Corporation", "reason": "Componente do sistema — avaliar caso a caso, nunca em lote" }
+  ],
+  "byProcessName": [
+    { "match": "SecurityHealthSystray.exe", "reason": "Central de Segurança do Windows" },
+    { "match": "MsMpEng.exe", "reason": "Microsoft Defender" },
+    { "match": "OneDrive.exe", "reason": "Sincronização de arquivos — desativar pode parar o backup em nuvem do usuário" },
+    { "match": "Dropbox.exe", "reason": "Sincronização de arquivos" },
+    { "match": "googledrivesync.exe", "reason": "Sincronização de arquivos" },
+    { "match": "GoogleDriveFS.exe", "reason": "Sincronização de arquivos" }
+  ],
+  "byCategory": [
+    {
+      "category": "fiscal",
+      "reason": "Driver ou serviço de equipamento fiscal — parar isso interrompe o faturamento do cliente",
+      "hints": ["Bematech", "Elgin", "Daruma", "Epson TM", "Sweda", "Control iD", "SAT", "PAF-ECF", "NF-e", "NFC-e"]
+    },
+    {
+      "category": "erp",
+      "reason": "Componente residente de ERP — o sistema de gestão pode não abrir sem ele",
+      "hints": ["TOTVS", "Protheus", "Datasul", "Sankhya", "Senior", "Linx", "Alterdata", "Domínio Sistemas", "Contmatic"]
+    },
+    {
+      "category": "banking",
+      "reason": "Módulo de segurança bancária — remover quebra o acesso ao internet banking empresarial",
+      "hints": ["Warsaw", "GbPlugin", "Topaz OFD", "Guardião"]
+    },
+    {
+      "category": "certificado",
+      "reason": "Driver de token ou cartão de certificado digital",
+      "hints": ["SafeSign", "SafeNet", "Watchdata", "Gemalto", "Certisign", "Serasa"]
+    }
+  ],
+  "fieldNote": "Esta lista cresce a cada diagnóstico. Item bloqueado indevidamente custa uma otimização perdida; item NÃO bloqueado indevidamente custa o cliente parando de faturar. A assimetria justifica errar para o lado do bloqueio."
+}

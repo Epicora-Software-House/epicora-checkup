@@ -1,0 +1,26 @@
+{
+  "description": "Build mais recente conhecida por versão do Windows. Alimenta os.buildFreshness e a regra OS-005. VAZIO — a preencher na Fase 1.",
+  "docReference": "docs/adr/005-tabela-de-builds-do-windows.md",
+  "version": 0,
+  "validUntil": null,
+  "lastUpdated": null,
+  "sources": {
+    "windows11": null,
+    "windows10": null
+  },
+  "builds": [],
+  "buildShape": {
+    "product": "Windows 11",
+    "displayVersion": "24H2",
+    "build": 26100,
+    "latestUbr": 0,
+    "servicingEol": "AAAA-MM-DD",
+    "verifiedAt": "AAAA-MM-DD"
+  },
+  "comportamentoQuandoVazioOuVencido": "os.buildFreshness.evaluated = false, com reason preenchido. A regra OS-005 resolve Indeterminate e aparece no bloco 'não foi possível verificar' do relatório. NUNCA acusa uma máquina atualizada de estar desatualizada — é a degradação segura descrita no ADR-005.",
+  "manutencao": {
+    "validadeSugerida": "90 dias a partir de cada atualização",
+    "cicloDeRevisao": "junto com a revisão da matriz de regras, a cada dez diagnósticos (doc 03 §6)",
+    "avisoAntecipado": "tools/validate-rules.mjs avisa quando faltarem menos de 30 dias para o vencimento"
+  }
+}

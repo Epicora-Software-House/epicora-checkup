@@ -1,0 +1,752 @@
+{
+  "schemaVersion": "1.0",
+  "tool": {
+    "name": "EpicoraCheckup",
+    "version": "0.1.0",
+    "commit": null,
+    "runtime": "powershell",
+    "rulesVersion": "2026.07.29"
+  },
+  "execution": {
+    "startedAt": "2026-07-29T09:12:04-03:00",
+    "finishedAt": "2026-07-29T09:13:11-03:00",
+    "durationSeconds": 67,
+    "elevated": true,
+    "technician": "Técnico Sintético",
+    "diagnosticId": "DIAG-SINT-VERDE",
+    "hostLocale": "pt-BR"
+  },
+  "client": {
+    "name": "Cliente Sintético",
+    "unit": "Matriz"
+  },
+  "manual": {
+    "machineLabel": "SINT-VERDE",
+    "responsible": "Usuário Sintético",
+    "department": "Financeiro",
+    "physicalLocation": "Sala 1",
+    "assetTag": "PAT-00001",
+    "physicalCondition": "Boa",
+    "notes": "Fixture sintética: máquina saudável. Nenhuma regra deve disparar NonCompliant.",
+    "corporateEnvironment": true
+  },
+  "collectors": [
+    {
+      "id": "machine",
+      "displayName": "Identificação da máquina",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": false,
+      "durationMs": 380,
+      "timedOut": false,
+      "summary": "Notebook Dell Latitude 5440, em domínio",
+      "errors": [],
+      "data": {
+        "hostname": "SINT-VERDE",
+        "domainJoined": true,
+        "domain": "sintetico.local",
+        "workgroup": null,
+        "manufacturer": "Dell Inc.",
+        "model": "Latitude 5440",
+        "uuid": "00000000-0000-0000-0000-00000000v001",
+        "productSerial": "SINTVRD1",
+        "chassisTypes": [
+          10
+        ],
+        "chassisTypeName": "Notebook",
+        "isLaptop": true,
+        "isLaptopBasis": "both",
+        "bios": {
+          "manufacturer": "Dell Inc.",
+          "version": "1.18.0",
+          "serial": "SINTVRD1",
+          "releaseDate": "2025-11-04"
+        },
+        "baseboard": {
+          "manufacturer": "Dell Inc.",
+          "product": "0K2TR3",
+          "serial": "SINTVRD1-MB"
+        },
+        "approxAgeYears": 0.7,
+        "approxAgeBasis": "biosReleaseDate"
+      }
+    },
+    {
+      "id": "cpu",
+      "displayName": "Processador",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": false,
+      "durationMs": 120,
+      "timedOut": false,
+      "summary": "Intel Core i5-1345U, 10 núcleos",
+      "errors": [],
+      "data": {
+        "name": "13th Gen Intel(R) Core(TM) i5-1345U",
+        "normalizedName": "Intel Core i5-1345U",
+        "manufacturer": "GenuineIntel",
+        "physicalCores": 10,
+        "logicalProcessors": 12,
+        "maxClockMhz": 4700,
+        "socket": "U3E1",
+        "architecture": "x64",
+        "virtualizationFirmwareEnabled": true,
+        "win11Supported": true,
+        "win11SupportBasis": "officialList"
+      }
+    },
+    {
+      "id": "memory",
+      "displayName": "Memória",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": false,
+      "durationMs": 210,
+      "timedOut": false,
+      "summary": "16 GB em 2 pentes, 0 slots livres",
+      "errors": [],
+      "data": {
+        "totalBytes": 17179869184,
+        "totalGiB": 16,
+        "totalSlots": 2,
+        "usedSlots": 2,
+        "freeSlots": 0,
+        "maxCapacityBytes": 68719476736,
+        "speedMismatch": false,
+        "modules": [
+          {
+            "capacityBytes": 8589934592,
+            "speedMhz": 3200,
+            "configuredSpeedMhz": 3200,
+            "manufacturer": "Micron",
+            "partNumber": "MTA8ATF1G64HZ",
+            "bankLabel": "BANK 0",
+            "deviceLocator": "DIMM A",
+            "memoryTypeCode": 26,
+            "memoryTypeName": "DDR4",
+            "memoryTypeSource": "SMBIOSMemoryType"
+          },
+          {
+            "capacityBytes": 8589934592,
+            "speedMhz": 3200,
+            "configuredSpeedMhz": 3200,
+            "manufacturer": "Micron",
+            "partNumber": "MTA8ATF1G64HZ",
+            "bankLabel": "BANK 1",
+            "deviceLocator": "DIMM B",
+            "memoryTypeCode": 26,
+            "memoryTypeName": "DDR4",
+            "memoryTypeSource": "SMBIOSMemoryType"
+          }
+        ]
+      }
+    },
+    {
+      "id": "storage",
+      "displayName": "Armazenamento e saúde de disco",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": true,
+      "durationMs": 3100,
+      "timedOut": false,
+      "summary": "Disco de sistema: SSD NVMe 512 GB, 62% livre",
+      "errors": [],
+      "data": {
+        "physicalDisks": [
+          {
+            "index": 0,
+            "model": "KXG80ZNV512G",
+            "serial": "SINTVRD-D0",
+            "sizeBytes": 512110190592,
+            "interfaceType": "SCSI",
+            "mediaType": "SSD",
+            "mediaTypeSource": "MSFT_PhysicalDisk",
+            "busType": "NVMe",
+            "healthStatus": "Healthy",
+            "failurePredicted": false
+          }
+        ],
+        "volumes": [
+          {
+            "driveLetter": "C:",
+            "label": "Windows",
+            "fileSystem": "NTFS",
+            "sizeBytes": 510000000000,
+            "freeBytes": 316200000000,
+            "freePercent": 62,
+            "isSystemVolume": true
+          }
+        ],
+        "systemDisk": {
+          "model": "KXG80ZNV512G",
+          "sizeBytes": 512110190592,
+          "mediaType": "SSD",
+          "busType": "NVMe",
+          "healthStatus": "Healthy",
+          "failurePredicted": false,
+          "trimEnabled": true,
+          "fragmentationPercent": null,
+          "partitionStyle": "GPT"
+        },
+        "systemVolume": {
+          "driveLetter": "C:",
+          "sizeBytes": 510000000000,
+          "freeBytes": 316200000000,
+          "freePercent": 62
+        },
+        "windowsOldPresent": false,
+        "windowsOldSizeBytes": null
+      }
+    },
+    {
+      "id": "devices",
+      "displayName": "Placa de vídeo e dispositivos",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": false,
+      "durationMs": 260,
+      "timedOut": false,
+      "summary": "Intel Iris Xe Graphics, nenhum dispositivo com problema",
+      "errors": [],
+      "data": {
+        "videoControllers": [
+          {
+            "name": "Intel(R) Iris(R) Xe Graphics",
+            "driverVersion": "31.0.101.5333",
+            "driverDate": "2025-09-10",
+            "adapterRamBytes": 1073741824,
+            "currentResolution": "1920x1080"
+          }
+        ],
+        "problemDevices": [],
+        "problemDeviceCount": 0
+      }
+    },
+    {
+      "id": "os",
+      "displayName": "Sistema operacional e licenciamento",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": true,
+      "durationMs": 1400,
+      "timedOut": false,
+      "summary": "Windows 11 Pro 24H2, ativado",
+      "errors": [],
+      "data": {
+        "caption": "Microsoft Windows 11 Pro",
+        "edition": "Professional",
+        "productFamily": "Windows 11",
+        "isServer": false,
+        "isHomeEdition": false,
+        "version": "10.0.26100",
+        "buildNumber": 26100,
+        "ubr": 4652,
+        "displayVersion": "24H2",
+        "architecture": "64 bits",
+        "installDate": "2025-11-20",
+        "installAgeYears": 0.7,
+        "lastBootTime": "2026-07-28T08:01:00-03:00",
+        "uptimeDays": 1.05,
+        "activation": {
+          "status": "Licensed",
+          "statusCode": 1,
+          "channel": "Volume:MAK"
+        },
+        "buildFreshness": {
+          "evaluated": true,
+          "reason": null,
+          "latestKnownBuild": 26100,
+          "latestKnownUbr": 4652,
+          "tableValidUntil": "2026-10-27",
+          "isCurrent": true
+        }
+      }
+    },
+    {
+      "id": "updates",
+      "displayName": "Atualizações do Windows",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": false,
+      "durationMs": 890,
+      "timedOut": false,
+      "summary": "Última atualização há 12 dias",
+      "errors": [],
+      "data": {
+        "hotfixes": [
+          {
+            "hotfixId": "KB5062553",
+            "installedOn": "2026-07-17",
+            "description": "Security Update"
+          }
+        ],
+        "coverageIsPartial": true,
+        "lastUpdateDate": "2026-07-17",
+        "daysSinceLastUpdate": 12,
+        "windowsUpdateServiceEnabled": true,
+        "wsusConfigured": false
+      }
+    },
+    {
+      "id": "win11",
+      "displayName": "Compatibilidade com Windows 11",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": true,
+      "durationMs": 1750,
+      "timedOut": false,
+      "summary": "Compatível com Windows 11",
+      "errors": [],
+      "data": {
+        "tpm": {
+          "present": true,
+          "specVersionRaw": "2.0, 0, 1.38",
+          "majorVersion": 2,
+          "enabled": true,
+          "activated": true
+        },
+        "secureBoot": {
+          "enabled": true,
+          "supported": true,
+          "source": "registry"
+        },
+        "firmware": {
+          "mode": "UEFI",
+          "detectionMethod": "firmware_type"
+        },
+        "requirements": {
+          "cpu": "Pass",
+          "tpm": "Pass",
+          "secureBoot": "Pass",
+          "firmware": "Pass",
+          "ram": "Pass",
+          "storage": "Pass"
+        },
+        "eligible": true,
+        "blockers": [],
+        "unknowns": []
+      }
+    },
+    {
+      "id": "security",
+      "displayName": "Segurança e criptografia",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": true,
+      "durationMs": 2400,
+      "timedOut": false,
+      "summary": "BitLocker ativo, firewall ativo nos três perfis",
+      "errors": [],
+      "data": {
+        "bitlocker": {
+          "available": true,
+          "systemVolumeProtected": true,
+          "volumes": [
+            {
+              "driveLetter": "C:",
+              "protectionStatus": "On",
+              "conversionStatus": "FullyEncrypted",
+              "encryptionMethod": "XtsAes128"
+            }
+          ]
+        },
+        "firewall": {
+          "anyProfileDisabled": false,
+          "profiles": [
+            {
+              "name": "Domain",
+              "enabled": true
+            },
+            {
+              "name": "Private",
+              "enabled": true
+            },
+            {
+              "name": "Public",
+              "enabled": true
+            }
+          ]
+        },
+        "rdp": {
+          "enabled": false,
+          "nlaRequired": null,
+          "port": null
+        },
+        "smb1": {
+          "enabled": false,
+          "featureState": "Disabled"
+        },
+        "uac": {
+          "enabled": true,
+          "consentPromptLevel": 5
+        }
+      }
+    },
+    {
+      "id": "antivirus",
+      "displayName": "Antivírus",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": true,
+      "durationMs": 1100,
+      "timedOut": false,
+      "summary": "Microsoft Defender ativo e atualizado",
+      "errors": [],
+      "data": {
+        "securityCenterAvailable": true,
+        "products": [
+          {
+            "displayName": "Microsoft Defender Antivirus",
+            "productStateRaw": 397568,
+            "productStateHex": "0x61100",
+            "timestamp": "2026-07-29T06:00:00-03:00",
+            "interpretation": {
+              "confidence": "High",
+              "enabled": "Yes",
+              "realtimeProtection": "On",
+              "definitions": "UpToDate"
+            }
+          }
+        ],
+        "defender": {
+          "present": true,
+          "amServiceEnabled": true,
+          "realtimeProtectionEnabled": true,
+          "antivirusSignatureAgeDays": 0,
+          "isTamperProtected": true
+        },
+        "securitySoftwareInInventory": [],
+        "anyProtectionDetected": true,
+        "activeProductCount": 1,
+        "overallConfidence": "High",
+        "realtimeProtectionState": "On",
+        "definitionsState": "UpToDate"
+      }
+    },
+    {
+      "id": "software",
+      "displayName": "Software instalado",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": false,
+      "durationMs": 1900,
+      "timedOut": false,
+      "summary": "74 programas instalados",
+      "errors": [],
+      "data": {
+        "count": 74,
+        "programs": [
+          {
+            "displayName": "Microsoft 365 Apps para empresas",
+            "displayVersion": "16.0.18827.20164",
+            "publisher": "Microsoft Corporation",
+            "installDate": "2025-11-21",
+            "estimatedSizeBytes": 3221225472,
+            "scope": "HKLM"
+          },
+          {
+            "displayName": "Google Chrome",
+            "displayVersion": "142.0.7444.98",
+            "publisher": "Google LLC",
+            "installDate": "2026-07-22",
+            "estimatedSizeBytes": 644245094,
+            "scope": "HKLM"
+          },
+          {
+            "displayName": "Veeam Agent for Microsoft Windows",
+            "displayVersion": "6.3.1.1104",
+            "publisher": "Veeam Software Group GmbH",
+            "installDate": "2025-11-22",
+            "estimatedSizeBytes": 419430400,
+            "scope": "HKLM"
+          }
+        ],
+        "classification": {
+          "remoteAccessTools": [],
+          "antivirusProducts": [],
+          "edrAgents": [],
+          "backupAgents": [
+            "Veeam Agent for Microsoft Windows"
+          ],
+          "obsoleteRuntimes": [],
+          "potentiallyUnwanted": [],
+          "licenseReviewCandidates": []
+        },
+        "browsers": [
+          {
+            "name": "Google Chrome",
+            "version": "142.0.7444.98",
+            "latestKnownVersion": "142.0.7444.98",
+            "outdated": false
+          }
+        ],
+        "outdatedBrowsers": []
+      }
+    },
+    {
+      "id": "startup",
+      "displayName": "Programas de inicialização",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": false,
+      "durationMs": 640,
+      "timedOut": false,
+      "summary": "8 programas na inicialização",
+      "errors": [],
+      "data": {
+        "count": 8,
+        "coverageIsPartial": true,
+        "scheduledLogonTaskCount": 3,
+        "items": [
+          {
+            "name": "SecurityHealth",
+            "command": "%windir%\\system32\\SecurityHealthSystray.exe",
+            "location": "HKLM-Run",
+            "publisher": "Microsoft Corporation",
+            "signed": true,
+            "enabled": true,
+            "protected": true,
+            "protectionReason": "Componente de segurança do Windows"
+          },
+          {
+            "name": "VeeamAgentTray",
+            "command": "C:\\Program Files\\Veeam\\Endpoint Backup\\Veeam.EndPoint.Tray.exe",
+            "location": "HKLM-Run",
+            "publisher": "Veeam Software Group GmbH",
+            "signed": true,
+            "enabled": true,
+            "protected": true,
+            "protectionReason": "Agente de backup"
+          }
+        ]
+      }
+    },
+    {
+      "id": "network",
+      "displayName": "Rede",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": false,
+      "durationMs": 520,
+      "timedOut": false,
+      "summary": "Cabo, 1 Gbps negociado",
+      "errors": [],
+      "data": {
+        "adapters": [
+          {
+            "name": "Ethernet",
+            "description": "Intel(R) Ethernet Connection I219-LM",
+            "macAddress": "00:00:00:00:00:01",
+            "connected": true,
+            "isVirtual": false,
+            "connectionType": "Wired",
+            "linkSpeedBps": 1000000000,
+            "maxSpeedBps": 1000000000,
+            "dhcpEnabled": true,
+            "ipAddresses": [
+              "192.168.10.41"
+            ],
+            "defaultGateway": "192.168.10.1",
+            "dnsServers": [
+              "192.168.10.2"
+            ]
+          }
+        ],
+        "primaryAdapterName": "Ethernet",
+        "linkDowngraded": false,
+        "publicDnsInDomainEnvironment": false,
+        "staticIpConfigured": false,
+        "primaryConnectionType": "Wired"
+      }
+    },
+    {
+      "id": "accounts",
+      "displayName": "Contas e privilégios",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": true,
+      "durationMs": 780,
+      "timedOut": false,
+      "summary": "Usuário do dia a dia é usuário padrão",
+      "errors": [],
+      "data": {
+        "administratorsGroupResolvedBySid": true,
+        "localAdministrators": [
+          {
+            "name": "SINTETICO\\Administradores de Domínio",
+            "sid": "S-1-5-21-0-0-0-512",
+            "domain": "SINTETICO",
+            "principalType": "Group",
+            "disabled": null
+          },
+          {
+            "name": "SINT-VERDE\\suporte.ti",
+            "sid": "S-1-5-21-0-0-0-1002",
+            "domain": "SINT-VERDE",
+            "principalType": "User",
+            "disabled": false
+          }
+        ],
+        "currentUser": {
+          "name": "SINTETICO\\usuario.sintetico",
+          "sid": "S-1-5-21-0-0-0-1105",
+          "isLocalAdmin": false,
+          "isDomainAccount": true
+        },
+        "localAccounts": [
+          {
+            "name": "Administrador",
+            "sid": "S-1-5-21-0-0-0-500",
+            "disabled": true,
+            "passwordRequired": true,
+            "passwordExpires": false
+          },
+          {
+            "name": "Convidado",
+            "sid": "S-1-5-21-0-0-0-501",
+            "disabled": true,
+            "passwordRequired": false,
+            "passwordExpires": false
+          }
+        ],
+        "guestAccountEnabled": false
+      }
+    },
+    {
+      "id": "battery",
+      "displayName": "Bateria",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": true,
+      "durationMs": 2900,
+      "timedOut": false,
+      "summary": "Desgaste de 4%",
+      "errors": [],
+      "data": {
+        "present": true,
+        "batteries": [
+          {
+            "name": "DELL 5M4XP0A",
+            "chemistry": "LiP",
+            "currentChargePercent": 91,
+            "designCapacityMwh": 54000,
+            "fullChargeCapacityMwh": 51840,
+            "cycleCount": 112
+          }
+        ],
+        "wearPercent": 4,
+        "wearSource": "powercfg"
+      }
+    },
+    {
+      "id": "events",
+      "displayName": "Eventos críticos",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": false,
+      "durationMs": 4200,
+      "timedOut": false,
+      "summary": "Nenhum evento crítico em 30 dias",
+      "errors": [],
+      "data": {
+        "windowDays": 30,
+        "windowStartedAt": "2026-06-29T09:12:04-03:00",
+        "evaluated": true,
+        "reason": null,
+        "unexpectedShutdowns": 0,
+        "diskErrors": 0,
+        "criticalApplicationErrors": 0,
+        "matches": []
+      }
+    }
+  ],
+  "findings": [
+    {
+      "ruleId": "OS-001",
+      "ruleVersion": 1,
+      "severity": "Critical",
+      "state": "Compliant",
+      "indeterminateReason": null,
+      "weight": 25,
+      "title": "Windows 10 — fora do suporte gratuito da Microsoft",
+      "clientText": "Esta máquina roda Windows 10, cujo suporte gratuito da Microsoft foi encerrado em outubro de 2025. Isso significa que ela deixou de receber correções de segurança pelo canal padrão. Máquinas nessa condição são alvo preferencial de ataques, porque as falhas descobertas depois do fim do suporte permanecem abertas.",
+      "recommendedAction": "Migrar para Windows 11, quando o hardware permitir, ou substituir a máquina.",
+      "evidence": null,
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "STO-002",
+      "ruleVersion": 1,
+      "severity": "Critical",
+      "state": "Compliant",
+      "indeterminateReason": null,
+      "weight": 20,
+      "title": "Espaço livre em disco abaixo de 10%",
+      "clientText": "O disco desta máquina está com menos de 10% de espaço livre. Além de causar lentidão, essa condição pode impedir a instalação de atualizações de segurança do Windows e, em casos extremos, travar a inicialização do sistema.",
+      "recommendedAction": "Liberar espaço agora e avaliar aumento de capacidade ou centralização de arquivos em servidor.",
+      "evidence": null,
+      "linkedOptimizations": [
+        "OPT-TEMP",
+        "OPT-WU",
+        "OPT-OLD",
+        "OPT-BIN"
+      ],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "SEC-012",
+      "ruleVersion": 1,
+      "severity": "High",
+      "state": "Compliant",
+      "indeterminateReason": null,
+      "weight": 15,
+      "title": "Nenhuma solução de backup identificada",
+      "clientText": "Não identificamos nenhuma solução de backup ativa nesta máquina. Se o disco falhar, se houver furto ou se um ransomware criptografar os arquivos, os dados armazenados localmente não têm rota de recuperação.",
+      "recommendedAction": "Definir política de backup — centralização em servidor, backup em nuvem, ou ambos.",
+      "evidence": null,
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "NET-001",
+      "ruleVersion": 1,
+      "severity": "Medium",
+      "state": "Compliant",
+      "indeterminateReason": null,
+      "weight": 6,
+      "title": "Adaptador gigabit negociando velocidade inferior",
+      "clientText": "A placa de rede desta máquina suporta 1 Gbps, mas está negociando velocidade inferior. Isso normalmente indica cabo danificado, conector mal crimpado ou porta de switch limitada — e resulta em lentidão perceptível no acesso a arquivos em rede, mesmo com internet rápida.",
+      "recommendedAction": "Verificar cabeamento e porta do switch.",
+      "evidence": null,
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "OS-004",
+      "ruleVersion": 1,
+      "severity": "Medium",
+      "state": "Compliant",
+      "indeterminateReason": null,
+      "weight": 8,
+      "title": "Edição Home do Windows em ambiente corporativo",
+      "clientText": "Esta máquina utiliza edição Home do Windows, que não permite ingresso em domínio, criptografia BitLocker completa nem aplicação de políticas centralizadas de segurança. Em ambiente corporativo, isso limita a padronização e o controle do parque.",
+      "recommendedAction": "Avaliar upgrade para edição Pro.",
+      "evidence": null,
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    }
+  ],
+  "score": {
+    "value": 100,
+    "band": "Green",
+    "verdict": "Keep",
+    "verdictDrivenBy": []
+  },
+  "optimization": null
+}

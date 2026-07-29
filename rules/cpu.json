@@ -1,0 +1,80 @@
+{
+  "category": "Processador",
+  "docReference": "docs/03-matriz-riscos-otimizacoes.md §4.3",
+  "rules": [
+    {
+      "id": "CPU-001",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText"],
+      "sourceConfidence": "A",
+      "validationNote": null,
+      "category": "Processador",
+      "severity": "High",
+      "weight": 15,
+      "requires": ["collectors.cpu.data.physicalCores"],
+      "indeterminateWhen": null,
+      "condition": {
+        "path": "collectors.cpu.data.physicalCores",
+        "operator": "lessThan",
+        "value": 3
+      },
+      "title": "Processador com 2 núcleos físicos ou menos",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": ["collectors.cpu.data.name", "collectors.cpu.data.physicalCores", "collectors.cpu.data.logicalProcessors"],
+      "linkedOptimizations": [],
+      "verdictInfluence": "Replace"
+    },
+    {
+      "id": "CPU-002",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText", "sourceValidation"],
+      "sourceConfidence": "M",
+      "validationNote": "Depende de rules/win11-cpu-support.json estar preenchido e dentro da validade (ADR-006). Enquanto win11SupportBasis for 'listMissing', 'listExpired' ou 'ambiguousMatch', a regra resolve Indeterminate — nunca 'não suportado'. Afirmar incompatibilidade sem base custa um cliente.",
+      "category": "Processador",
+      "severity": "Critical",
+      "weight": 20,
+      "requires": ["collectors.cpu.data.win11Supported"],
+      "indeterminateWhen": {
+        "path": "collectors.cpu.data.win11SupportBasis",
+        "operator": "notEquals",
+        "value": "officialList"
+      },
+      "condition": {
+        "path": "collectors.cpu.data.win11Supported",
+        "operator": "isFalse"
+      },
+      "title": "Processador fora da lista de suportados para Windows 11",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": ["collectors.cpu.data.name", "collectors.cpu.data.normalizedName", "collectors.cpu.data.win11SupportBasis"],
+      "linkedOptimizations": [],
+      "verdictInfluence": "Replace"
+    },
+    {
+      "id": "CPU-003",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText", "sourceValidation"],
+      "sourceConfidence": "M",
+      "validationNote": "Win32_Processor.VirtualizationFirmwareEnabled tem confiança média. Informativo, peso zero — só entra no relatório se houver contexto de virtualização.",
+      "category": "Processador",
+      "severity": "Info",
+      "weight": 0,
+      "requires": ["collectors.cpu.data.virtualizationFirmwareEnabled"],
+      "indeterminateWhen": null,
+      "condition": {
+        "path": "collectors.cpu.data.virtualizationFirmwareEnabled",
+        "operator": "isFalse"
+      },
+      "title": "Virtualização desabilitada no firmware",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": ["collectors.cpu.data.name"],
+      "linkedOptimizations": [],
+      "verdictInfluence": null
+    }
+  ]
+}

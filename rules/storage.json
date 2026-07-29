@@ -1,0 +1,243 @@
+{
+  "category": "Armazenamento",
+  "docReference": "docs/03-matriz-riscos-otimizacoes.md §4.1",
+  "rules": [
+    {
+      "id": "STO-001",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["sourceValidation"],
+      "sourceConfidence": "M",
+      "validationNote": "MSFT_PhysicalDisk.MediaType em root\\Microsoft\\Windows\\Storage — confirmar nomes de propriedade e valores enumerados em campo (doc 02 §4.3). NUNCA usar Win32_DiskDrive.MediaType, que retorna 'Fixed hard disk media' também para SSD.",
+      "category": "Armazenamento",
+      "severity": "Critical",
+      "weight": 25,
+      "requires": ["collectors.storage.data.systemDisk.mediaType"],
+      "indeterminateWhen": {
+        "path": "collectors.storage.data.systemDisk.mediaType",
+        "operator": "equals",
+        "value": "Unknown"
+      },
+      "condition": {
+        "path": "collectors.storage.data.systemDisk.mediaType",
+        "operator": "equals",
+        "value": "HDD"
+      },
+      "title": "Disco de sistema é HDD",
+      "clientText": "Esta máquina utiliza um disco rígido mecânico (HDD) como disco principal. Essa é, na prática, a maior causa de lentidão em computadores que ainda têm processador e memória adequados. A substituição por um disco SSD costuma reduzir de forma expressiva o tempo de inicialização e de abertura de programas, com custo baixo em relação ao ganho.",
+      "recommendedAction": "Substituir o disco de sistema por SSD e migrar o sistema operacional.",
+      "evidenceFields": [
+        "collectors.storage.data.systemDisk.model",
+        "collectors.storage.data.systemDisk.sizeBytes",
+        "collectors.storage.data.systemDisk.busType"
+      ],
+      "linkedOptimizations": [],
+      "verdictInfluence": "Replace"
+    },
+    {
+      "id": "STO-002",
+      "version": 1,
+      "enabled": true,
+      "enabledBlockedBy": [],
+      "sourceConfidence": "A",
+      "validationNote": null,
+      "category": "Armazenamento",
+      "severity": "Critical",
+      "weight": 20,
+      "requires": ["collectors.storage.data.systemVolume.freePercent"],
+      "indeterminateWhen": null,
+      "condition": {
+        "path": "collectors.storage.data.systemVolume.freePercent",
+        "operator": "lessThan",
+        "value": 10
+      },
+      "title": "Espaço livre em disco abaixo de 10%",
+      "clientText": "O disco desta máquina está com menos de 10% de espaço livre. Além de causar lentidão, essa condição pode impedir a instalação de atualizações de segurança do Windows e, em casos extremos, travar a inicialização do sistema.",
+      "recommendedAction": "Liberar espaço agora e avaliar aumento de capacidade ou centralização de arquivos em servidor.",
+      "evidenceFields": [
+        "collectors.storage.data.systemVolume.driveLetter",
+        "collectors.storage.data.systemVolume.freeBytes",
+        "collectors.storage.data.systemVolume.sizeBytes"
+      ],
+      "linkedOptimizations": ["OPT-TEMP", "OPT-WU", "OPT-OLD", "OPT-BIN"],
+      "verdictInfluence": null
+    },
+    {
+      "id": "STO-003",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText"],
+      "sourceConfidence": "A",
+      "validationNote": null,
+      "category": "Armazenamento",
+      "severity": "High",
+      "weight": 10,
+      "requires": ["collectors.storage.data.systemVolume.freePercent"],
+      "indeterminateWhen": null,
+      "condition": {
+        "allOf": [
+          { "path": "collectors.storage.data.systemVolume.freePercent", "operator": "greaterThan", "value": 9.9999 },
+          { "path": "collectors.storage.data.systemVolume.freePercent", "operator": "lessThan", "value": 20 }
+        ]
+      },
+      "title": "Espaço livre em disco entre 10% e 20%",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": [
+        "collectors.storage.data.systemVolume.driveLetter",
+        "collectors.storage.data.systemVolume.freeBytes"
+      ],
+      "linkedOptimizations": ["OPT-TEMP", "OPT-WU"],
+      "verdictInfluence": null
+    },
+    {
+      "id": "STO-004",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["sourceValidation"],
+      "sourceConfidence": "M",
+      "validationNote": "MSStorageDriver_FailurePredictStatus em root\\wmi — exige elevação e não responde em todo controlador. Validar em campo, inclusive em máquina com RAID e com NVMe.",
+      "category": "Armazenamento",
+      "severity": "Critical",
+      "weight": 30,
+      "requires": ["collectors.storage.data.systemDisk.failurePredicted"],
+      "indeterminateWhen": null,
+      "condition": {
+        "path": "collectors.storage.data.systemDisk.failurePredicted",
+        "operator": "isTrue"
+      },
+      "title": "Disco reporta previsão de falha",
+      "clientText": "O próprio disco desta máquina está reportando previsão de falha. Isso indica risco concreto e imediato de perda de dados. O disco deve ser substituído e os dados copiados antes disso, com prioridade sobre qualquer outra ação nesta máquina.",
+      "recommendedAction": "Backup imediato dos dados e substituição do disco.",
+      "evidenceFields": [
+        "collectors.storage.data.systemDisk.model",
+        "collectors.storage.data.systemDisk.healthStatus",
+        "collectors.events.data.diskErrors"
+      ],
+      "linkedOptimizations": [],
+      "verdictInfluence": "Replace"
+    },
+    {
+      "id": "STO-005",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText", "sourceValidation"],
+      "sourceConfidence": "M",
+      "validationNote": "MSFT_PhysicalDisk.HealthStatus — confirmar valores enumerados reais em campo.",
+      "category": "Armazenamento",
+      "severity": "High",
+      "weight": 15,
+      "requires": ["collectors.storage.data.systemDisk.healthStatus"],
+      "indeterminateWhen": {
+        "path": "collectors.storage.data.systemDisk.healthStatus",
+        "operator": "equals",
+        "value": "Unknown"
+      },
+      "condition": {
+        "path": "collectors.storage.data.systemDisk.healthStatus",
+        "operator": "notEquals",
+        "value": "Healthy"
+      },
+      "title": "Estado de saúde do disco diferente de saudável",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": [
+        "collectors.storage.data.systemDisk.model",
+        "collectors.storage.data.systemDisk.healthStatus"
+      ],
+      "linkedOptimizations": [],
+      "verdictInfluence": null
+    },
+    {
+      "id": "STO-006",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText", "sourceValidation"],
+      "sourceConfidence": "B",
+      "validationNote": "Detecção do estado do TRIM tem confiança baixa. Doc 03 §4.1: se não for confiável, manter desabilitada na v1 em vez de arriscar falso positivo por um achado de peso 3.",
+      "category": "Armazenamento",
+      "severity": "Low",
+      "weight": 3,
+      "requires": [
+        "collectors.storage.data.systemDisk.mediaType",
+        "collectors.storage.data.systemDisk.trimEnabled"
+      ],
+      "indeterminateWhen": {
+        "path": "collectors.storage.data.systemDisk.mediaType",
+        "operator": "equals",
+        "value": "Unknown"
+      },
+      "condition": {
+        "allOf": [
+          { "path": "collectors.storage.data.systemDisk.mediaType", "operator": "equals", "value": "SSD" },
+          { "path": "collectors.storage.data.systemDisk.trimEnabled", "operator": "isFalse" }
+        ]
+      },
+      "title": "SSD sem TRIM habilitado",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": ["collectors.storage.data.systemDisk.model"],
+      "linkedOptimizations": ["OPT-TRIM"],
+      "verdictInfluence": null
+    },
+    {
+      "id": "STO-007",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText", "sourceValidation"],
+      "sourceConfidence": "M",
+      "validationNote": "Percentual de fragmentação exige análise de volume, que é operação lenta. Medir custo de tempo em campo antes de habilitar — a meta de 90 s vale mais que um achado de peso 3.",
+      "category": "Armazenamento",
+      "severity": "Low",
+      "weight": 3,
+      "requires": [
+        "collectors.storage.data.systemDisk.mediaType",
+        "collectors.storage.data.systemDisk.fragmentationPercent"
+      ],
+      "indeterminateWhen": {
+        "path": "collectors.storage.data.systemDisk.mediaType",
+        "operator": "equals",
+        "value": "Unknown"
+      },
+      "condition": {
+        "allOf": [
+          { "path": "collectors.storage.data.systemDisk.mediaType", "operator": "equals", "value": "HDD" },
+          { "path": "collectors.storage.data.systemDisk.fragmentationPercent", "operator": "greaterThan", "value": 15 }
+        ]
+      },
+      "title": "HDD com fragmentação relevante",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": ["collectors.storage.data.systemDisk.fragmentationPercent"],
+      "linkedOptimizations": ["OPT-DEFRAG"],
+      "verdictInfluence": null
+    },
+    {
+      "id": "STO-008",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText"],
+      "sourceConfidence": "A",
+      "validationNote": null,
+      "category": "Armazenamento",
+      "severity": "Medium",
+      "weight": 6,
+      "requires": ["collectors.storage.data.systemDisk.sizeBytes"],
+      "indeterminateWhen": null,
+      "condition": {
+        "path": "collectors.storage.data.systemDisk.sizeBytes",
+        "operator": "lessThan",
+        "value": 240000000000
+      },
+      "title": "Capacidade do disco de sistema abaixo de 240 GB",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": [
+        "collectors.storage.data.systemDisk.model",
+        "collectors.storage.data.systemDisk.sizeBytes"
+      ],
+      "linkedOptimizations": [],
+      "verdictInfluence": "Upgrade"
+    }
+  ]
+}

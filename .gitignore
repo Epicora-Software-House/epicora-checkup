@@ -1,0 +1,22 @@
+# Build .NET (Fase 2+)
+bin/
+obj/
+*.user
+*.suo
+.vs/
+
+# Saída de execução do coletor — nunca comitar dado de cliente bruto
+EpicoraCheckup/
+tests/probes/*.json
+!tests/probes/.gitkeep
+!tests/probes/EXEMPLO-*.json
+
+# Fixtures precisam passar pelo anonimizador antes do commit.
+# Arquivos com sufixo -raw são a saída direta da máquina e ficam de fora.
+tests/fixtures/*-raw.json
+
+# macOS
+.DS_Store
+
+# Node
+node_modules/

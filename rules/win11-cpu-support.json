@@ -1,0 +1,34 @@
+{
+  "description": "Processadores suportados para Windows 11, por fabricante. Alimenta cpu.win11Supported e a regra CPU-002. VAZIO — a preencher na Fase 1.",
+  "docReference": "docs/adr/006-lista-de-cpus-windows-11.md",
+  "version": 0,
+  "validUntil": null,
+  "lastUpdated": null,
+  "sources": {
+    "intel": null,
+    "amd": null,
+    "qualcomm": null
+  },
+  "supported": {
+    "intel": [],
+    "amd": [],
+    "qualcomm": []
+  },
+  "normalizacao": {
+    "descricao": "A parte difícil não é a lista, é o casamento. Win32_Processor.Name vem com formatação inconsistente entre fabricantes.",
+    "regras": [
+      "remover (R), (TM), (C) e variações",
+      "remover sufixos de clock: 'CPU @ 3.30GHz', '@ 1.70GHz'",
+      "remover prefixos de geração: '13th Gen', '12th Gen'",
+      "colapsar espaços múltiplos e aparar as pontas",
+      "comparar em minúsculas"
+    ],
+    "exemplos": [
+      { "bruto": "Intel(R) Core(TM) i5-8400T CPU @ 1.70GHz", "normalizado": "intel core i5-8400t" },
+      { "bruto": "13th Gen Intel(R) Core(TM) i5-1345U", "normalizado": "intel core i5-1345u" },
+      { "bruto": "AMD Ryzen 5 5600G with Radeon Graphics", "normalizado": "amd ryzen 5 5600g" }
+    ]
+  },
+  "comportamentoQuandoVazioOuVencido": "cpu.win11SupportBasis recebe 'listMissing' ou 'listExpired', win11Supported fica null, e CPU-002 resolve Indeterminate. O relatório declara no bloco 'não foi possível verificar': 'A compatibilidade do processador com o Windows 11 não foi avaliada por esta ferramenta.'",
+  "regraDeOuro": "Quando o casamento de nome não for inequívoco, o resultado é 'ambiguousMatch' e a regra resolve Indeterminate. NUNCA 'não suportado'. Vale o mesmo princípio da interpretação do estado de antivírus: na dúvida, 'não sei'. O casamento precisa ser testado contra os nomes de CPU reais colhidos na Fase 1, não contra nomes inventados."
+}

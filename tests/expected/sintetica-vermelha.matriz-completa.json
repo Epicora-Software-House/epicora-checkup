@@ -1,0 +1,1280 @@
+{
+  "findings": [
+    {
+      "ruleId": "CPU-002",
+      "ruleVersion": 1,
+      "severity": "Critical",
+      "state": "Indeterminate",
+      "indeterminateReason": "dado não disponível: collectors.cpu.data.win11Supported",
+      "weight": 20,
+      "title": "Processador fora da lista de suportados para Windows 11",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": null,
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "EST-002",
+      "ruleVersion": 1,
+      "severity": "Critical",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 20,
+      "title": "Erros de disco no log de eventos",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": {
+        "collectors.events.data.diskErrors": 41,
+        "collectors.events.data.matches": [
+          {
+            "category": "unexpectedShutdown",
+            "channel": "System",
+            "provider": "Microsoft-Windows-Kernel-Power",
+            "eventId": 41,
+            "count": 9,
+            "lastOccurrence": "2026-07-27T16:22:00-03:00"
+          },
+          {
+            "category": "diskError",
+            "channel": "System",
+            "provider": "disk",
+            "eventId": 7,
+            "count": 41,
+            "lastOccurrence": "2026-07-29T11:04:00-03:00"
+          },
+          {
+            "category": "criticalApplicationError",
+            "channel": "Application",
+            "provider": "Application Error",
+            "eventId": 1000,
+            "count": 3,
+            "lastOccurrence": "2026-07-25T09:47:00-03:00"
+          }
+        ],
+        "collectors.storage.data.systemDisk.failurePredicted": true,
+        "collectors.storage.data.systemDisk.healthStatus": "Warning"
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "MEM-001",
+      "ruleVersion": 1,
+      "severity": "Critical",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 20,
+      "title": "Memória RAM de 4 GB ou menos",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": {
+        "collectors.memory.data.totalBytes": 4294967296,
+        "collectors.memory.data.freeSlots": 3
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "OS-001",
+      "ruleVersion": 1,
+      "severity": "Critical",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 25,
+      "title": "Windows 10 — fora do suporte gratuito da Microsoft",
+      "clientText": "Esta máquina roda Windows 10, cujo suporte gratuito da Microsoft foi encerrado em outubro de 2025. Isso significa que ela deixou de receber correções de segurança pelo canal padrão. Máquinas nessa condição são alvo preferencial de ataques, porque as falhas descobertas depois do fim do suporte permanecem abertas.",
+      "recommendedAction": "Migrar para Windows 11, quando o hardware permitir, ou substituir a máquina.",
+      "evidence": {
+        "collectors.os.data.caption": "Microsoft Windows 10 Home",
+        "collectors.os.data.displayVersion": "22H2",
+        "collectors.os.data.buildNumber": 19045,
+        "collectors.win11.data.eligible": false
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "OS-002",
+      "ruleVersion": 1,
+      "severity": "Critical",
+      "state": "Compliant",
+      "indeterminateReason": null,
+      "weight": 30,
+      "title": "Windows em versão totalmente fora de suporte",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": null,
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "SEC-001",
+      "ruleVersion": 1,
+      "severity": "Critical",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 25,
+      "title": "Nenhuma solução de segurança detectada",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": {
+        "collectors.antivirus.data.securityCenterAvailable": true,
+        "collectors.antivirus.data.securitySoftwareInInventory": [],
+        "collectors.antivirus.data.defender.amServiceEnabled": false
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "SEC-002",
+      "ruleVersion": 1,
+      "severity": "Critical",
+      "state": "Indeterminate",
+      "indeterminateReason": "condição de indeterminação atendida — Guard obrigatório em overallConfidence",
+      "weight": 20,
+      "title": "Antivírus com definições desatualizadas",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": null,
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "SEC-003",
+      "ruleVersion": 1,
+      "severity": "Critical",
+      "state": "Indeterminate",
+      "indeterminateReason": "condição de indeterminação atendida — Mesmo guard de SEC-002",
+      "weight": 25,
+      "title": "Proteção em tempo real desabilitada",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": null,
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "STO-001",
+      "ruleVersion": 1,
+      "severity": "Critical",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 25,
+      "title": "Disco de sistema é HDD",
+      "clientText": "Esta máquina utiliza um disco rígido mecânico (HDD) como disco principal. Essa é, na prática, a maior causa de lentidão em computadores que ainda têm processador e memória adequados. A substituição por um disco SSD costuma reduzir de forma expressiva o tempo de inicialização e de abertura de programas, com custo baixo em relação ao ganho.",
+      "recommendedAction": "Substituir o disco de sistema por SSD e migrar o sistema operacional.",
+      "evidence": {
+        "collectors.storage.data.systemDisk.model": "WDC WD5000AAKX-60U6AA0",
+        "collectors.storage.data.systemDisk.sizeBytes": 500107862016,
+        "collectors.storage.data.systemDisk.busType": "SATA"
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "STO-002",
+      "ruleVersion": 1,
+      "severity": "Critical",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 20,
+      "title": "Espaço livre em disco abaixo de 10%",
+      "clientText": "O disco desta máquina está com menos de 10% de espaço livre. Além de causar lentidão, essa condição pode impedir a instalação de atualizações de segurança do Windows e, em casos extremos, travar a inicialização do sistema.",
+      "recommendedAction": "Liberar espaço agora e avaliar aumento de capacidade ou centralização de arquivos em servidor.",
+      "evidence": {
+        "collectors.storage.data.systemVolume.driveLetter": "C:",
+        "collectors.storage.data.systemVolume.freeBytes": 29880000000,
+        "collectors.storage.data.systemVolume.sizeBytes": 498000000000
+      },
+      "linkedOptimizations": [
+        "OPT-TEMP",
+        "OPT-WU",
+        "OPT-OLD",
+        "OPT-BIN"
+      ],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "STO-004",
+      "ruleVersion": 1,
+      "severity": "Critical",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 30,
+      "title": "Disco reporta previsão de falha",
+      "clientText": "O próprio disco desta máquina está reportando previsão de falha. Isso indica risco concreto e imediato de perda de dados. O disco deve ser substituído e os dados copiados antes disso, com prioridade sobre qualquer outra ação nesta máquina.",
+      "recommendedAction": "Backup imediato dos dados e substituição do disco.",
+      "evidence": {
+        "collectors.storage.data.systemDisk.model": "WDC WD5000AAKX-60U6AA0",
+        "collectors.storage.data.systemDisk.healthStatus": "Warning",
+        "collectors.events.data.diskErrors": 41
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "W11-001",
+      "ruleVersion": 1,
+      "severity": "Critical",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 20,
+      "title": "TPM ausente",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": {
+        "collectors.machine.data.model": "HP Compaq Pro 6300 SFF",
+        "collectors.machine.data.approxAgeYears": 12.2
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "W11-002",
+      "ruleVersion": 1,
+      "severity": "Critical",
+      "state": "Indeterminate",
+      "indeterminateReason": "dado não disponível: collectors.win11.data.tpm.majorVersion",
+      "weight": 20,
+      "title": "TPM presente em versão inferior a 2.0",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": null,
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "W11-006",
+      "ruleVersion": 1,
+      "severity": "Critical",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 0,
+      "title": "Máquina não atende aos requisitos do Windows 11",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": {
+        "collectors.win11.data.blockers": [
+          "tpm",
+          "secureBoot",
+          "firmware",
+          "ram"
+        ],
+        "collectors.win11.data.unknowns": [
+          "cpu"
+        ],
+        "collectors.win11.data.requirements": {
+          "cpu": "Unknown",
+          "tpm": "Fail",
+          "secureBoot": "Fail",
+          "firmware": "Fail",
+          "ram": "Fail",
+          "storage": "Pass"
+        }
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "CPU-001",
+      "ruleVersion": 1,
+      "severity": "High",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 15,
+      "title": "Processador com 2 núcleos físicos ou menos",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": {
+        "collectors.cpu.data.name": "Intel(R) Core(TM) i3-3220 CPU @ 3.30GHz",
+        "collectors.cpu.data.physicalCores": 2,
+        "collectors.cpu.data.logicalProcessors": 4
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "EST-001",
+      "ruleVersion": 1,
+      "severity": "High",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 12,
+      "title": "Desligamentos inesperados nos últimos 30 dias",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": {
+        "collectors.events.data.unexpectedShutdowns": 9,
+        "collectors.events.data.matches": [
+          {
+            "category": "unexpectedShutdown",
+            "channel": "System",
+            "provider": "Microsoft-Windows-Kernel-Power",
+            "eventId": 41,
+            "count": 9,
+            "lastOccurrence": "2026-07-27T16:22:00-03:00"
+          },
+          {
+            "category": "diskError",
+            "channel": "System",
+            "provider": "disk",
+            "eventId": 7,
+            "count": 41,
+            "lastOccurrence": "2026-07-29T11:04:00-03:00"
+          },
+          {
+            "category": "criticalApplicationError",
+            "channel": "Application",
+            "provider": "Application Error",
+            "eventId": 1000,
+            "count": 3,
+            "lastOccurrence": "2026-07-25T09:47:00-03:00"
+          }
+        ]
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "HW-002",
+      "ruleVersion": 1,
+      "severity": "High",
+      "state": "Indeterminate",
+      "indeterminateReason": "coletor \"Bateria\" ignorado — não aplicável — máquina sem bateria",
+      "weight": 12,
+      "title": "Desgaste de bateria acima de 50%",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": null,
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "HW-005",
+      "ruleVersion": 1,
+      "severity": "High",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 15,
+      "title": "Máquina com aproximadamente mais de 10 anos",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": {
+        "collectors.machine.data.bios.releaseDate": "2014-05-20",
+        "collectors.machine.data.manufacturer": "Hewlett-Packard",
+        "collectors.machine.data.model": "HP Compaq Pro 6300 SFF"
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "MEM-002",
+      "ruleVersion": 1,
+      "severity": "High",
+      "state": "Compliant",
+      "indeterminateReason": null,
+      "weight": 12,
+      "title": "Memória RAM de 8 GB ou menos, slots não verificados",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": null,
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "MEM-003",
+      "ruleVersion": 1,
+      "severity": "High",
+      "state": "Compliant",
+      "indeterminateReason": null,
+      "weight": 12,
+      "title": "Memória RAM de 8 GB com slot livre disponível",
+      "clientText": "Esta máquina possui 8 GB de memória, quantidade que hoje limita o uso simultâneo de navegador, sistema de gestão e planilhas. Verificamos que ela tem slot de memória livre, o que permite ampliar a capacidade sem substituir o computador — é o upgrade com melhor relação custo-benefício disponível nesta máquina.",
+      "recommendedAction": "Instalar módulo adicional de memória compatível.",
+      "evidence": null,
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "MEM-004",
+      "ruleVersion": 1,
+      "severity": "High",
+      "state": "Compliant",
+      "indeterminateReason": null,
+      "weight": 14,
+      "title": "Memória RAM de 8 GB sem slot livre",
+      "clientText": "Esta máquina possui 8 GB de memória e todos os slots já estão ocupados. Ampliar a memória exigiria substituir os módulos existentes, o que reduz muito o benefício do investimento. Considerando o conjunto, a substituição da máquina tende a ser mais vantajosa.",
+      "recommendedAction": "Avaliar substituição da máquina.",
+      "evidence": null,
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "OS-003",
+      "ruleVersion": 1,
+      "severity": "High",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 15,
+      "title": "Windows não ativado",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": {
+        "collectors.os.data.activation.status": "Notification",
+        "collectors.os.data.activation.channel": "Retail"
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "OS-005",
+      "ruleVersion": 1,
+      "severity": "High",
+      "state": "Indeterminate",
+      "indeterminateReason": "condição de indeterminação atendida — Depende de rules/windows-builds",
+      "weight": 10,
+      "title": "Build do Windows desatualizada",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": null,
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "SEC-004",
+      "ruleVersion": 1,
+      "severity": "High",
+      "state": "Compliant",
+      "indeterminateReason": null,
+      "weight": 15,
+      "title": "Notebook sem criptografia de disco",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": null,
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "SEC-006",
+      "ruleVersion": 1,
+      "severity": "High",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 12,
+      "title": "Firewall desabilitado em algum perfil",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": {
+        "collectors.security.data.firewall.profiles": [
+          {
+            "name": "Domain",
+            "enabled": true
+          },
+          {
+            "name": "Private",
+            "enabled": true
+          },
+          {
+            "name": "Public",
+            "enabled": false
+          }
+        ]
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "SEC-007",
+      "ruleVersion": 1,
+      "severity": "High",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 12,
+      "title": "Usuário do dia a dia é administrador local",
+      "clientText": "O usuário que utiliza esta máquina no dia a dia possui privilégio de administrador. Isso significa que qualquer programa executado por ele — inclusive um anexo malicioso aberto por engano — pode alterar o sistema, desativar a proteção e se instalar de forma permanente. Separar a conta de uso diário da conta administrativa é uma das medidas de maior efeito e menor custo em segurança de estações de trabalho.",
+      "recommendedAction": "Criar conta administrativa separada e reduzir o usuário do dia a dia a usuário padrão.",
+      "evidence": {
+        "collectors.accounts.data.currentUser.name": "SINTETICO\\usuario.recepcao",
+        "collectors.accounts.data.localAdministrators": [
+          {
+            "name": "SINT-VERMELHA\\Administrador",
+            "sid": "S-1-5-21-0-0-0-500",
+            "domain": "SINT-VERMELHA",
+            "principalType": "User",
+            "disabled": false
+          },
+          {
+            "name": "SINTETICO\\usuario.recepcao",
+            "sid": "S-1-5-21-0-0-0-1180",
+            "domain": "SINTETICO",
+            "principalType": "User",
+            "disabled": false
+          }
+        ]
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "SEC-008",
+      "ruleVersion": 1,
+      "severity": "High",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 15,
+      "title": "Protocolo SMBv1 habilitado",
+      "clientText": "Esta máquina tem o protocolo SMBv1 habilitado. Trata-se de um protocolo de compartilhamento de arquivos antigo, com falhas conhecidas e exploradas por famílias de ransomware. A própria Microsoft recomenda desabilitá-lo.",
+      "recommendedAction": "Desabilitar SMBv1 após confirmar que nenhum equipamento antigo da rede depende dele.",
+      "evidence": {
+        "collectors.security.data.smb1.featureState": "Enabled"
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "SEC-010",
+      "ruleVersion": 1,
+      "severity": "High",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 12,
+      "title": "Sem atualização de segurança registrada nos últimos 90 dias",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": {
+        "collectors.updates.data.lastUpdateDate": "2025-06-23",
+        "collectors.updates.data.windowsUpdateServiceEnabled": false,
+        "collectors.updates.data.coverageIsPartial": true
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "SEC-012",
+      "ruleVersion": 1,
+      "severity": "High",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 15,
+      "title": "Nenhuma solução de backup identificada",
+      "clientText": "Não identificamos nenhuma solução de backup ativa nesta máquina. Se o disco falhar, se houver furto ou se um ransomware criptografar os arquivos, os dados armazenados localmente não têm rota de recuperação.",
+      "recommendedAction": "Definir política de backup — centralização em servidor, backup em nuvem, ou ambos.",
+      "evidence": {
+        "collectors.software.data.classification.backupAgents": [],
+        "collectors.software.data.count": 58
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "STO-003",
+      "ruleVersion": 1,
+      "severity": "High",
+      "state": "Compliant",
+      "indeterminateReason": null,
+      "weight": 10,
+      "title": "Espaço livre em disco entre 10% e 20%",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": null,
+      "linkedOptimizations": [
+        "OPT-TEMP",
+        "OPT-WU"
+      ],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "STO-005",
+      "ruleVersion": 1,
+      "severity": "High",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 15,
+      "title": "Estado de saúde do disco diferente de saudável",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": {
+        "collectors.storage.data.systemDisk.model": "WDC WD5000AAKX-60U6AA0",
+        "collectors.storage.data.systemDisk.healthStatus": "Warning"
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "SW-004",
+      "ruleVersion": 1,
+      "severity": "High",
+      "state": "Compliant",
+      "indeterminateReason": null,
+      "weight": 10,
+      "title": "Instalações que podem exigir revisão de licenciamento",
+      "clientText": "Identificamos instalações que podem exigir revisão de licenciamento. Recomendamos conferência interna dos comprovantes.",
+      "recommendedAction": "Conferência interna dos comprovantes de licença.",
+      "evidence": null,
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "SW-005",
+      "ruleVersion": 1,
+      "severity": "High",
+      "state": "Indeterminate",
+      "indeterminateReason": "condição de indeterminação atendida — Exige distinguir antivírus ativo de resíduo de desinstalação incompleta — é justamente onde a interpretação de productState falha",
+      "weight": 12,
+      "title": "Mais de uma solução de antivírus ativa",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": null,
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "W11-003",
+      "ruleVersion": 1,
+      "severity": "High",
+      "state": "Indeterminate",
+      "indeterminateReason": "dado não disponível: collectors.win11.data.tpm.majorVersion",
+      "weight": 5,
+      "title": "TPM 2.0 presente mas desativado no firmware",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": null,
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "W11-005",
+      "ruleVersion": 1,
+      "severity": "High",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 10,
+      "title": "Firmware em modo BIOS legado",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": {
+        "collectors.win11.data.firmware.detectionMethod": "firmware_type",
+        "collectors.storage.data.systemDisk.partitionStyle": "MBR"
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "EST-003",
+      "ruleVersion": 1,
+      "severity": "Medium",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 6,
+      "title": "Erros críticos recorrentes de aplicação",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": {
+        "collectors.events.data.criticalApplicationErrors": 3,
+        "collectors.events.data.matches": [
+          {
+            "category": "unexpectedShutdown",
+            "channel": "System",
+            "provider": "Microsoft-Windows-Kernel-Power",
+            "eventId": 41,
+            "count": 9,
+            "lastOccurrence": "2026-07-27T16:22:00-03:00"
+          },
+          {
+            "category": "diskError",
+            "channel": "System",
+            "provider": "disk",
+            "eventId": 7,
+            "count": 41,
+            "lastOccurrence": "2026-07-29T11:04:00-03:00"
+          },
+          {
+            "category": "criticalApplicationError",
+            "channel": "Application",
+            "provider": "Application Error",
+            "eventId": 1000,
+            "count": 3,
+            "lastOccurrence": "2026-07-25T09:47:00-03:00"
+          }
+        ]
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "HW-001",
+      "ruleVersion": 1,
+      "severity": "Medium",
+      "state": "Indeterminate",
+      "indeterminateReason": "coletor \"Bateria\" ignorado — não aplicável — máquina sem bateria",
+      "weight": 8,
+      "title": "Desgaste de bateria entre 30% e 50%",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": null,
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "HW-004",
+      "ruleVersion": 1,
+      "severity": "Medium",
+      "state": "Compliant",
+      "indeterminateReason": null,
+      "weight": 10,
+      "title": "Máquina com aproximadamente mais de 7 anos",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": null,
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "NET-001",
+      "ruleVersion": 1,
+      "severity": "Medium",
+      "state": "Compliant",
+      "indeterminateReason": null,
+      "weight": 6,
+      "title": "Adaptador gigabit negociando velocidade inferior",
+      "clientText": "A placa de rede desta máquina suporta 1 Gbps, mas está negociando velocidade inferior. Isso normalmente indica cabo danificado, conector mal crimpado ou porta de switch limitada — e resulta em lentidão perceptível no acesso a arquivos em rede, mesmo com internet rápida.",
+      "recommendedAction": "Verificar cabeamento e porta do switch.",
+      "evidence": null,
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "NET-004",
+      "ruleVersion": 1,
+      "severity": "Medium",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 6,
+      "title": "DNS público configurado em rede com domínio",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": {
+        "collectors.network.data.adapters": [
+          {
+            "name": "Ethernet",
+            "description": "Intel(R) 82579LM Gigabit Network Connection",
+            "macAddress": "00:00:00:00:00:03",
+            "connected": true,
+            "isVirtual": false,
+            "connectionType": "Wired",
+            "linkSpeedBps": 1000000000,
+            "maxSpeedBps": 1000000000,
+            "dhcpEnabled": false,
+            "ipAddresses": [
+              "192.168.10.199"
+            ],
+            "defaultGateway": "192.168.10.1",
+            "dnsServers": [
+              "8.8.8.8",
+              "1.1.1.1"
+            ]
+          }
+        ],
+        "collectors.machine.data.domain": "sintetico.local"
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "OS-004",
+      "ruleVersion": 1,
+      "severity": "Medium",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 8,
+      "title": "Edição Home do Windows em ambiente corporativo",
+      "clientText": "Esta máquina utiliza edição Home do Windows, que não permite ingresso em domínio, criptografia BitLocker completa nem aplicação de políticas centralizadas de segurança. Em ambiente corporativo, isso limita a padronização e o controle do parque.",
+      "recommendedAction": "Avaliar upgrade para edição Pro.",
+      "evidence": {
+        "collectors.os.data.caption": "Microsoft Windows 10 Home",
+        "collectors.os.data.edition": "Core",
+        "collectors.machine.data.domainJoined": true
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "SEC-005",
+      "ruleVersion": 1,
+      "severity": "Medium",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 6,
+      "title": "Desktop sem criptografia de disco",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": {
+        "collectors.security.data.bitlocker.volumes": [
+          {
+            "driveLetter": "C:",
+            "protectionStatus": "Off",
+            "conversionStatus": "FullyDecrypted",
+            "encryptionMethod": null
+          }
+        ]
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "SEC-009",
+      "ruleVersion": 1,
+      "severity": "Medium",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 8,
+      "title": "Acesso remoto RDP habilitado",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": {
+        "collectors.security.data.rdp.nlaRequired": false,
+        "collectors.security.data.rdp.port": 3389
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "STO-008",
+      "ruleVersion": 1,
+      "severity": "Medium",
+      "state": "Compliant",
+      "indeterminateReason": null,
+      "weight": 6,
+      "title": "Capacidade do disco de sistema abaixo de 240 GB",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": null,
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "SW-002",
+      "ruleVersion": 1,
+      "severity": "Medium",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 8,
+      "title": "Mais de 25 programas na inicialização",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": {
+        "collectors.startup.data.count": 27,
+        "collectors.startup.data.items": [
+          {
+            "name": "ASCTray",
+            "command": "C:\\Program Files (x86)\\IObit\\Advanced SystemCare\\ASCTray.exe",
+            "location": "HKLM-Run",
+            "publisher": "IObit",
+            "signed": true,
+            "enabled": true,
+            "protected": false,
+            "protectionReason": null
+          },
+          {
+            "name": "TeamViewer",
+            "command": "C:\\Program Files\\TeamViewer\\TeamViewer.exe",
+            "location": "HKLM-Run",
+            "publisher": "TeamViewer Germany GmbH",
+            "signed": true,
+            "enabled": true,
+            "protected": true,
+            "protectionReason": "Ferramenta de acesso remoto — pode ser o meio de suporte do cliente"
+          },
+          {
+            "name": "SetupApp",
+            "command": "C:\\Users\\Public\\bin\\setupapp.exe",
+            "location": "HKCU-Run",
+            "publisher": null,
+            "signed": false,
+            "enabled": true,
+            "protected": false,
+            "protectionReason": null
+          }
+        ]
+      },
+      "linkedOptimizations": [
+        "OPT-STARTUP"
+      ],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "SW-003",
+      "ruleVersion": 1,
+      "severity": "Medium",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 6,
+      "title": "Navegador em versão desatualizada",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": {
+        "collectors.software.data.browsers": [
+          {
+            "name": "Google Chrome",
+            "version": "109.0.5414.120",
+            "latestKnownVersion": "142.0.7444.98",
+            "outdated": true
+          }
+        ]
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "SW-006",
+      "ruleVersion": 1,
+      "severity": "Medium",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 6,
+      "title": "Runtime obsoleto instalado",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": {
+        "collectors.software.data.classification.obsoleteRuntimes": [
+          "Java 7 Update 51"
+        ]
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "SW-007",
+      "ruleVersion": 1,
+      "severity": "Medium",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 8,
+      "title": "Software potencialmente indesejado instalado",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": {
+        "collectors.software.data.classification.potentiallyUnwanted": [
+          "Advanced SystemCare Free"
+        ]
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "W11-004",
+      "ruleVersion": 1,
+      "severity": "Medium",
+      "state": "Compliant",
+      "indeterminateReason": null,
+      "weight": 5,
+      "title": "Secure Boot desabilitado em firmware UEFI",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": null,
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "HW-003",
+      "ruleVersion": 1,
+      "severity": "Low",
+      "state": "Compliant",
+      "indeterminateReason": null,
+      "weight": 3,
+      "title": "BIOS/UEFI sem atualização há mais de 5 anos",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": null,
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "HW-006",
+      "ruleVersion": 1,
+      "severity": "Low",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 3,
+      "title": "Dispositivos sem driver ou com erro",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": {
+        "collectors.devices.data.problemDevices": [
+          {
+            "name": "Controlador de Áudio Multimídia",
+            "deviceClass": "Unknown",
+            "configManagerErrorCode": 28,
+            "errorDescription": "Os drivers deste dispositivo não estão instalados"
+          },
+          {
+            "name": "Dispositivo PCI",
+            "deviceClass": "Unknown",
+            "configManagerErrorCode": 28,
+            "errorDescription": "Os drivers deste dispositivo não estão instalados"
+          }
+        ]
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "MEM-005",
+      "ruleVersion": 1,
+      "severity": "Low",
+      "state": "Compliant",
+      "indeterminateReason": null,
+      "weight": 2,
+      "title": "Módulos de memória com velocidades diferentes",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": null,
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "NET-002",
+      "ruleVersion": 1,
+      "severity": "Low",
+      "state": "Compliant",
+      "indeterminateReason": null,
+      "weight": 3,
+      "title": "Máquina fixa conectada por Wi-Fi",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": null,
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "NET-003",
+      "ruleVersion": 1,
+      "severity": "Low",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 2,
+      "title": "Endereço IP configurado manualmente",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": {
+        "collectors.network.data.adapters": [
+          {
+            "name": "Ethernet",
+            "description": "Intel(R) 82579LM Gigabit Network Connection",
+            "macAddress": "00:00:00:00:00:03",
+            "connected": true,
+            "isVirtual": false,
+            "connectionType": "Wired",
+            "linkSpeedBps": 1000000000,
+            "maxSpeedBps": 1000000000,
+            "dhcpEnabled": false,
+            "ipAddresses": [
+              "192.168.10.199"
+            ],
+            "defaultGateway": "192.168.10.1",
+            "dnsServers": [
+              "8.8.8.8",
+              "1.1.1.1"
+            ]
+          }
+        ]
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "OS-006",
+      "ruleVersion": 1,
+      "severity": "Low",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 2,
+      "title": "Máquina sem reiniciar há mais de 30 dias",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": {
+        "collectors.os.data.lastBootTime": "2026-05-22T08:15:00-03:00",
+        "collectors.os.data.uptimeDays": 68.2
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "OS-007",
+      "ruleVersion": 1,
+      "severity": "Low",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 3,
+      "title": "Sistema instalado há mais de 5 anos sem reinstalação",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": {
+        "collectors.os.data.installDate": "2019-08-03"
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "STO-006",
+      "ruleVersion": 1,
+      "severity": "Low",
+      "state": "Indeterminate",
+      "indeterminateReason": "dado não disponível: collectors.storage.data.systemDisk.trimEnabled",
+      "weight": 3,
+      "title": "SSD sem TRIM habilitado",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": null,
+      "linkedOptimizations": [
+        "OPT-TRIM"
+      ],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "STO-007",
+      "ruleVersion": 1,
+      "severity": "Low",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 3,
+      "title": "HDD com fragmentação relevante",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": {
+        "collectors.storage.data.systemDisk.fragmentationPercent": 34
+      },
+      "linkedOptimizations": [
+        "OPT-DEFRAG"
+      ],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "SW-001",
+      "ruleVersion": 1,
+      "severity": "Low",
+      "state": "Compliant",
+      "indeterminateReason": null,
+      "weight": 5,
+      "title": "Mais de 15 programas na inicialização",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": null,
+      "linkedOptimizations": [
+        "OPT-STARTUP"
+      ],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "CPU-003",
+      "ruleVersion": 1,
+      "severity": "Info",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 0,
+      "title": "Virtualização desabilitada no firmware",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": {
+        "collectors.cpu.data.name": "Intel(R) Core(TM) i3-3220 CPU @ 3.30GHz"
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "SEC-011",
+      "ruleVersion": 1,
+      "severity": "Info",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 0,
+      "title": "Ferramenta de acesso remoto instalada",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidence": {
+        "collectors.software.data.classification.remoteAccessTools": [
+          "TeamViewer"
+        ]
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    }
+  ],
+  "score": {
+    "value": 0,
+    "band": "Red",
+    "verdict": "Replace",
+    "verdictDrivenBy": [
+      "CPU-001",
+      "HW-005",
+      "MEM-001",
+      "EST-002",
+      "STO-001",
+      "STO-004",
+      "W11-001",
+      "W11-006"
+    ]
+  }
+}

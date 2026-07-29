@@ -1,0 +1,150 @@
+{
+  "category": "Hardware físico e bateria",
+  "docReference": "docs/03-matriz-riscos-otimizacoes.md §4.9",
+  "note": "DESVIO REGISTRADO EM RELAÇÃO AO DOCUMENTO 03. Na matriz original, HW-003 (BIOS com mais de 5 anos), HW-004 (máquina com mais de 7 anos) e HW-005 (mais de 10 anos) leem a MESMA evidência — a data do BIOS. Uma máquina de 12 anos dispararia as três e somaria 3+10+15 = 28 pontos a partir de um único sinal. Aqui as três foram reescritas como faixas mutuamente exclusivas, preservando severidade, peso e veredito de cada faixa. Mesma correção aplicada a HW-001 e HW-002. Levar para a próxima revisão da matriz com o comercial.",
+  "rules": [
+    {
+      "id": "HW-001",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText", "sourceValidation"],
+      "sourceConfidence": "M",
+      "validationNote": "Win32_Battery.DesignCapacity retorna nulo na maioria dos notebooks — não confiar. Caminho realista é powercfg /batteryreport e parsear a saída, cujo formato exato precisa ser confirmado em campo (doc 02 §4.10).",
+      "category": "Hardware físico e bateria",
+      "severity": "Medium",
+      "weight": 8,
+      "requires": ["collectors.battery.data.wearPercent"],
+      "indeterminateWhen": null,
+      "condition": {
+        "allOf": [
+          { "path": "collectors.battery.data.wearPercent", "operator": "greaterThan", "value": 30 },
+          { "path": "collectors.battery.data.wearPercent", "operator": "lessThan", "value": 50.0001 }
+        ]
+      },
+      "title": "Desgaste de bateria entre 30% e 50%",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": ["collectors.battery.data.batteries", "collectors.battery.data.wearSource"],
+      "linkedOptimizations": [],
+      "verdictInfluence": null
+    },
+    {
+      "id": "HW-002",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText", "sourceValidation"],
+      "sourceConfidence": "M",
+      "validationNote": "Mesma fonte de HW-001. Substituição de bateria é serviço de ticket baixo e alta percepção de valor — achado de venda direta.",
+      "category": "Hardware físico e bateria",
+      "severity": "High",
+      "weight": 12,
+      "requires": ["collectors.battery.data.wearPercent"],
+      "indeterminateWhen": null,
+      "condition": { "path": "collectors.battery.data.wearPercent", "operator": "greaterThan", "value": 50 },
+      "title": "Desgaste de bateria acima de 50%",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": ["collectors.battery.data.batteries", "collectors.battery.data.wearSource"],
+      "linkedOptimizations": [],
+      "verdictInfluence": null
+    },
+    {
+      "id": "HW-003",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText"],
+      "sourceConfidence": "A",
+      "validationNote": "Faixa 5 a 7 anos, exclusiva com HW-004 e HW-005. A data do BIOS é APROXIMAÇÃO da idade da máquina, não fato — BIOS atualizado altera a data. O texto sempre diz 'aproximadamente'. Se a marcação manual do técnico contradisser, a marcação manual prevalece.",
+      "category": "Hardware físico e bateria",
+      "severity": "Low",
+      "weight": 3,
+      "requires": ["collectors.machine.data.approxAgeYears"],
+      "indeterminateWhen": null,
+      "condition": {
+        "allOf": [
+          { "path": "collectors.machine.data.approxAgeYears", "operator": "greaterThan", "value": 5 },
+          { "path": "collectors.machine.data.approxAgeYears", "operator": "lessThan", "value": 7.0001 }
+        ]
+      },
+      "title": "BIOS/UEFI sem atualização há mais de 5 anos",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": ["collectors.machine.data.bios.releaseDate", "collectors.machine.data.bios.version"],
+      "linkedOptimizations": [],
+      "verdictInfluence": null
+    },
+    {
+      "id": "HW-004",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText"],
+      "sourceConfidence": "A",
+      "validationNote": "Faixa 7 a 10 anos, exclusiva com HW-003 e HW-005.",
+      "category": "Hardware físico e bateria",
+      "severity": "Medium",
+      "weight": 10,
+      "requires": ["collectors.machine.data.approxAgeYears"],
+      "indeterminateWhen": null,
+      "condition": {
+        "allOf": [
+          { "path": "collectors.machine.data.approxAgeYears", "operator": "greaterThan", "value": 7 },
+          { "path": "collectors.machine.data.approxAgeYears", "operator": "lessThan", "value": 10.0001 }
+        ]
+      },
+      "title": "Máquina com aproximadamente mais de 7 anos",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": [
+        "collectors.machine.data.bios.releaseDate",
+        "collectors.machine.data.manufacturer",
+        "collectors.machine.data.model"
+      ],
+      "linkedOptimizations": [],
+      "verdictInfluence": "Upgrade"
+    },
+    {
+      "id": "HW-005",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText"],
+      "sourceConfidence": "A",
+      "validationNote": "Faixa acima de 10 anos, exclusiva com HW-003 e HW-004.",
+      "category": "Hardware físico e bateria",
+      "severity": "High",
+      "weight": 15,
+      "requires": ["collectors.machine.data.approxAgeYears"],
+      "indeterminateWhen": null,
+      "condition": { "path": "collectors.machine.data.approxAgeYears", "operator": "greaterThan", "value": 10 },
+      "title": "Máquina com aproximadamente mais de 10 anos",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": [
+        "collectors.machine.data.bios.releaseDate",
+        "collectors.machine.data.manufacturer",
+        "collectors.machine.data.model"
+      ],
+      "linkedOptimizations": [],
+      "verdictInfluence": "Replace"
+    },
+    {
+      "id": "HW-006",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText"],
+      "sourceConfidence": "A",
+      "validationNote": "REGRA PROPOSTA, não consta da matriz do documento 03. Dispositivo com erro no Gerenciador de Dispositivos é achado legítimo e barato de coletar. Precisa de clientText aprovado pelo comercial antes de entrar em release — é o mecanismo previsto no doc 03 §1.3.",
+      "category": "Hardware físico e bateria",
+      "severity": "Low",
+      "weight": 3,
+      "requires": ["collectors.devices.data.problemDeviceCount"],
+      "indeterminateWhen": null,
+      "condition": { "path": "collectors.devices.data.problemDeviceCount", "operator": "greaterThan", "value": 0 },
+      "title": "Dispositivos sem driver ou com erro",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": ["collectors.devices.data.problemDevices"],
+      "linkedOptimizations": [],
+      "verdictInfluence": null
+    }
+  ]
+}

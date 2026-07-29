@@ -1,0 +1,98 @@
+{
+  "category": "Rede",
+  "docReference": "docs/03-matriz-riscos-otimizacoes.md §4.8",
+  "rules": [
+    {
+      "id": "NET-001",
+      "version": 1,
+      "enabled": true,
+      "enabledBlockedBy": [],
+      "sourceConfidence": "A",
+      "validationNote": "Gancho direto para a vertical de infraestrutura de rede: um achado por máquina que, repetido no parque, vira diagnóstico de cabeamento.",
+      "category": "Rede",
+      "severity": "Medium",
+      "weight": 6,
+      "requires": ["collectors.network.data.linkDowngraded"],
+      "indeterminateWhen": null,
+      "condition": { "path": "collectors.network.data.linkDowngraded", "operator": "isTrue" },
+      "title": "Adaptador gigabit negociando velocidade inferior",
+      "clientText": "A placa de rede desta máquina suporta 1 Gbps, mas está negociando velocidade inferior. Isso normalmente indica cabo danificado, conector mal crimpado ou porta de switch limitada — e resulta em lentidão perceptível no acesso a arquivos em rede, mesmo com internet rápida.",
+      "recommendedAction": "Verificar cabeamento e porta do switch.",
+      "evidenceFields": [
+        "collectors.network.data.primaryAdapterName",
+        "collectors.network.data.adapters"
+      ],
+      "linkedOptimizations": [],
+      "verdictInfluence": null
+    },
+    {
+      "id": "NET-002",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText", "sourceValidation"],
+      "sourceConfidence": "M",
+      "validationNote": "MSFT_NetAdapter em root\\StandardCimv2 para distinguir cabo de Wi-Fi. Validar em campo. Máquina fixa em Wi-Fi pode ser escolha deliberada por falta de ponto de rede — o texto precisa perguntar, não acusar.",
+      "category": "Rede",
+      "severity": "Low",
+      "weight": 3,
+      "requires": ["collectors.machine.data.isLaptop", "collectors.network.data.primaryConnectionType"],
+      "indeterminateWhen": {
+        "path": "collectors.network.data.primaryConnectionType",
+        "operator": "equals",
+        "value": "Unknown"
+      },
+      "condition": {
+        "allOf": [
+          { "path": "collectors.machine.data.isLaptop", "operator": "isFalse" },
+          { "path": "collectors.network.data.primaryConnectionType", "operator": "equals", "value": "Wireless" }
+        ]
+      },
+      "title": "Máquina fixa conectada por Wi-Fi",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": ["collectors.network.data.adapters"],
+      "linkedOptimizations": [],
+      "verdictInfluence": null
+    },
+    {
+      "id": "NET-003",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText"],
+      "sourceConfidence": "A",
+      "validationNote": "IP fixo é frequentemente intencional. Só vira achado com contexto do padrão de rede do cliente, que a ferramenta não conhece. Peso 2 reflete isso.",
+      "category": "Rede",
+      "severity": "Low",
+      "weight": 2,
+      "requires": ["collectors.network.data.staticIpConfigured"],
+      "indeterminateWhen": null,
+      "condition": { "path": "collectors.network.data.staticIpConfigured", "operator": "isTrue" },
+      "title": "Endereço IP configurado manualmente",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": ["collectors.network.data.adapters"],
+      "linkedOptimizations": [],
+      "verdictInfluence": null
+    },
+    {
+      "id": "NET-004",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText"],
+      "sourceConfidence": "A",
+      "validationNote": "Máquina em domínio com DNS público configurado tipicamente quebra resolução de nomes internos e é causa de problemas intermitentes difíceis de diagnosticar. Achado de alto valor de suporte.",
+      "category": "Rede",
+      "severity": "Medium",
+      "weight": 6,
+      "requires": ["collectors.network.data.publicDnsInDomainEnvironment"],
+      "indeterminateWhen": null,
+      "condition": { "path": "collectors.network.data.publicDnsInDomainEnvironment", "operator": "isTrue" },
+      "title": "DNS público configurado em rede com domínio",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": ["collectors.network.data.adapters", "collectors.machine.data.domain"],
+      "linkedOptimizations": [],
+      "verdictInfluence": null
+    }
+  ]
+}

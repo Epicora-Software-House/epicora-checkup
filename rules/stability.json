@@ -1,0 +1,72 @@
+{
+  "category": "Estabilidade",
+  "docReference": "docs/03-matriz-riscos-otimizacoes.md §4.10",
+  "note": "Categoria inteira bloqueada por rules/event-ids.json, que está vazio. O documento técnico §4.11 é explícito: os IDs de evento não foram registrados porque não podem ser confirmados sem consulta à documentação da Microsoft. Levantamento é entregável da Fase 1. Enquanto events.evaluated for false, as três regras resolvem Indeterminate.",
+  "rules": [
+    {
+      "id": "EST-001",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText", "sourceValidation"],
+      "sourceConfidence": "B",
+      "validationNote": "Depende de rules/event-ids.json. Levantar os IDs de desligamento inesperado na documentação oficial e validar a contagem contra uma máquina que sabidamente teve quedas de energia.",
+      "category": "Estabilidade",
+      "severity": "High",
+      "weight": 12,
+      "requires": ["collectors.events.data.evaluated", "collectors.events.data.unexpectedShutdowns"],
+      "indeterminateWhen": { "path": "collectors.events.data.evaluated", "operator": "isFalse" },
+      "condition": { "path": "collectors.events.data.unexpectedShutdowns", "operator": "greaterThan", "value": 0 },
+      "title": "Desligamentos inesperados nos últimos 30 dias",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": ["collectors.events.data.unexpectedShutdowns", "collectors.events.data.matches"],
+      "linkedOptimizations": [],
+      "verdictInfluence": null
+    },
+    {
+      "id": "EST-002",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText", "sourceValidation"],
+      "sourceConfidence": "B",
+      "validationNote": "ACHADO DE ALTO VALOR. Erro de disco no log frequentemente antecede falha física e é evidência mais confiável que o SMART básico — é o que substitui o SMART detalhado descartado no ADR-004. Quando dispara junto com STO-004, a coincidência é o sinal mais forte possível de disco morrendo, e o relatório deve apresentar os dois juntos, não como dois achados soltos.",
+      "category": "Estabilidade",
+      "severity": "Critical",
+      "weight": 20,
+      "requires": ["collectors.events.data.evaluated", "collectors.events.data.diskErrors"],
+      "indeterminateWhen": { "path": "collectors.events.data.evaluated", "operator": "isFalse" },
+      "condition": { "path": "collectors.events.data.diskErrors", "operator": "greaterThan", "value": 0 },
+      "title": "Erros de disco no log de eventos",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": [
+        "collectors.events.data.diskErrors",
+        "collectors.events.data.matches",
+        "collectors.storage.data.systemDisk.failurePredicted",
+        "collectors.storage.data.systemDisk.healthStatus"
+      ],
+      "linkedOptimizations": [],
+      "verdictInfluence": "Replace"
+    },
+    {
+      "id": "EST-003",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText", "sourceValidation"],
+      "sourceConfidence": "B",
+      "validationNote": "Limiar de 2 ocorrências é convenção, não valor com respaldo. 'Recorrente' precisa ser calibrado com o parque real — aplicação que trava uma vez não é achado.",
+      "category": "Estabilidade",
+      "severity": "Medium",
+      "weight": 6,
+      "requires": ["collectors.events.data.evaluated", "collectors.events.data.criticalApplicationErrors"],
+      "indeterminateWhen": { "path": "collectors.events.data.evaluated", "operator": "isFalse" },
+      "condition": { "path": "collectors.events.data.criticalApplicationErrors", "operator": "greaterThan", "value": 2 },
+      "title": "Erros críticos recorrentes de aplicação",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": ["collectors.events.data.criticalApplicationErrors", "collectors.events.data.matches"],
+      "linkedOptimizations": [],
+      "verdictInfluence": null
+    }
+  ]
+}

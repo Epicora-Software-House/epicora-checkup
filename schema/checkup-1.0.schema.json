@@ -1,0 +1,1062 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://epicora.com.br/schema/checkup-1.0.schema.json",
+  "title": "Epicora Checkup — saída de coleta",
+  "description": "Fonte única de verdade de uma execução do Epicora Checkup em uma máquina. Produzido tanto pelo executável C# quanto pelo protótipo PowerShell (ADR-009). Consumido pelo relatório HTML e pelo consolidador.",
+  "type": "object",
+  "required": ["schemaVersion", "tool", "execution", "client", "manual", "collectors", "findings", "score"],
+  "additionalProperties": false,
+
+  "properties": {
+    "schemaVersion": { "const": "1.0" },
+
+    "tool": {
+      "type": "object",
+      "required": ["name", "version", "runtime"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "const": "EpicoraCheckup" },
+        "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+        "commit": { "type": ["string", "null"] },
+        "runtime": {
+          "description": "Qual implementação produziu este JSON. O consolidador não distingue, mas a auditoria de um relatório contestado sim.",
+          "enum": ["dotnet", "powershell"]
+        },
+        "rulesVersion": { "type": ["string", "null"] }
+      }
+    },
+
+    "execution": {
+      "type": "object",
+      "required": ["startedAt", "finishedAt", "durationSeconds", "elevated", "technician", "diagnosticId"],
+      "additionalProperties": false,
+      "properties": {
+        "startedAt": { "$ref": "#/$defs/isoDateTime" },
+        "finishedAt": { "$ref": "#/$defs/isoDateTime" },
+        "durationSeconds": { "type": "integer", "minimum": 0 },
+        "elevated": {
+          "type": "boolean",
+          "description": "Se falso, coletores com RequiresElevation aparecem como Skipped com skipReason 'sem privilégio'. O relatório sai parcial e honesto."
+        },
+        "technician": { "type": "string", "minLength": 1 },
+        "diagnosticId": { "type": "string", "minLength": 1 },
+        "hostLocale": { "type": ["string", "null"] }
+      }
+    },
+
+    "client": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "unit": { "type": ["string", "null"] }
+      }
+    },
+
+    "manual": {
+      "description": "Tela 4. É o que amarra o inventário à realidade da empresa — sem isso o relatório é uma lista de números sem dono.",
+      "type": "object",
+      "required": ["machineLabel", "responsible", "department"],
+      "additionalProperties": false,
+      "properties": {
+        "machineLabel": { "type": "string", "minLength": 1 },
+        "responsible": { "type": "string", "minLength": 1 },
+        "department": { "type": "string", "minLength": 1 },
+        "physicalLocation": { "type": ["string", "null"] },
+        "assetTag": { "type": ["string", "null"] },
+        "physicalCondition": { "type": ["string", "null"] },
+        "notes": { "type": ["string", "null"] },
+        "corporateEnvironment": {
+          "description": "Marcação do técnico. Habilita OS-004 (edição Home em ambiente corporativo) quando a máquina não está em domínio mas o ambiente é corporativo.",
+          "type": ["boolean", "null"]
+        }
+      }
+    },
+
+    "collectors": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/collectorResult" }
+    },
+
+    "findings": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/finding" }
+    },
+
+    "score": {
+      "type": "object",
+      "required": ["value", "band", "verdict"],
+      "additionalProperties": false,
+      "properties": {
+        "value": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "band": { "enum": ["Green", "Yellow", "Red"] },
+        "verdict": { "enum": ["Keep", "Upgrade", "Replace"] },
+        "verdictDrivenBy": {
+          "description": "IDs das regras NonCompliant que determinaram o veredito, por precedência.",
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+
+    "optimization": { "$ref": "#/$defs/optimization" }
+  },
+
+  "$defs": {
+    "isoDateTime": {
+      "type": "string",
+      "description": "ISO 8601 com offset de fuso obrigatório. Nunca hora local sem offset.",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?([+-]\\d{2}:\\d{2}|Z)$"
+    },
+    "isoDate": {
+      "type": ["string", "null"],
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "bytes": {
+      "description": "Sempre bytes, inteiro. Formatação para GB é da camada de apresentação.",
+      "type": ["integer", "null"],
+      "minimum": 0
+    },
+    "percent": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+    "requirement": {
+      "description": "Estado de um requisito. Unknown nunca deve ser tratado como Fail.",
+      "enum": ["Pass", "Fail", "Unknown"]
+    },
+    "collectorId": {
+      "enum": [
+        "machine", "cpu", "memory", "storage", "devices",
+        "os", "updates", "win11", "security", "antivirus",
+        "software", "startup", "network", "accounts", "battery", "events"
+      ]
+    },
+
+    "collectorResult": {
+      "type": "object",
+      "required": ["id", "displayName", "status", "durationMs", "summary", "errors", "data"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/collectorId" },
+        "displayName": { "type": "string" },
+        "status": {
+          "description": "Skipped = não aplicável ou sem privilégio. Failed = tentou e não conseguiu. Nenhum dos dois vira achado negativo.",
+          "enum": ["Completed", "Skipped", "Failed"]
+        },
+        "skipReason": { "type": ["string", "null"] },
+        "requiresElevation": { "type": "boolean" },
+        "durationMs": { "type": "integer", "minimum": 0 },
+        "timedOut": { "type": "boolean" },
+        "summary": {
+          "type": ["string", "null"],
+          "description": "Uma linha, linguagem de cliente, exibida na tela 2. Ex.: 'Disco de sistema: HDD 500 GB, 6% livre'."
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["source", "message"],
+            "additionalProperties": false,
+            "properties": {
+              "source": { "type": "string", "description": "Classe WMI, caminho de registro ou comando que falhou." },
+              "message": { "type": "string" },
+              "fatal": { "type": "boolean" }
+            }
+          }
+        },
+        "data": {
+          "description": "Payload específico do coletor. null quando status != Completed. O shape de cada um está em #/$defs/data_*.",
+          "type": ["object", "null"]
+        }
+      },
+
+      "allOf": [
+        {
+          "if": { "properties": { "id": { "const": "machine" } }, "required": ["id"] },
+          "then": { "properties": { "data": { "oneOf": [{ "$ref": "#/$defs/data_machine" }, { "type": "null" }] } } }
+        },
+        {
+          "if": { "properties": { "id": { "const": "cpu" } }, "required": ["id"] },
+          "then": { "properties": { "data": { "oneOf": [{ "$ref": "#/$defs/data_cpu" }, { "type": "null" }] } } }
+        },
+        {
+          "if": { "properties": { "id": { "const": "memory" } }, "required": ["id"] },
+          "then": { "properties": { "data": { "oneOf": [{ "$ref": "#/$defs/data_memory" }, { "type": "null" }] } } }
+        },
+        {
+          "if": { "properties": { "id": { "const": "storage" } }, "required": ["id"] },
+          "then": { "properties": { "data": { "oneOf": [{ "$ref": "#/$defs/data_storage" }, { "type": "null" }] } } }
+        },
+        {
+          "if": { "properties": { "id": { "const": "devices" } }, "required": ["id"] },
+          "then": { "properties": { "data": { "oneOf": [{ "$ref": "#/$defs/data_devices" }, { "type": "null" }] } } }
+        },
+        {
+          "if": { "properties": { "id": { "const": "os" } }, "required": ["id"] },
+          "then": { "properties": { "data": { "oneOf": [{ "$ref": "#/$defs/data_os" }, { "type": "null" }] } } }
+        },
+        {
+          "if": { "properties": { "id": { "const": "updates" } }, "required": ["id"] },
+          "then": { "properties": { "data": { "oneOf": [{ "$ref": "#/$defs/data_updates" }, { "type": "null" }] } } }
+        },
+        {
+          "if": { "properties": { "id": { "const": "win11" } }, "required": ["id"] },
+          "then": { "properties": { "data": { "oneOf": [{ "$ref": "#/$defs/data_win11" }, { "type": "null" }] } } }
+        },
+        {
+          "if": { "properties": { "id": { "const": "security" } }, "required": ["id"] },
+          "then": { "properties": { "data": { "oneOf": [{ "$ref": "#/$defs/data_security" }, { "type": "null" }] } } }
+        },
+        {
+          "if": { "properties": { "id": { "const": "antivirus" } }, "required": ["id"] },
+          "then": { "properties": { "data": { "oneOf": [{ "$ref": "#/$defs/data_antivirus" }, { "type": "null" }] } } }
+        },
+        {
+          "if": { "properties": { "id": { "const": "software" } }, "required": ["id"] },
+          "then": { "properties": { "data": { "oneOf": [{ "$ref": "#/$defs/data_software" }, { "type": "null" }] } } }
+        },
+        {
+          "if": { "properties": { "id": { "const": "startup" } }, "required": ["id"] },
+          "then": { "properties": { "data": { "oneOf": [{ "$ref": "#/$defs/data_startup" }, { "type": "null" }] } } }
+        },
+        {
+          "if": { "properties": { "id": { "const": "network" } }, "required": ["id"] },
+          "then": { "properties": { "data": { "oneOf": [{ "$ref": "#/$defs/data_network" }, { "type": "null" }] } } }
+        },
+        {
+          "if": { "properties": { "id": { "const": "accounts" } }, "required": ["id"] },
+          "then": { "properties": { "data": { "oneOf": [{ "$ref": "#/$defs/data_accounts" }, { "type": "null" }] } } }
+        },
+        {
+          "if": { "properties": { "id": { "const": "battery" } }, "required": ["id"] },
+          "then": { "properties": { "data": { "oneOf": [{ "$ref": "#/$defs/data_battery" }, { "type": "null" }] } } }
+        },
+        {
+          "if": { "properties": { "id": { "const": "events" } }, "required": ["id"] },
+          "then": { "properties": { "data": { "oneOf": [{ "$ref": "#/$defs/data_events" }, { "type": "null" }] } } }
+        }
+      ]
+    },
+
+    "data_machine": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "hostname": { "type": ["string", "null"] },
+        "domainJoined": { "type": ["boolean", "null"] },
+        "domain": { "type": ["string", "null"] },
+        "workgroup": { "type": ["string", "null"] },
+        "manufacturer": { "type": ["string", "null"] },
+        "model": { "type": ["string", "null"] },
+        "uuid": { "type": ["string", "null"] },
+        "productSerial": { "type": ["string", "null"] },
+        "chassisTypes": { "type": ["array", "null"], "items": { "type": "integer" } },
+        "chassisTypeName": { "type": ["string", "null"] },
+        "isLaptop": {
+          "description": "DERIVADO. Chassi confirmado por presença de bateria — vários fabricantes preenchem ChassisTypes errado (doc 02 §4.1). null se os dois sinais discordarem e não houver desempate.",
+          "type": ["boolean", "null"]
+        },
+        "isLaptopBasis": { "enum": ["chassis", "battery", "both", "conflict", null] },
+        "bios": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "manufacturer": { "type": ["string", "null"] },
+            "version": { "type": ["string", "null"] },
+            "serial": { "type": ["string", "null"] },
+            "releaseDate": { "$ref": "#/$defs/isoDate" }
+          }
+        },
+        "baseboard": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "manufacturer": { "type": ["string", "null"] },
+            "product": { "type": ["string", "null"] },
+            "serial": { "type": ["string", "null"] }
+          }
+        },
+        "approxAgeYears": {
+          "description": "DERIVADO da data do BIOS. É APROXIMAÇÃO, não fato — BIOS atualizado altera a data. O relatório sempre escreve 'aproximadamente'. Marcação manual do técnico prevalece (doc 03 §4.9).",
+          "type": ["number", "null"],
+          "minimum": 0
+        },
+        "approxAgeBasis": { "enum": ["biosReleaseDate", "manual", null] }
+      }
+    },
+
+    "data_cpu": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": ["string", "null"] },
+        "normalizedName": {
+          "description": "DERIVADO. Nome sem (R), (TM), espaçamento irregular e sufixos, para casar com a lista oficial. Ver ADR-006.",
+          "type": ["string", "null"]
+        },
+        "manufacturer": { "type": ["string", "null"] },
+        "physicalCores": { "type": ["integer", "null"], "minimum": 1 },
+        "logicalProcessors": { "type": ["integer", "null"], "minimum": 1 },
+        "maxClockMhz": { "type": ["integer", "null"], "minimum": 0 },
+        "socket": { "type": ["string", "null"] },
+        "architecture": { "type": ["string", "null"] },
+        "virtualizationFirmwareEnabled": { "type": ["boolean", "null"] },
+        "win11Supported": {
+          "description": "DERIVADO. null quando a lista não está embutida, está vencida, ou o casamento de nome não foi inequívoco. Nunca false por ausência de casamento (ADR-006).",
+          "type": ["boolean", "null"]
+        },
+        "win11SupportBasis": { "enum": ["officialList", "listMissing", "listExpired", "ambiguousMatch", null] }
+      }
+    },
+
+    "data_memory": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "totalBytes": { "$ref": "#/$defs/bytes" },
+        "totalGiB": {
+          "description": "DERIVADO: totalBytes arredondado para GiB inteiro. Existe porque uma máquina de 4 GB reporta menos que 4 GiB exatos (memória compartilhada com vídeo) — comparar bytes crus contra limiar redondo erra a regra MEM-001.",
+          "type": ["integer", "null"],
+          "minimum": 0
+        },
+        "totalSlots": { "type": ["integer", "null"], "minimum": 1 },
+        "usedSlots": { "type": ["integer", "null"], "minimum": 0 },
+        "freeSlots": {
+          "description": "DERIVADO: totalSlots − usedSlots. Um dos dados mais valiosos comercialmente — permite orçar upgrade de RAM sem abrir a máquina, e separa MEM-003 (upgrade) de MEM-004 (substituir).",
+          "type": ["integer", "null"],
+          "minimum": 0
+        },
+        "maxCapacityBytes": {
+          "description": "MaxCapacity é notoriamente mal preenchido. Se vier zero ou absurdo, gravar null — nunca zero.",
+          "$ref": "#/$defs/bytes"
+        },
+        "speedMismatch": { "type": ["boolean", "null"] },
+        "modules": {
+          "type": ["array", "null"],
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "capacityBytes": { "$ref": "#/$defs/bytes" },
+              "speedMhz": { "type": ["integer", "null"] },
+              "configuredSpeedMhz": { "type": ["integer", "null"] },
+              "manufacturer": { "type": ["string", "null"] },
+              "partNumber": { "type": ["string", "null"] },
+              "bankLabel": { "type": ["string", "null"] },
+              "deviceLocator": { "type": ["string", "null"] },
+              "memoryTypeCode": { "type": ["integer", "null"] },
+              "memoryTypeName": { "type": ["string", "null"] },
+              "memoryTypeSource": { "enum": ["SMBIOSMemoryType", "MemoryType", null] }
+            }
+          }
+        }
+      }
+    },
+
+    "data_storage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "physicalDisks": {
+          "type": ["array", "null"],
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "index": { "type": ["integer", "null"] },
+              "model": { "type": ["string", "null"] },
+              "serial": { "type": ["string", "null"] },
+              "sizeBytes": { "$ref": "#/$defs/bytes" },
+              "interfaceType": { "type": ["string", "null"] },
+              "mediaType": {
+                "description": "NUNCA derivar de Win32_DiskDrive.MediaType — ela retorna 'Fixed hard disk media' para SSD também (armadilha clássica, doc 02 §4.3). Origem correta: MSFT_PhysicalDisk.",
+                "enum": ["HDD", "SSD", "Unknown", null]
+              },
+              "mediaTypeSource": { "enum": ["MSFT_PhysicalDisk", "unavailable", null] },
+              "busType": { "type": ["string", "null"] },
+              "healthStatus": { "enum": ["Healthy", "Warning", "Unhealthy", "Unknown", null] },
+              "failurePredicted": {
+                "description": "MSStorageDriver_FailurePredictStatus. Booleano apenas — SMART detalhado está fora da v1 (ADR-004).",
+                "type": ["boolean", "null"]
+              }
+            }
+          }
+        },
+        "volumes": {
+          "type": ["array", "null"],
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "driveLetter": { "type": ["string", "null"] },
+              "label": { "type": ["string", "null"] },
+              "fileSystem": { "type": ["string", "null"] },
+              "sizeBytes": { "$ref": "#/$defs/bytes" },
+              "freeBytes": { "$ref": "#/$defs/bytes" },
+              "freePercent": { "$ref": "#/$defs/percent" },
+              "isSystemVolume": { "type": ["boolean", "null"] }
+            }
+          }
+        },
+        "systemDisk": {
+          "description": "DERIVADO. O disco físico que hospeda o volume de sistema. É o que as regras STO-001, STO-004, STO-005 avaliam — não 'qualquer disco'.",
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "properties": {
+            "model": { "type": ["string", "null"] },
+            "sizeBytes": { "$ref": "#/$defs/bytes" },
+            "mediaType": { "enum": ["HDD", "SSD", "Unknown", null] },
+            "busType": { "type": ["string", "null"] },
+            "healthStatus": { "enum": ["Healthy", "Warning", "Unhealthy", "Unknown", null] },
+            "failurePredicted": { "type": ["boolean", "null"] },
+            "trimEnabled": { "type": ["boolean", "null"] },
+            "fragmentationPercent": { "$ref": "#/$defs/percent" },
+            "partitionStyle": { "enum": ["GPT", "MBR", "Unknown", null] }
+          }
+        },
+        "systemVolume": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "properties": {
+            "driveLetter": { "type": ["string", "null"] },
+            "sizeBytes": { "$ref": "#/$defs/bytes" },
+            "freeBytes": { "$ref": "#/$defs/bytes" },
+            "freePercent": { "$ref": "#/$defs/percent" }
+          }
+        },
+        "windowsOldPresent": { "type": ["boolean", "null"] },
+        "windowsOldSizeBytes": { "$ref": "#/$defs/bytes" }
+      }
+    },
+
+    "data_devices": {
+      "description": "Alimenta o inventário do relatório. A contagem de dispositivos com problema é candidata a regra (HW-006, hoje desabilitada por falta de clientText aprovado).",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "videoControllers": {
+          "type": ["array", "null"],
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "name": { "type": ["string", "null"] },
+              "driverVersion": { "type": ["string", "null"] },
+              "driverDate": { "$ref": "#/$defs/isoDate" },
+              "adapterRamBytes": { "$ref": "#/$defs/bytes" },
+              "currentResolution": { "type": ["string", "null"] }
+            }
+          }
+        },
+        "problemDevices": {
+          "type": ["array", "null"],
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "name": { "type": ["string", "null"] },
+              "deviceClass": { "type": ["string", "null"] },
+              "configManagerErrorCode": { "type": ["integer", "null"] },
+              "errorDescription": { "type": ["string", "null"] }
+            }
+          }
+        },
+        "problemDeviceCount": { "type": ["integer", "null"], "minimum": 0 }
+      }
+    },
+
+    "data_os": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "caption": { "type": ["string", "null"] },
+        "edition": { "type": ["string", "null"] },
+        "productFamily": {
+          "description": "DERIVADO e normalizado. É o que OS-001 e OS-002 avaliam — comparar caption por string quebra em máquina com idioma diferente.",
+          "enum": ["Windows 11", "Windows 10", "Windows 8.1", "Windows 8", "Windows 7", "Older", "Windows Server", "Unknown", null]
+        },
+        "isServer": { "type": ["boolean", "null"] },
+        "isHomeEdition": { "type": ["boolean", "null"] },
+        "version": { "type": ["string", "null"] },
+        "buildNumber": { "type": ["integer", "null"] },
+        "ubr": { "type": ["integer", "null"] },
+        "displayVersion": { "type": ["string", "null"] },
+        "architecture": { "type": ["string", "null"] },
+        "installDate": { "$ref": "#/$defs/isoDate" },
+        "installAgeYears": { "type": ["number", "null"], "minimum": 0 },
+        "lastBootTime": { "type": ["string", "null"] },
+        "uptimeDays": { "type": ["number", "null"], "minimum": 0 },
+        "activation": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "status": { "enum": ["Licensed", "OutOfBox", "OutOfTolerance", "NonGenuine", "Notification", "Unlicensed", "Unknown", null] },
+            "statusCode": { "type": ["integer", "null"] },
+            "channel": { "type": ["string", "null"] }
+          }
+        },
+        "buildFreshness": {
+          "description": "Depende de rules/windows-builds.json. Se a tabela estiver vencida, evaluated=false e OS-005 resolve Indeterminate (ADR-005).",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "evaluated": { "type": "boolean" },
+            "reason": { "type": ["string", "null"] },
+            "latestKnownBuild": { "type": ["integer", "null"] },
+            "latestKnownUbr": { "type": ["integer", "null"] },
+            "tableValidUntil": { "$ref": "#/$defs/isoDate" },
+            "isCurrent": { "type": ["boolean", "null"] }
+          }
+        }
+      }
+    },
+
+    "data_updates": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "hotfixes": {
+          "type": ["array", "null"],
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "hotfixId": { "type": ["string", "null"] },
+              "installedOn": { "$ref": "#/$defs/isoDate" },
+              "description": { "type": ["string", "null"] }
+            }
+          }
+        },
+        "coverageIsPartial": {
+          "description": "SEMPRE true. Win32_QuickFixEngineering não lista atualizações cumulativas modernas nem updates entregues por outros mecanismos (doc 02 §4.4). Nenhuma regra pode concluir 'desatualizado' apenas a partir desta lista.",
+          "const": true
+        },
+        "lastUpdateDate": { "$ref": "#/$defs/isoDate" },
+        "daysSinceLastUpdate": { "type": ["integer", "null"], "minimum": 0 },
+        "windowsUpdateServiceEnabled": { "type": ["boolean", "null"] },
+        "wsusConfigured": { "type": ["boolean", "null"] }
+      }
+    },
+
+    "data_win11": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tpm": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "present": { "type": ["boolean", "null"] },
+            "specVersionRaw": { "type": ["string", "null"] },
+            "majorVersion": { "type": ["number", "null"] },
+            "enabled": { "type": ["boolean", "null"] },
+            "activated": { "type": ["boolean", "null"] }
+          }
+        },
+        "secureBoot": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": { "type": ["boolean", "null"] },
+            "supported": { "type": ["boolean", "null"] },
+            "source": { "enum": ["registry", "cmdlet", "unavailable", null] }
+          }
+        },
+        "firmware": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "mode": { "enum": ["UEFI", "Legacy", "Unknown", null] },
+            "detectionMethod": { "enum": ["firmware_type", "partitionStyle", "pinvoke", "unavailable", null] }
+          }
+        },
+        "requirements": {
+          "description": "Um estado por requisito. Unknown NUNCA conta como Fail.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "cpu": { "$ref": "#/$defs/requirement" },
+            "tpm": { "$ref": "#/$defs/requirement" },
+            "secureBoot": { "$ref": "#/$defs/requirement" },
+            "firmware": { "$ref": "#/$defs/requirement" },
+            "ram": { "$ref": "#/$defs/requirement" },
+            "storage": { "$ref": "#/$defs/requirement" }
+          }
+        },
+        "eligible": {
+          "description": "DERIVADO. true = todos Pass. false = ao menos um Fail. null = nenhum Fail mas há Unknown. É a linha que vai para 'X das Y máquinas não migram'.",
+          "type": ["boolean", "null"]
+        },
+        "blockers": { "type": ["array", "null"], "items": { "type": "string" } },
+        "unknowns": { "type": ["array", "null"], "items": { "type": "string" } }
+      }
+    },
+
+    "data_security": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "bitlocker": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "available": { "type": ["boolean", "null"] },
+            "systemVolumeProtected": { "type": ["boolean", "null"] },
+            "volumes": {
+              "type": ["array", "null"],
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "driveLetter": { "type": ["string", "null"] },
+                  "protectionStatus": { "enum": ["On", "Off", "Unknown", null] },
+                  "conversionStatus": { "type": ["string", "null"] },
+                  "encryptionMethod": { "type": ["string", "null"] }
+                }
+              }
+            }
+          }
+        },
+        "firewall": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "anyProfileDisabled": { "type": ["boolean", "null"] },
+            "profiles": {
+              "type": ["array", "null"],
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "name": { "type": ["string", "null"] },
+                  "enabled": { "type": ["boolean", "null"] }
+                }
+              }
+            }
+          }
+        },
+        "rdp": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": { "type": ["boolean", "null"] },
+            "nlaRequired": { "type": ["boolean", "null"] },
+            "port": { "type": ["integer", "null"] }
+          }
+        },
+        "smb1": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": { "type": ["boolean", "null"] },
+            "featureState": { "type": ["string", "null"] }
+          }
+        },
+        "uac": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": { "type": ["boolean", "null"] },
+            "consentPromptLevel": { "type": ["integer", "null"] }
+          }
+        }
+      }
+    },
+
+    "data_antivirus": {
+      "description": "O ponto mais delicado da ferramenta. productState é máscara de bits NÃO documentada oficialmente pela Microsoft — toda interpretação que circula é engenharia reversa. O valor bruto é preservado sempre, e a interpretação carrega uma confiança explícita.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "securityCenterAvailable": {
+          "description": "false em edições Server — root\\SecurityCenter2 não existe lá.",
+          "type": ["boolean", "null"]
+        },
+        "products": {
+          "type": ["array", "null"],
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "displayName": { "type": ["string", "null"] },
+              "productStateRaw": {
+                "description": "OBRIGATÓRIO preservar cru, sempre. É o que permite reinterpretar relatórios antigos quando a decodificação melhorar.",
+                "type": ["integer", "null"]
+              },
+              "productStateHex": { "type": ["string", "null"] },
+              "timestamp": { "type": ["string", "null"] },
+              "interpretation": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "confidence": {
+                    "description": "Se diferente de 'High', SEC-001/002/003 resolvem Indeterminate. Requisito vinculante, não sugestão (doc 03 §4.6).",
+                    "enum": ["High", "Low", "None", null]
+                  },
+                  "enabled": { "enum": ["Yes", "No", "Unknown", null] },
+                  "realtimeProtection": { "enum": ["On", "Off", "Unknown", null] },
+                  "definitions": { "enum": ["UpToDate", "Outdated", "Unknown", null] }
+                }
+              }
+            }
+          }
+        },
+        "defender": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "present": { "type": ["boolean", "null"] },
+            "amServiceEnabled": { "type": ["boolean", "null"] },
+            "realtimeProtectionEnabled": { "type": ["boolean", "null"] },
+            "antivirusSignatureAgeDays": { "type": ["integer", "null"] },
+            "isTamperProtected": { "type": ["boolean", "null"] }
+          }
+        },
+        "securitySoftwareInInventory": {
+          "description": "CRUZAMENTO OBRIGATÓRIO com o coletor 'software'. Se o SecurityCenter não retornar nada mas houver EDR conhecido na lista de programas, SEC-001 resolve Indeterminate — não NonCompliant (doc 03 §4.6).",
+          "type": ["array", "null"],
+          "items": { "type": "string" }
+        },
+        "anyProtectionDetected": { "type": ["boolean", "null"] },
+        "activeProductCount": { "type": ["integer", "null"], "minimum": 0 },
+        "overallConfidence": {
+          "description": "DERIVADO: a MENOR confiança entre os produtos detectados. É o guard de SEC-001, SEC-002 e SEC-003 — se não for 'High', as três resolvem Indeterminate. Torna o requisito vinculante do doc 03 §4.6 verificável no dado, não apenas na intenção do implementador.",
+          "enum": ["High", "Low", "None", null]
+        },
+        "realtimeProtectionState": {
+          "description": "DERIVADO e consolidado entre produtos. 'Off' só quando inequívoco.",
+          "enum": ["On", "Off", "Unknown", null]
+        },
+        "definitionsState": {
+          "description": "DERIVADO e consolidado entre produtos. 'Outdated' só quando inequívoco.",
+          "enum": ["UpToDate", "Outdated", "Unknown", null]
+        }
+      }
+    },
+
+    "data_software": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "count": { "type": ["integer", "null"], "minimum": 0 },
+        "programs": {
+          "type": ["array", "null"],
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "displayName": { "type": "string" },
+              "displayVersion": { "type": ["string", "null"] },
+              "publisher": { "type": ["string", "null"] },
+              "installDate": { "$ref": "#/$defs/isoDate" },
+              "estimatedSizeBytes": { "$ref": "#/$defs/bytes" },
+              "scope": { "enum": ["HKLM", "HKLM-WOW6432", "HKCU", null] }
+            }
+          }
+        },
+        "classification": {
+          "description": "É a classificação, não a lista crua, que gera achado comercial.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "remoteAccessTools": { "type": ["array", "null"], "items": { "type": "string" } },
+            "antivirusProducts": { "type": ["array", "null"], "items": { "type": "string" } },
+            "edrAgents": { "type": ["array", "null"], "items": { "type": "string" } },
+            "backupAgents": { "type": ["array", "null"], "items": { "type": "string" } },
+            "obsoleteRuntimes": { "type": ["array", "null"], "items": { "type": "string" } },
+            "potentiallyUnwanted": { "type": ["array", "null"], "items": { "type": "string" } },
+            "licenseReviewCandidates": {
+              "description": "NUNCA afirmar irregularidade. O texto de relatório é 'podem exigir revisão de licenciamento' (doc 03 §4.7).",
+              "type": ["array", "null"],
+              "items": { "type": "string" }
+            }
+          }
+        },
+        "browsers": {
+          "type": ["array", "null"],
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "name": { "type": ["string", "null"] },
+              "version": { "type": ["string", "null"] },
+              "latestKnownVersion": { "type": ["string", "null"] },
+              "outdated": { "type": ["boolean", "null"] }
+            }
+          }
+        },
+        "outdatedBrowsers": {
+          "description": "DERIVADO: nomes dos navegadores com outdated=true. Evita que SW-003 precise iterar array na regra.",
+          "type": ["array", "null"],
+          "items": { "type": "string" }
+        }
+      }
+    },
+
+    "data_startup": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "count": { "type": ["integer", "null"], "minimum": 0 },
+        "coverageIsPartial": {
+          "description": "Win32_StartupCommand não cobre tarefas agendadas nem alguns mecanismos modernos. Aceitável para inventário; insuficiente para a Fase 5.",
+          "type": ["boolean", "null"]
+        },
+        "items": {
+          "type": ["array", "null"],
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "name": { "type": ["string", "null"] },
+              "command": { "type": ["string", "null"] },
+              "location": { "enum": ["HKLM-Run", "HKLM-RunOnce", "HKCU-Run", "HKCU-RunOnce", "StartupFolder", "CommonStartupFolder", "ScheduledTask", "Other", null] },
+              "publisher": { "type": ["string", "null"] },
+              "signed": { "type": ["boolean", "null"] },
+              "enabled": { "type": ["boolean", "null"] },
+              "protected": {
+                "description": "Consta em rules/startup-exclusions.json. Aparece na tela 5 com marcação de bloqueio e NÃO pode ser selecionado para desativação (ADR-007).",
+                "type": ["boolean", "null"]
+              },
+              "protectionReason": { "type": ["string", "null"] }
+            }
+          }
+        },
+        "scheduledLogonTaskCount": { "type": ["integer", "null"], "minimum": 0 }
+      }
+    },
+
+    "data_network": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "adapters": {
+          "type": ["array", "null"],
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "name": { "type": ["string", "null"] },
+              "description": { "type": ["string", "null"] },
+              "macAddress": { "type": ["string", "null"] },
+              "connected": { "type": ["boolean", "null"] },
+              "isVirtual": {
+                "description": "Adaptadores virtuais (VPN, Hyper-V, VirtualBox, loopback) são filtrados da apresentação mas REGISTRADOS no JSON — presença de adaptador de VPN é informação relevante.",
+                "type": ["boolean", "null"]
+              },
+              "connectionType": { "enum": ["Wired", "Wireless", "Virtual", "Unknown", null] },
+              "linkSpeedBps": { "type": ["integer", "null"], "minimum": 0 },
+              "maxSpeedBps": { "type": ["integer", "null"], "minimum": 0 },
+              "dhcpEnabled": { "type": ["boolean", "null"] },
+              "ipAddresses": { "type": ["array", "null"], "items": { "type": "string" } },
+              "defaultGateway": { "type": ["string", "null"] },
+              "dnsServers": { "type": ["array", "null"], "items": { "type": "string" } }
+            }
+          }
+        },
+        "primaryAdapterName": { "type": ["string", "null"] },
+        "primaryConnectionType": {
+          "description": "DERIVADO: tipo de conexão do adaptador primário. Alimenta NET-002 sem iterar array na regra.",
+          "enum": ["Wired", "Wireless", "Virtual", "Unknown", null]
+        },
+        "linkDowngraded": {
+          "description": "DERIVADO: adaptador com maxSpeed >= 1 Gbps negociando <= 100 Mbps. Gancho direto para a vertical de infraestrutura de rede.",
+          "type": ["boolean", "null"]
+        },
+        "publicDnsInDomainEnvironment": { "type": ["boolean", "null"] },
+        "staticIpConfigured": { "type": ["boolean", "null"] }
+      }
+    },
+
+    "data_accounts": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "administratorsGroupResolvedBySid": {
+          "description": "O nome do grupo é localizado. Comparar por nome quebra em máquina com idioma diferente. Se false, SEC-007 resolve Indeterminate.",
+          "type": ["boolean", "null"]
+        },
+        "localAdministrators": {
+          "type": ["array", "null"],
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "name": { "type": ["string", "null"] },
+              "sid": { "type": ["string", "null"] },
+              "domain": { "type": ["string", "null"] },
+              "principalType": { "enum": ["User", "Group", "Unknown", null] },
+              "disabled": { "type": ["boolean", "null"] }
+            }
+          }
+        },
+        "currentUser": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": { "type": ["string", "null"] },
+            "sid": { "type": ["string", "null"] },
+            "isLocalAdmin": { "type": ["boolean", "null"] },
+            "isDomainAccount": { "type": ["boolean", "null"] }
+          }
+        },
+        "localAccounts": {
+          "type": ["array", "null"],
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "name": { "type": ["string", "null"] },
+              "sid": { "type": ["string", "null"] },
+              "disabled": { "type": ["boolean", "null"] },
+              "passwordRequired": { "type": ["boolean", "null"] },
+              "passwordExpires": { "type": ["boolean", "null"] }
+            }
+          }
+        },
+        "guestAccountEnabled": { "type": ["boolean", "null"] }
+      }
+    },
+
+    "data_battery": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "present": { "type": ["boolean", "null"] },
+        "batteries": {
+          "type": ["array", "null"],
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "name": { "type": ["string", "null"] },
+              "chemistry": { "type": ["string", "null"] },
+              "currentChargePercent": { "$ref": "#/$defs/percent" },
+              "designCapacityMwh": {
+                "description": "Win32_Battery.DesignCapacity retorna nulo na maioria dos notebooks. Caminho realista é powercfg /batteryreport.",
+                "type": ["integer", "null"]
+              },
+              "fullChargeCapacityMwh": { "type": ["integer", "null"] },
+              "cycleCount": { "type": ["integer", "null"] }
+            }
+          }
+        },
+        "wearPercent": {
+          "description": "DERIVADO: 1 − (fullChargeCapacity / designCapacity). Acima de 30% é achado de venda direta.",
+          "$ref": "#/$defs/percent"
+        },
+        "wearSource": { "enum": ["powercfg", "wmi", "unavailable", null] }
+      }
+    },
+
+    "data_events": {
+      "description": "Janela de 30 dias, filtrada por IDs específicos. NÃO coletar o canal Security e NÃO coletar eventos de logon de usuário — fora do escopo de privacidade.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "windowDays": { "type": "integer" },
+        "windowStartedAt": { "$ref": "#/$defs/isoDateTime" },
+        "evaluated": {
+          "description": "false quando rules/event-ids.json ainda não foi preenchido ou está vencido. As regras EST-* resolvem Indeterminate.",
+          "type": "boolean"
+        },
+        "reason": { "type": ["string", "null"] },
+        "unexpectedShutdowns": { "type": ["integer", "null"], "minimum": 0 },
+        "diskErrors": { "type": ["integer", "null"], "minimum": 0 },
+        "criticalApplicationErrors": { "type": ["integer", "null"], "minimum": 0 },
+        "matches": {
+          "type": ["array", "null"],
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "category": { "enum": ["unexpectedShutdown", "diskError", "criticalApplicationError", "other", null] },
+              "channel": { "enum": ["System", "Application", null] },
+              "provider": { "type": ["string", "null"] },
+              "eventId": { "type": ["integer", "null"] },
+              "count": { "type": ["integer", "null"], "minimum": 0 },
+              "lastOccurrence": { "type": ["string", "null"] }
+            }
+          }
+        }
+      }
+    },
+
+    "finding": {
+      "type": "object",
+      "required": ["ruleId", "severity", "state", "title"],
+      "additionalProperties": false,
+      "properties": {
+        "ruleId": { "type": "string" },
+        "ruleVersion": { "type": ["integer", "null"] },
+        "severity": { "enum": ["Critical", "High", "Medium", "Low", "Info"] },
+        "state": {
+          "description": "Indeterminate NÃO pontua no score e aparece no bloco 'não foi possível verificar', com o motivo.",
+          "enum": ["Compliant", "NonCompliant", "Indeterminate"]
+        },
+        "indeterminateReason": { "type": ["string", "null"] },
+        "weight": { "type": ["integer", "null"], "minimum": 0 },
+        "title": { "type": "string" },
+        "clientText": { "type": ["string", "null"] },
+        "recommendedAction": { "type": ["string", "null"] },
+        "evidence": { "type": ["object", "null"] },
+        "linkedOptimizations": { "type": ["array", "null"], "items": { "type": "string" } },
+        "markedFalsePositive": { "type": "boolean" },
+        "falsePositiveJustification": { "type": ["string", "null"] }
+      },
+      "allOf": [
+        {
+          "description": "Falso positivo marcado exige justificativa — é o que alimenta a revisão da matriz (doc 03 §6).",
+          "if": { "properties": { "markedFalsePositive": { "const": true } }, "required": ["markedFalsePositive"] },
+          "then": { "properties": { "falsePositiveJustification": { "type": "string", "minLength": 1 } }, "required": ["falsePositiveJustification"] }
+        },
+        {
+          "if": { "properties": { "state": { "const": "Indeterminate" } }, "required": ["state"] },
+          "then": { "properties": { "indeterminateReason": { "type": "string", "minLength": 1 } }, "required": ["indeterminateReason"] }
+        }
+      ]
+    },
+
+    "optimization": {
+      "description": "Fase 5. Ausente ou executed=false enquanto a fase não existir.",
+      "type": ["object", "null"],
+      "required": ["executed"],
+      "additionalProperties": false,
+      "properties": {
+        "executed": { "type": "boolean" },
+        "restorePointCreated": { "type": ["boolean", "null"] },
+        "restorePointId": { "type": ["string", "null"] },
+        "proceededWithoutRestorePoint": {
+          "description": "Só pode ser true com confirmação explícita registrada. Nunca prosseguir silenciosamente.",
+          "type": ["boolean", "null"]
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "authorizedBy", "measureBefore", "result"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "type": "string" },
+              "authorizedBy": { "type": "string", "minLength": 1 },
+              "userConsent": { "type": ["boolean", "null"] },
+              "startedAt": { "$ref": "#/$defs/isoDateTime" },
+              "measureBefore": {
+                "description": "OBRIGATÓRIO e imposto pelo orquestrador. Nenhum otimizador executa sem isso gravado — sem medir antes, a limpeza destrói a evidência que justifica a proposta.",
+                "type": "object"
+              },
+              "result": { "enum": ["Success", "Partial", "Failed", "Skipped"] },
+              "measureAfter": { "type": ["object", "null"] },
+              "gain": { "type": ["object", "null"] },
+              "originalValues": {
+                "description": "Valor original de tudo que foi alterado, gravado ANTES da alteração. É o que permite reverter.",
+                "type": ["object", "null"]
+              },
+              "errors": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "description": "IDs de evento do Windows por categoria, para o coletor 'events'. VAZIO DE PROPÓSITO — entregável da Fase 1.",
+  "docReference": "docs/02-especificacao-tecnica.md §4.11 · docs/03-matriz-riscos-otimizacoes.md §4.10",
+  "version": 0,
+  "validUntil": null,
+  "lastUpdated": null,
+  "sourceUrl": null,
+  "windowDays": 30,
+  "channels": ["System", "Application"],
+  "categories": {
+    "unexpectedShutdown": { "consumedBy": "EST-001", "events": [] },
+    "diskError": { "consumedBy": "EST-002", "events": [] },
+    "criticalApplicationError": { "consumedBy": "EST-003", "events": [] }
+  },
+  "eventShape": {
+    "channel": "System",
+    "provider": "nome exato do provedor",
+    "eventId": 0,
+    "level": "Critical | Error | Warning",
+    "note": "o que este ID significa e por que está nesta categoria",
+    "verifiedAt": "AAAA-MM-DD",
+    "verifiedSourceUrl": "URL da documentação oficial da Microsoft"
+  },
+  "porQueVazio": "O documento técnico §4.11 registra: 'não vou listar números de ID que não posso confirmar'. Preencher de memória é exatamente o caminho para contar ao cliente que a máquina dele teve 40 erros de disco quando teve zero. Cada ID entra aqui com verifiedSourceUrl preenchido, não antes.",
+  "comoPreencher": [
+    "1. Levantar os IDs na documentação oficial da Microsoft, por provedor.",
+    "2. Rodar tools/prototype/Test-DataSources.ps1 numa máquina que sabidamente teve o problema — queda de energia, disco em falha.",
+    "3. Conferir se a contagem bate com a realidade conhecida daquela máquina.",
+    "4. Só então registrar o ID aqui, com verifiedAt e verifiedSourceUrl.",
+    "5. Definir validUntil e habilitar as regras EST-* correspondentes."
+  ],
+  "naoColetar": [
+    "Canal Security — fora do escopo de privacidade (doc 01 §7.1)",
+    "Eventos de logon de usuário — fora do escopo de privacidade",
+    "O log inteiro sem filtro — é lento e infla o JSON (doc 02 §4.11)"
+  ]
+}

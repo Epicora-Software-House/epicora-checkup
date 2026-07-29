@@ -1,0 +1,302 @@
+{
+  "category": "Segurança",
+  "docReference": "docs/03-matriz-riscos-otimizacoes.md §4.6",
+  "note": "SEC-001, SEC-002 e SEC-003 são as regras de maior risco de falso positivo de toda a matriz. A interpretação de productState é engenharia reversa da comunidade, não documentação da Microsoft. Requisito vinculante: se a interpretação não for inequívoca, o resultado é Indeterminate. Jamais NonCompliant.",
+  "rules": [
+    {
+      "id": "SEC-001",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText", "sourceValidation"],
+      "sourceConfidence": "B",
+      "validationNote": "CRUZAMENTO OBRIGATÓRIO: se root\\SecurityCenter2 não retornar nada mas houver EDR conhecido na lista de programas, o resultado é Indeterminate com a observação 'solução de segurança detectada na lista de programas, mas não registrada no Windows Security Center — verificar manualmente'. Também resolve Indeterminate em edição Server, onde root\\SecurityCenter2 não existe. Validar em máquina com EDR de terceiro antes de habilitar.",
+      "category": "Segurança",
+      "severity": "Critical",
+      "weight": 25,
+      "requires": [
+        "collectors.antivirus.data.securityCenterAvailable",
+        "collectors.antivirus.data.anyProtectionDetected"
+      ],
+      "indeterminateWhen": {
+        "anyOf": [
+          { "path": "collectors.antivirus.data.securityCenterAvailable", "operator": "isFalse" },
+          { "path": "collectors.antivirus.data.securitySoftwareInInventory", "operator": "isNotEmpty" }
+        ]
+      },
+      "condition": { "path": "collectors.antivirus.data.anyProtectionDetected", "operator": "isFalse" },
+      "title": "Nenhuma solução de segurança detectada",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": [
+        "collectors.antivirus.data.securityCenterAvailable",
+        "collectors.antivirus.data.securitySoftwareInInventory",
+        "collectors.antivirus.data.defender.amServiceEnabled"
+      ],
+      "linkedOptimizations": [],
+      "verdictInfluence": null
+    },
+    {
+      "id": "SEC-002",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText", "sourceValidation"],
+      "sourceConfidence": "B",
+      "validationNote": "Guard obrigatório em overallConfidence. Dizer a um cliente que o antivírus dele está desatualizado quando não está é o erro mais caro possível.",
+      "category": "Segurança",
+      "severity": "Critical",
+      "weight": 20,
+      "requires": [
+        "collectors.antivirus.data.overallConfidence",
+        "collectors.antivirus.data.definitionsState"
+      ],
+      "indeterminateWhen": {
+        "path": "collectors.antivirus.data.overallConfidence",
+        "operator": "notEquals",
+        "value": "High"
+      },
+      "condition": { "path": "collectors.antivirus.data.definitionsState", "operator": "equals", "value": "Outdated" },
+      "title": "Antivírus com definições desatualizadas",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": [
+        "collectors.antivirus.data.products",
+        "collectors.antivirus.data.defender.antivirusSignatureAgeDays"
+      ],
+      "linkedOptimizations": [],
+      "verdictInfluence": null
+    },
+    {
+      "id": "SEC-003",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText", "sourceValidation"],
+      "sourceConfidence": "B",
+      "validationNote": "Mesmo guard de SEC-002.",
+      "category": "Segurança",
+      "severity": "Critical",
+      "weight": 25,
+      "requires": [
+        "collectors.antivirus.data.overallConfidence",
+        "collectors.antivirus.data.realtimeProtectionState"
+      ],
+      "indeterminateWhen": {
+        "path": "collectors.antivirus.data.overallConfidence",
+        "operator": "notEquals",
+        "value": "High"
+      },
+      "condition": { "path": "collectors.antivirus.data.realtimeProtectionState", "operator": "equals", "value": "Off" },
+      "title": "Proteção em tempo real desabilitada",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": [
+        "collectors.antivirus.data.products",
+        "collectors.antivirus.data.defender.realtimeProtectionEnabled"
+      ],
+      "linkedOptimizations": [],
+      "verdictInfluence": null
+    },
+    {
+      "id": "SEC-004",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText", "sourceValidation"],
+      "sourceConfidence": "M",
+      "validationNote": "Win32_EncryptableVolume em root\\CIMV2\\Security\\MicrosoftVolumeEncryption exige elevação. Peso maior que SEC-005 porque notebook sai da empresa.",
+      "category": "Segurança",
+      "severity": "High",
+      "weight": 15,
+      "requires": ["collectors.machine.data.isLaptop", "collectors.security.data.bitlocker.systemVolumeProtected"],
+      "indeterminateWhen": null,
+      "condition": {
+        "allOf": [
+          { "path": "collectors.machine.data.isLaptop", "operator": "isTrue" },
+          { "path": "collectors.security.data.bitlocker.systemVolumeProtected", "operator": "isFalse" }
+        ]
+      },
+      "title": "Notebook sem criptografia de disco",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": ["collectors.security.data.bitlocker.volumes", "collectors.os.data.isHomeEdition"],
+      "linkedOptimizations": [],
+      "verdictInfluence": null
+    },
+    {
+      "id": "SEC-005",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText", "sourceValidation"],
+      "sourceConfidence": "M",
+      "validationNote": "Mesma fonte de SEC-004.",
+      "category": "Segurança",
+      "severity": "Medium",
+      "weight": 6,
+      "requires": ["collectors.machine.data.isLaptop", "collectors.security.data.bitlocker.systemVolumeProtected"],
+      "indeterminateWhen": null,
+      "condition": {
+        "allOf": [
+          { "path": "collectors.machine.data.isLaptop", "operator": "isFalse" },
+          { "path": "collectors.security.data.bitlocker.systemVolumeProtected", "operator": "isFalse" }
+        ]
+      },
+      "title": "Desktop sem criptografia de disco",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": ["collectors.security.data.bitlocker.volumes"],
+      "linkedOptimizations": [],
+      "verdictInfluence": null
+    },
+    {
+      "id": "SEC-006",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText", "sourceValidation"],
+      "sourceConfidence": "M",
+      "validationNote": "MSFT_NetFirewallProfile em root\\StandardCimv2 — confirmar nomes de propriedade em campo.",
+      "category": "Segurança",
+      "severity": "High",
+      "weight": 12,
+      "requires": ["collectors.security.data.firewall.anyProfileDisabled"],
+      "indeterminateWhen": null,
+      "condition": { "path": "collectors.security.data.firewall.anyProfileDisabled", "operator": "isTrue" },
+      "title": "Firewall desabilitado em algum perfil",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": ["collectors.security.data.firewall.profiles"],
+      "linkedOptimizations": [],
+      "verdictInfluence": null
+    },
+    {
+      "id": "SEC-007",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["sourceValidation"],
+      "sourceConfidence": "M",
+      "validationNote": "O grupo de administradores DEVE ser resolvido por SID, nunca por nome — o nome é localizado (doc 02 §4.6). Se administratorsGroupResolvedBySid for false, a regra resolve Indeterminate. Validar em máquina em domínio e em máquina com Windows em inglês.",
+      "category": "Segurança",
+      "severity": "High",
+      "weight": 12,
+      "requires": [
+        "collectors.accounts.data.administratorsGroupResolvedBySid",
+        "collectors.accounts.data.currentUser.isLocalAdmin"
+      ],
+      "indeterminateWhen": {
+        "path": "collectors.accounts.data.administratorsGroupResolvedBySid",
+        "operator": "isFalse"
+      },
+      "condition": { "path": "collectors.accounts.data.currentUser.isLocalAdmin", "operator": "isTrue" },
+      "title": "Usuário do dia a dia é administrador local",
+      "clientText": "O usuário que utiliza esta máquina no dia a dia possui privilégio de administrador. Isso significa que qualquer programa executado por ele — inclusive um anexo malicioso aberto por engano — pode alterar o sistema, desativar a proteção e se instalar de forma permanente. Separar a conta de uso diário da conta administrativa é uma das medidas de maior efeito e menor custo em segurança de estações de trabalho.",
+      "recommendedAction": "Criar conta administrativa separada e reduzir o usuário do dia a dia a usuário padrão.",
+      "evidenceFields": [
+        "collectors.accounts.data.currentUser.name",
+        "collectors.accounts.data.localAdministrators"
+      ],
+      "linkedOptimizations": [],
+      "verdictInfluence": null
+    },
+    {
+      "id": "SEC-008",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["sourceValidation"],
+      "sourceConfidence": "M",
+      "validationNote": "Estado da feature opcional SMB1Protocol — confirmar o caminho de consulta em campo. NÃO existe otimização vinculada de propósito: impressoras e equipamentos industriais antigos às vezes só falam SMBv1. Desabilitar é projeto com validação, não clique na tela 5.",
+      "category": "Segurança",
+      "severity": "High",
+      "weight": 15,
+      "requires": ["collectors.security.data.smb1.enabled"],
+      "indeterminateWhen": null,
+      "condition": { "path": "collectors.security.data.smb1.enabled", "operator": "isTrue" },
+      "title": "Protocolo SMBv1 habilitado",
+      "clientText": "Esta máquina tem o protocolo SMBv1 habilitado. Trata-se de um protocolo de compartilhamento de arquivos antigo, com falhas conhecidas e exploradas por famílias de ransomware. A própria Microsoft recomenda desabilitá-lo.",
+      "recommendedAction": "Desabilitar SMBv1 após confirmar que nenhum equipamento antigo da rede depende dele.",
+      "evidenceFields": ["collectors.security.data.smb1.featureState"],
+      "linkedOptimizations": [],
+      "verdictInfluence": null
+    },
+    {
+      "id": "SEC-009",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText", "sourceValidation"],
+      "sourceConfidence": "M",
+      "validationNote": "RDP habilitado pode ser legítimo — é como muitos clientes acessam a própria máquina. O texto precisa ser redigido como ponto de atenção a confirmar, não como falha.",
+      "category": "Segurança",
+      "severity": "Medium",
+      "weight": 8,
+      "requires": ["collectors.security.data.rdp.enabled"],
+      "indeterminateWhen": null,
+      "condition": { "path": "collectors.security.data.rdp.enabled", "operator": "isTrue" },
+      "title": "Acesso remoto RDP habilitado",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": ["collectors.security.data.rdp.nlaRequired", "collectors.security.data.rdp.port"],
+      "linkedOptimizations": [],
+      "verdictInfluence": null
+    },
+    {
+      "id": "SEC-010",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText", "sourceValidation"],
+      "sourceConfidence": "M",
+      "validationNote": "ALTO RISCO DE FALSO POSITIVO. Win32_QuickFixEngineering não lista atualizações cumulativas modernas (doc 02 §4.4) — uma máquina em dia pode aparecer sem update há um ano. Só habilitar depois de comparar, em campo, o que a classe reporta contra o histórico real do Windows Update. Alternativa mais confiável: OS-005 via tabela de builds.",
+      "category": "Segurança",
+      "severity": "High",
+      "weight": 12,
+      "requires": ["collectors.updates.data.daysSinceLastUpdate"],
+      "indeterminateWhen": null,
+      "condition": { "path": "collectors.updates.data.daysSinceLastUpdate", "operator": "greaterThan", "value": 90 },
+      "title": "Sem atualização de segurança registrada nos últimos 90 dias",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": [
+        "collectors.updates.data.lastUpdateDate",
+        "collectors.updates.data.windowsUpdateServiceEnabled",
+        "collectors.updates.data.coverageIsPartial"
+      ],
+      "linkedOptimizations": [],
+      "verdictInfluence": null
+    },
+    {
+      "id": "SEC-011",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText"],
+      "sourceConfidence": "A",
+      "validationNote": "Informativo, peso zero. Ferramenta de acesso remoto normalmente é legítima — pode ser o meio de suporte do próprio cliente. Registrar, não acusar.",
+      "category": "Segurança",
+      "severity": "Info",
+      "weight": 0,
+      "requires": ["collectors.software.data.classification.remoteAccessTools"],
+      "indeterminateWhen": null,
+      "condition": { "path": "collectors.software.data.classification.remoteAccessTools", "operator": "isNotEmpty" },
+      "title": "Ferramenta de acesso remoto instalada",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": ["collectors.software.data.classification.remoteAccessTools"],
+      "linkedOptimizations": [],
+      "verdictInfluence": null
+    },
+    {
+      "id": "SEC-012",
+      "version": 1,
+      "enabled": true,
+      "enabledBlockedBy": [],
+      "sourceConfidence": "A",
+      "validationNote": "ALTA TAXA DE FALSO NEGATIVO ACEITA: backup pode existir por mecanismo que a ferramenta não detecta. Por isso o texto diz 'não identificamos', nunca 'não existe'. Essa redação é obrigatória e não pode ser alterada sem revisão do comercial.",
+      "category": "Segurança",
+      "severity": "High",
+      "weight": 15,
+      "requires": ["collectors.software.data.classification.backupAgents"],
+      "indeterminateWhen": null,
+      "condition": { "path": "collectors.software.data.classification.backupAgents", "operator": "isEmpty" },
+      "title": "Nenhuma solução de backup identificada",
+      "clientText": "Não identificamos nenhuma solução de backup ativa nesta máquina. Se o disco falhar, se houver furto ou se um ransomware criptografar os arquivos, os dados armazenados localmente não têm rota de recuperação.",
+      "recommendedAction": "Definir política de backup — centralização em servidor, backup em nuvem, ou ambos.",
+      "evidenceFields": ["collectors.software.data.classification.backupAgents", "collectors.software.data.count"],
+      "linkedOptimizations": [],
+      "verdictInfluence": null
+    }
+  ]
+}

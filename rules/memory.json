@@ -1,0 +1,141 @@
+{
+  "category": "Memória",
+  "docReference": "docs/03-matriz-riscos-otimizacoes.md §4.2",
+  "note": "MEM-001..004 são mutuamente exclusivas por construção. Nunca somam peso entre si. MEM-002 é o caminho quando a contagem de slots não está disponível: sem saber se há slot livre, não se pode afirmar upgrade nem substituição.",
+  "rules": [
+    {
+      "id": "MEM-001",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText"],
+      "sourceConfidence": "A",
+      "validationNote": null,
+      "category": "Memória",
+      "severity": "Critical",
+      "weight": 20,
+      "requires": ["collectors.memory.data.totalGiB"],
+      "indeterminateWhen": null,
+      "condition": {
+        "path": "collectors.memory.data.totalGiB",
+        "operator": "lessThan",
+        "value": 5
+      },
+      "title": "Memória RAM de 4 GB ou menos",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": ["collectors.memory.data.totalBytes", "collectors.memory.data.freeSlots"],
+      "linkedOptimizations": [],
+      "verdictInfluence": "Replace"
+    },
+    {
+      "id": "MEM-002",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText"],
+      "sourceConfidence": "A",
+      "validationNote": "Dispara apenas quando freeSlots não pôde ser determinado. Se a contagem de slots funcionar em campo, MEM-003 ou MEM-004 assumem e esta praticamente não ocorre.",
+      "category": "Memória",
+      "severity": "High",
+      "weight": 12,
+      "requires": ["collectors.memory.data.totalGiB"],
+      "indeterminateWhen": null,
+      "condition": {
+        "allOf": [
+          { "path": "collectors.memory.data.totalGiB", "operator": "greaterThan", "value": 4 },
+          { "path": "collectors.memory.data.totalGiB", "operator": "lessThan", "value": 9 },
+          { "path": "collectors.memory.data.freeSlots", "operator": "isNull" }
+        ]
+      },
+      "title": "Memória RAM de 8 GB ou menos, slots não verificados",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": ["collectors.memory.data.totalBytes"],
+      "linkedOptimizations": [],
+      "verdictInfluence": "Upgrade"
+    },
+    {
+      "id": "MEM-003",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["sourceValidation"],
+      "sourceConfidence": "M",
+      "validationNote": "Depende de Win32_PhysicalMemoryArray.MemoryDevices para a contagem total de slots (doc 02 §4.2). Validar em desktop e notebook de fabricantes diferentes antes de habilitar — é o dado que separa 'fazer upgrade' de 'substituir a máquina'.",
+      "category": "Memória",
+      "severity": "High",
+      "weight": 12,
+      "requires": ["collectors.memory.data.totalGiB", "collectors.memory.data.freeSlots"],
+      "indeterminateWhen": null,
+      "condition": {
+        "allOf": [
+          { "path": "collectors.memory.data.totalGiB", "operator": "greaterThan", "value": 4 },
+          { "path": "collectors.memory.data.totalGiB", "operator": "lessThan", "value": 9 },
+          { "path": "collectors.memory.data.freeSlots", "operator": "greaterThan", "value": 0 }
+        ]
+      },
+      "title": "Memória RAM de 8 GB com slot livre disponível",
+      "clientText": "Esta máquina possui 8 GB de memória, quantidade que hoje limita o uso simultâneo de navegador, sistema de gestão e planilhas. Verificamos que ela tem slot de memória livre, o que permite ampliar a capacidade sem substituir o computador — é o upgrade com melhor relação custo-benefício disponível nesta máquina.",
+      "recommendedAction": "Instalar módulo adicional de memória compatível.",
+      "evidenceFields": [
+        "collectors.memory.data.totalBytes",
+        "collectors.memory.data.freeSlots",
+        "collectors.memory.data.totalSlots",
+        "collectors.memory.data.modules"
+      ],
+      "linkedOptimizations": [],
+      "verdictInfluence": "Upgrade"
+    },
+    {
+      "id": "MEM-004",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["sourceValidation"],
+      "sourceConfidence": "M",
+      "validationNote": "Mesma fonte de MEM-003. Habilitar as duas juntas — habilitar só uma produz recomendação comercial enviesada.",
+      "category": "Memória",
+      "severity": "High",
+      "weight": 14,
+      "requires": ["collectors.memory.data.totalGiB", "collectors.memory.data.freeSlots"],
+      "indeterminateWhen": null,
+      "condition": {
+        "allOf": [
+          { "path": "collectors.memory.data.totalGiB", "operator": "greaterThan", "value": 4 },
+          { "path": "collectors.memory.data.totalGiB", "operator": "lessThan", "value": 9 },
+          { "path": "collectors.memory.data.freeSlots", "operator": "equals", "value": 0 }
+        ]
+      },
+      "title": "Memória RAM de 8 GB sem slot livre",
+      "clientText": "Esta máquina possui 8 GB de memória e todos os slots já estão ocupados. Ampliar a memória exigiria substituir os módulos existentes, o que reduz muito o benefício do investimento. Considerando o conjunto, a substituição da máquina tende a ser mais vantajosa.",
+      "recommendedAction": "Avaliar substituição da máquina.",
+      "evidenceFields": [
+        "collectors.memory.data.totalBytes",
+        "collectors.memory.data.totalSlots",
+        "collectors.memory.data.modules"
+      ],
+      "linkedOptimizations": [],
+      "verdictInfluence": "Replace"
+    },
+    {
+      "id": "MEM-005",
+      "version": 1,
+      "enabled": false,
+      "enabledBlockedBy": ["clientText"],
+      "sourceConfidence": "A",
+      "validationNote": null,
+      "category": "Memória",
+      "severity": "Low",
+      "weight": 2,
+      "requires": ["collectors.memory.data.speedMismatch"],
+      "indeterminateWhen": null,
+      "condition": {
+        "path": "collectors.memory.data.speedMismatch",
+        "operator": "isTrue"
+      },
+      "title": "Módulos de memória com velocidades diferentes",
+      "clientText": null,
+      "recommendedAction": null,
+      "evidenceFields": ["collectors.memory.data.modules"],
+      "linkedOptimizations": [],
+      "verdictInfluence": null
+    }
+  ]
+}

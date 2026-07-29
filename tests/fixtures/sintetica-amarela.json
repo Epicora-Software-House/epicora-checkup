@@ -1,0 +1,694 @@
+{
+  "schemaVersion": "1.0",
+  "tool": {
+    "name": "EpicoraCheckup",
+    "version": "0.1.0",
+    "commit": null,
+    "runtime": "powershell",
+    "rulesVersion": "2026.07.29"
+  },
+  "execution": {
+    "startedAt": "2026-07-29T10:40:12-03:00",
+    "finishedAt": "2026-07-29T10:41:09-03:00",
+    "durationSeconds": 57,
+    "elevated": false,
+    "technician": "Técnico Sintético",
+    "diagnosticId": "DIAG-SINT-AMARELA",
+    "hostLocale": "pt-BR"
+  },
+  "client": {
+    "name": "Cliente Sintético",
+    "unit": "Matriz"
+  },
+  "manual": {
+    "machineLabel": "SINT-AMARELA",
+    "responsible": "Usuário Sintético",
+    "department": "Administrativo",
+    "physicalLocation": "Sala 2, mesa 3",
+    "assetTag": "PAT-00002",
+    "physicalCondition": "Ventoinha ruidosa",
+    "notes": "Fixture sintética: execução SEM ELEVAÇÃO. Exercita Skipped, Failed e Indeterminate. Nenhuma regra sobre coletor Skipped pode resolver NonCompliant.",
+    "corporateEnvironment": true
+  },
+  "collectors": [
+    {
+      "id": "machine",
+      "displayName": "Identificação da máquina",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": false,
+      "durationMs": 410,
+      "timedOut": false,
+      "summary": "Desktop Lenovo ThinkCentre M720q, em grupo de trabalho",
+      "errors": [],
+      "data": {
+        "hostname": "SINT-AMARELA",
+        "domainJoined": false,
+        "domain": null,
+        "workgroup": "WORKGROUP",
+        "manufacturer": "LENOVO",
+        "model": "ThinkCentre M720q",
+        "uuid": "00000000-0000-0000-0000-00000000a002",
+        "productSerial": "SINTAMR2",
+        "chassisTypes": [
+          3
+        ],
+        "chassisTypeName": "Desktop",
+        "isLaptop": false,
+        "isLaptopBasis": "both",
+        "bios": {
+          "manufacturer": "LENOVO",
+          "version": "M1UKT58A",
+          "serial": "SINTAMR2",
+          "releaseDate": "2021-03-15"
+        },
+        "baseboard": {
+          "manufacturer": "LENOVO",
+          "product": "3140",
+          "serial": "SINTAMR2-MB"
+        },
+        "approxAgeYears": 5.4,
+        "approxAgeBasis": "biosReleaseDate"
+      }
+    },
+    {
+      "id": "cpu",
+      "displayName": "Processador",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": false,
+      "durationMs": 130,
+      "timedOut": false,
+      "summary": "Intel Core i5-8400T, 6 núcleos",
+      "errors": [],
+      "data": {
+        "name": "Intel(R) Core(TM) i5-8400T CPU @ 1.70GHz",
+        "normalizedName": "Intel Core i5-8400T",
+        "manufacturer": "GenuineIntel",
+        "physicalCores": 6,
+        "logicalProcessors": 6,
+        "maxClockMhz": 3300,
+        "socket": "U3E1",
+        "architecture": "x64",
+        "virtualizationFirmwareEnabled": true,
+        "win11Supported": null,
+        "win11SupportBasis": "listMissing"
+      }
+    },
+    {
+      "id": "memory",
+      "displayName": "Memória",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": false,
+      "durationMs": 200,
+      "timedOut": false,
+      "summary": "8 GB em 1 pente, 1 slot livre",
+      "errors": [],
+      "data": {
+        "totalBytes": 8589934592,
+        "totalGiB": 8,
+        "totalSlots": 2,
+        "usedSlots": 1,
+        "freeSlots": 1,
+        "maxCapacityBytes": 34359738368,
+        "speedMismatch": false,
+        "modules": [
+          {
+            "capacityBytes": 8589934592,
+            "speedMhz": 2666,
+            "configuredSpeedMhz": 2666,
+            "manufacturer": "SK Hynix",
+            "partNumber": "HMA81GS6CJR8N",
+            "bankLabel": "BANK 0",
+            "deviceLocator": "DIMM 1",
+            "memoryTypeCode": 26,
+            "memoryTypeName": "DDR4",
+            "memoryTypeSource": "SMBIOSMemoryType"
+          }
+        ]
+      }
+    },
+    {
+      "id": "storage",
+      "displayName": "Armazenamento e saúde de disco",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": true,
+      "durationMs": 3600,
+      "timedOut": false,
+      "summary": "Disco de sistema: SSD SATA 240 GB, 17% livre — saúde não verificada sem privilégio",
+      "errors": [
+        {
+          "source": "root\\wmi MSStorageDriver_FailurePredictStatus",
+          "message": "Acesso negado — requer privilégio administrativo",
+          "fatal": false
+        }
+      ],
+      "data": {
+        "physicalDisks": [
+          {
+            "index": 0,
+            "model": "KINGSTON SA400S37240G",
+            "serial": "SINTAMR-D0",
+            "sizeBytes": 240057409536,
+            "interfaceType": "IDE",
+            "mediaType": "SSD",
+            "mediaTypeSource": "MSFT_PhysicalDisk",
+            "busType": "SATA",
+            "healthStatus": "Healthy",
+            "failurePredicted": null
+          }
+        ],
+        "volumes": [
+          {
+            "driveLetter": "C:",
+            "label": "OS",
+            "fileSystem": "NTFS",
+            "sizeBytes": 238000000000,
+            "freeBytes": 40460000000,
+            "freePercent": 17,
+            "isSystemVolume": true
+          }
+        ],
+        "systemDisk": {
+          "model": "KINGSTON SA400S37240G",
+          "sizeBytes": 240057409536,
+          "mediaType": "SSD",
+          "busType": "SATA",
+          "healthStatus": "Healthy",
+          "failurePredicted": null,
+          "trimEnabled": null,
+          "fragmentationPercent": null,
+          "partitionStyle": "GPT"
+        },
+        "systemVolume": {
+          "driveLetter": "C:",
+          "sizeBytes": 238000000000,
+          "freeBytes": 40460000000,
+          "freePercent": 17
+        },
+        "windowsOldPresent": false,
+        "windowsOldSizeBytes": null
+      }
+    },
+    {
+      "id": "devices",
+      "displayName": "Placa de vídeo e dispositivos",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": false,
+      "durationMs": 280,
+      "timedOut": false,
+      "summary": "Intel UHD Graphics 630, 1 dispositivo com problema",
+      "errors": [],
+      "data": {
+        "videoControllers": [
+          {
+            "name": "Intel(R) UHD Graphics 630",
+            "driverVersion": "27.20.100.9316",
+            "driverDate": "2022-04-19",
+            "adapterRamBytes": 1073741824,
+            "currentResolution": "1920x1080"
+          }
+        ],
+        "problemDevices": [
+          {
+            "name": "Dispositivo Base do Sistema",
+            "deviceClass": "Unknown",
+            "configManagerErrorCode": 28,
+            "errorDescription": "Os drivers deste dispositivo não estão instalados"
+          }
+        ],
+        "problemDeviceCount": 1
+      }
+    },
+    {
+      "id": "os",
+      "displayName": "Sistema operacional e licenciamento",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": true,
+      "durationMs": 1500,
+      "timedOut": false,
+      "summary": "Windows 11 Pro 23H2 — ativação não verificada sem privilégio",
+      "errors": [
+        {
+          "source": "SoftwareLicensingProduct",
+          "message": "Acesso negado — requer privilégio administrativo",
+          "fatal": false
+        }
+      ],
+      "data": {
+        "caption": "Microsoft Windows 11 Pro",
+        "edition": "Professional",
+        "productFamily": "Windows 11",
+        "isServer": false,
+        "isHomeEdition": false,
+        "version": "10.0.22631",
+        "buildNumber": 22631,
+        "ubr": 4890,
+        "displayVersion": "23H2",
+        "architecture": "64 bits",
+        "installDate": "2024-02-11",
+        "installAgeYears": 2.5,
+        "lastBootTime": "2026-06-14T07:40:00-03:00",
+        "uptimeDays": 45.1,
+        "activation": {
+          "status": null,
+          "statusCode": null,
+          "channel": null
+        },
+        "buildFreshness": {
+          "evaluated": false,
+          "reason": "tabela de builds não preenchida",
+          "latestKnownBuild": null,
+          "latestKnownUbr": null,
+          "tableValidUntil": null,
+          "isCurrent": null
+        }
+      }
+    },
+    {
+      "id": "updates",
+      "displayName": "Atualizações do Windows",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": false,
+      "durationMs": 950,
+      "timedOut": false,
+      "summary": "Última atualização registrada há 41 dias",
+      "errors": [],
+      "data": {
+        "hotfixes": [
+          {
+            "hotfixId": "KB5060842",
+            "installedOn": "2026-06-18",
+            "description": "Security Update"
+          }
+        ],
+        "coverageIsPartial": true,
+        "lastUpdateDate": "2026-06-18",
+        "daysSinceLastUpdate": 41,
+        "windowsUpdateServiceEnabled": true,
+        "wsusConfigured": false
+      }
+    },
+    {
+      "id": "win11",
+      "displayName": "Compatibilidade com Windows 11",
+      "status": "Skipped",
+      "skipReason": "sem privilégio administrativo",
+      "requiresElevation": true,
+      "durationMs": 0,
+      "timedOut": false,
+      "summary": "Ignorado — sem privilégio",
+      "errors": [],
+      "data": null
+    },
+    {
+      "id": "security",
+      "displayName": "Segurança e criptografia",
+      "status": "Skipped",
+      "skipReason": "sem privilégio administrativo",
+      "requiresElevation": true,
+      "durationMs": 0,
+      "timedOut": false,
+      "summary": "Ignorado — sem privilégio",
+      "errors": [],
+      "data": null
+    },
+    {
+      "id": "antivirus",
+      "displayName": "Antivírus",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": true,
+      "durationMs": 1250,
+      "timedOut": false,
+      "summary": "Solução de segurança detectada, estado não conclusivo",
+      "errors": [],
+      "data": {
+        "securityCenterAvailable": true,
+        "products": [
+          {
+            "displayName": "Sophos Intercept X",
+            "productStateRaw": 266240,
+            "productStateHex": "0x41000",
+            "timestamp": null,
+            "interpretation": {
+              "confidence": "Low",
+              "enabled": "Unknown",
+              "realtimeProtection": "Unknown",
+              "definitions": "Unknown"
+            }
+          }
+        ],
+        "defender": {
+          "present": true,
+          "amServiceEnabled": null,
+          "realtimeProtectionEnabled": null,
+          "antivirusSignatureAgeDays": null,
+          "isTamperProtected": null
+        },
+        "securitySoftwareInInventory": [
+          "Sophos Endpoint Agent"
+        ],
+        "anyProtectionDetected": true,
+        "activeProductCount": null,
+        "overallConfidence": "Low",
+        "realtimeProtectionState": "Unknown",
+        "definitionsState": "Unknown"
+      }
+    },
+    {
+      "id": "software",
+      "displayName": "Software instalado",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": false,
+      "durationMs": 2100,
+      "timedOut": false,
+      "summary": "112 programas instalados",
+      "errors": [],
+      "data": {
+        "count": 112,
+        "programs": [
+          {
+            "displayName": "Sophos Endpoint Agent",
+            "displayVersion": "2.28.6",
+            "publisher": "Sophos Limited",
+            "installDate": "2024-02-20",
+            "estimatedSizeBytes": 838860800,
+            "scope": "HKLM"
+          },
+          {
+            "displayName": "Google Chrome",
+            "displayVersion": "138.0.7204.51",
+            "publisher": "Google LLC",
+            "installDate": "2026-01-14",
+            "estimatedSizeBytes": 644245094,
+            "scope": "HKLM"
+          },
+          {
+            "displayName": "Java 8 Update 341",
+            "displayVersion": "8.0.3410.10",
+            "publisher": "Oracle Corporation",
+            "installDate": "2022-08-30",
+            "estimatedSizeBytes": 220200960,
+            "scope": "HKLM-WOW6432"
+          },
+          {
+            "displayName": "AnyDesk",
+            "displayVersion": "8.0.8",
+            "publisher": "AnyDesk Software GmbH",
+            "installDate": "2025-05-02",
+            "estimatedSizeBytes": 10485760,
+            "scope": "HKCU"
+          }
+        ],
+        "classification": {
+          "remoteAccessTools": [
+            "AnyDesk"
+          ],
+          "antivirusProducts": [
+            "Sophos Endpoint Agent"
+          ],
+          "edrAgents": [
+            "Sophos Endpoint Agent"
+          ],
+          "backupAgents": [],
+          "obsoleteRuntimes": [
+            "Java 8 Update 341"
+          ],
+          "potentiallyUnwanted": [],
+          "licenseReviewCandidates": []
+        },
+        "browsers": [
+          {
+            "name": "Google Chrome",
+            "version": "138.0.7204.51",
+            "latestKnownVersion": "142.0.7444.98",
+            "outdated": true
+          }
+        ],
+        "outdatedBrowsers": [
+          "Google Chrome"
+        ]
+      }
+    },
+    {
+      "id": "startup",
+      "displayName": "Programas de inicialização",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": false,
+      "durationMs": 700,
+      "timedOut": false,
+      "summary": "18 programas na inicialização",
+      "errors": [],
+      "data": {
+        "count": 18,
+        "coverageIsPartial": true,
+        "scheduledLogonTaskCount": 6,
+        "items": [
+          {
+            "name": "Sophos UI",
+            "command": "C:\\Program Files\\Sophos\\Endpoint Defense\\uiServer.exe",
+            "location": "HKLM-Run",
+            "publisher": "Sophos Limited",
+            "signed": true,
+            "enabled": true,
+            "protected": true,
+            "protectionReason": "Agente de EDR"
+          },
+          {
+            "name": "OneDrive",
+            "command": "C:\\Program Files\\Microsoft OneDrive\\OneDrive.exe /background",
+            "location": "HKCU-Run",
+            "publisher": "Microsoft Corporation",
+            "signed": true,
+            "enabled": true,
+            "protected": false,
+            "protectionReason": null
+          },
+          {
+            "name": "AnyDeskTray",
+            "command": "C:\\Users\\Public\\AnyDesk\\AnyDesk.exe --tray",
+            "location": "HKCU-Run",
+            "publisher": "AnyDesk Software GmbH",
+            "signed": true,
+            "enabled": true,
+            "protected": false,
+            "protectionReason": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "network",
+      "displayName": "Rede",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": false,
+      "durationMs": 540,
+      "timedOut": false,
+      "summary": "Cabo, negociando 100 Mbps em adaptador gigabit",
+      "errors": [],
+      "data": {
+        "adapters": [
+          {
+            "name": "Ethernet",
+            "description": "Realtek PCIe GbE Family Controller",
+            "macAddress": "00:00:00:00:00:02",
+            "connected": true,
+            "isVirtual": false,
+            "connectionType": "Wired",
+            "linkSpeedBps": 100000000,
+            "maxSpeedBps": 1000000000,
+            "dhcpEnabled": true,
+            "ipAddresses": [
+              "192.168.10.62"
+            ],
+            "defaultGateway": "192.168.10.1",
+            "dnsServers": [
+              "192.168.10.2",
+              "8.8.8.8"
+            ]
+          }
+        ],
+        "primaryAdapterName": "Ethernet",
+        "linkDowngraded": true,
+        "publicDnsInDomainEnvironment": false,
+        "staticIpConfigured": false,
+        "primaryConnectionType": "Wired"
+      }
+    },
+    {
+      "id": "accounts",
+      "displayName": "Contas e privilégios",
+      "status": "Failed",
+      "skipReason": null,
+      "requiresElevation": true,
+      "durationMs": 20000,
+      "timedOut": true,
+      "summary": "Falhou — tempo limite excedido",
+      "errors": [
+        {
+          "source": "Win32_GroupUser",
+          "message": "Coletor excedeu o tempo limite de 20 s",
+          "fatal": true
+        }
+      ],
+      "data": null
+    },
+    {
+      "id": "battery",
+      "displayName": "Bateria",
+      "status": "Skipped",
+      "skipReason": "não aplicável — máquina sem bateria",
+      "requiresElevation": true,
+      "durationMs": 40,
+      "timedOut": false,
+      "summary": "Ignorado — desktop",
+      "errors": [],
+      "data": null
+    },
+    {
+      "id": "events",
+      "displayName": "Eventos críticos",
+      "status": "Completed",
+      "skipReason": null,
+      "requiresElevation": false,
+      "durationMs": 4800,
+      "timedOut": false,
+      "summary": "Tabela de IDs de evento não preenchida — não avaliado",
+      "errors": [],
+      "data": {
+        "windowDays": 30,
+        "windowStartedAt": "2026-06-29T10:40:12-03:00",
+        "evaluated": false,
+        "reason": "rules/event-ids.json ainda não preenchido — levantamento pendente da Fase 1",
+        "unexpectedShutdowns": null,
+        "diskErrors": null,
+        "criticalApplicationErrors": null,
+        "matches": null
+      }
+    }
+  ],
+  "findings": [
+    {
+      "ruleId": "OS-001",
+      "ruleVersion": 1,
+      "severity": "Critical",
+      "state": "Compliant",
+      "indeterminateReason": null,
+      "weight": 25,
+      "title": "Windows 10 — fora do suporte gratuito da Microsoft",
+      "clientText": "Esta máquina roda Windows 10, cujo suporte gratuito da Microsoft foi encerrado em outubro de 2025. Isso significa que ela deixou de receber correções de segurança pelo canal padrão. Máquinas nessa condição são alvo preferencial de ataques, porque as falhas descobertas depois do fim do suporte permanecem abertas.",
+      "recommendedAction": "Migrar para Windows 11, quando o hardware permitir, ou substituir a máquina.",
+      "evidence": null,
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "STO-002",
+      "ruleVersion": 1,
+      "severity": "Critical",
+      "state": "Compliant",
+      "indeterminateReason": null,
+      "weight": 20,
+      "title": "Espaço livre em disco abaixo de 10%",
+      "clientText": "O disco desta máquina está com menos de 10% de espaço livre. Além de causar lentidão, essa condição pode impedir a instalação de atualizações de segurança do Windows e, em casos extremos, travar a inicialização do sistema.",
+      "recommendedAction": "Liberar espaço agora e avaliar aumento de capacidade ou centralização de arquivos em servidor.",
+      "evidence": null,
+      "linkedOptimizations": [
+        "OPT-TEMP",
+        "OPT-WU",
+        "OPT-OLD",
+        "OPT-BIN"
+      ],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "SEC-012",
+      "ruleVersion": 1,
+      "severity": "High",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 15,
+      "title": "Nenhuma solução de backup identificada",
+      "clientText": "Não identificamos nenhuma solução de backup ativa nesta máquina. Se o disco falhar, se houver furto ou se um ransomware criptografar os arquivos, os dados armazenados localmente não têm rota de recuperação.",
+      "recommendedAction": "Definir política de backup — centralização em servidor, backup em nuvem, ou ambos.",
+      "evidence": {
+        "collectors.software.data.classification.backupAgents": [],
+        "collectors.software.data.count": 112
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "NET-001",
+      "ruleVersion": 1,
+      "severity": "Medium",
+      "state": "NonCompliant",
+      "indeterminateReason": null,
+      "weight": 6,
+      "title": "Adaptador gigabit negociando velocidade inferior",
+      "clientText": "A placa de rede desta máquina suporta 1 Gbps, mas está negociando velocidade inferior. Isso normalmente indica cabo danificado, conector mal crimpado ou porta de switch limitada — e resulta em lentidão perceptível no acesso a arquivos em rede, mesmo com internet rápida.",
+      "recommendedAction": "Verificar cabeamento e porta do switch.",
+      "evidence": {
+        "collectors.network.data.primaryAdapterName": "Ethernet",
+        "collectors.network.data.adapters": [
+          {
+            "name": "Ethernet",
+            "description": "Realtek PCIe GbE Family Controller",
+            "macAddress": "00:00:00:00:00:02",
+            "connected": true,
+            "isVirtual": false,
+            "connectionType": "Wired",
+            "linkSpeedBps": 100000000,
+            "maxSpeedBps": 1000000000,
+            "dhcpEnabled": true,
+            "ipAddresses": [
+              "192.168.10.62"
+            ],
+            "defaultGateway": "192.168.10.1",
+            "dnsServers": [
+              "192.168.10.2",
+              "8.8.8.8"
+            ]
+          }
+        ]
+      },
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    },
+    {
+      "ruleId": "OS-004",
+      "ruleVersion": 1,
+      "severity": "Medium",
+      "state": "Compliant",
+      "indeterminateReason": null,
+      "weight": 8,
+      "title": "Edição Home do Windows em ambiente corporativo",
+      "clientText": "Esta máquina utiliza edição Home do Windows, que não permite ingresso em domínio, criptografia BitLocker completa nem aplicação de políticas centralizadas de segurança. Em ambiente corporativo, isso limita a padronização e o controle do parque.",
+      "recommendedAction": "Avaliar upgrade para edição Pro.",
+      "evidence": null,
+      "linkedOptimizations": [],
+      "markedFalsePositive": false,
+      "falsePositiveJustification": null
+    }
+  ],
+  "score": {
+    "value": 79,
+    "band": "Yellow",
+    "verdict": "Keep",
+    "verdictDrivenBy": []
+  },
+  "optimization": null
+}
