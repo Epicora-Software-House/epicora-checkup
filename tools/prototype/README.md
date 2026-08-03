@@ -94,7 +94,7 @@ Todas deliberadas, todas registradas:
 |---|---|---|
 | `cpu.win11Supported` | sempre `null` | lista oficial não embutida — [ADR-006](../../docs/adr/006-lista-de-cpus-windows-11.md) |
 | `os.buildFreshness.evaluated` | sempre `false` | tabela de builds vazia — [ADR-005](../../docs/adr/005-tabela-de-builds-do-windows.md) |
-| `events.evaluated` | sempre `false` | `rules/event-ids.json` vazio — IDs não confirmados |
+| `events.evaluated` | sempre `false` | IDs já levantados na doc oficial, mas `validUntil` de `rules/event-ids.json` segue nulo até a validação de campo — a sonda precisa rodar com filtro de provedor numa máquina de histórico conhecido |
 | `antivirus.*.interpretation.confidence` | sempre `None` | `productState` é máscara não documentada; decodificar exige dados de campo |
 | `storage.systemDisk.trimEnabled` | **medido** | via `fsutil behavior query`, que responde sem elevação; padrão ancorado no número porque a saída é localizada |
 | `storage.systemDisk.fragmentationPercent` | sempre `null` | análise de volume é lenta demais para a meta de 90 s |

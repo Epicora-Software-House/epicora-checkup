@@ -1449,20 +1449,24 @@ Invoke-Collector -Id 'battery' -DisplayName 'Bateria' -RequiresElevation $false 
 # ---------------------------------------------------------------- 16. eventos
 
 Invoke-Collector -Id 'events' -DisplayName 'Eventos críticos' -RequiresElevation $false -Script {
-    # rules/event-ids.json está vazio: o doc 02 §4.11 proíbe registrar IDs não
-    # confirmados. Sem a tabela, NÃO avaliamos — EST-001..003 resolvem Indeterminate.
+    # rules/event-ids.json já tem os IDs levantados na doc oficial (2026-08-03), mas
+    # validUntil segue nulo: a validação de campo não foi feita. Enquanto for nulo NÃO
+    # avaliamos — EST-001..003 resolvem Indeterminate, que é a degradação segura do
+    # ADR-005 aplicada aqui. Ligar a avaliação exige, na ordem: rodar a sonda com filtro
+    # de provedor, conferir a contagem contra máquina de histórico conhecido, e corrigir
+    # a agregação de EST-003 para recorrência por aplicação.
     # NUNCA coletar o canal Security nem eventos de logon (doc 01 §7.1).
     [ordered]@{
         windowDays = 30
         windowStartedAt = (Get-Date).AddDays(-30).ToString('o')
         evaluated = $false
-        reason = 'rules/event-ids.json ainda não preenchido — levantamento pendente da Fase 1. Rode Test-DataSources.ps1 para levantar os candidatos.'
+        reason = 'rules/event-ids.json com IDs levantados na documentação oficial, mas validUntil nulo — validação de campo pendente. Rode Test-DataSources.ps1 numa máquina de histórico conhecido e confira as contagens.'
         unexpectedShutdowns = $null
         diskErrors = $null
         criticalApplicationErrors = $null
         matches = $null
     }
-} -Summary { param($d) 'Tabela de IDs de evento não preenchida — não avaliado' }
+} -Summary { param($d) 'IDs de evento não validados em campo — não avaliado' }
 
 # ============================================================ consolidação
 

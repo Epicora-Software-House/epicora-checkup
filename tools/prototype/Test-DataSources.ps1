@@ -511,35 +511,99 @@ Invoke-Probe -Id 'eventIdCandidates' -Confidence 'B' `
     # §4.11 e explicito: nao registrar ID que nao se pode confirmar. Esta sonda existe
     # para conferir cada um contra uma maquina cujo historico se conhece.
     # NAO coletar canal Security nem eventos de logon (doc 01 §7.1).
+    #
+    # FILTRO DE PROVEDOR E OBRIGATORIO. Na primeira rodada de campo esta consulta
+    # filtrava so por LogName + Id + StartTime, e ID de evento NAO e unico entre
+    # provedores: as contagens sairam como limite superior, nao medicao. Foi assim que
+    # o Ntfs 55 apareceu com 592 ocorrencias numa maquina em uso normal. Agora casa
+    # ProviderName tambem, e reporta as DUAS contagens para que a contaminacao fique
+    # visivel em vez de silenciosa.
+    #
+    # A coluna 'verdict' reflete o veredito ja registrado em rules/event-ids.json.
+    # A sonda continua medindo os rejeitados de proposito: foi a medicao que os rejeitou.
     $since = (Get-Date).AddDays(-30)
     $candidates = @(
-        @{ cat = 'unexpectedShutdown';       channel = 'System';      id = 41;   provider = 'Microsoft-Windows-Kernel-Power' },
-        @{ cat = 'unexpectedShutdown';       channel = 'System';      id = 6008; provider = 'EventLog' },
-        @{ cat = 'unexpectedShutdown';       channel = 'System';      id = 1001; provider = 'Microsoft-Windows-WER-SystemErrorReporting' },
-        @{ cat = 'diskError';                channel = 'System';      id = 7;    provider = 'disk' },
-        @{ cat = 'diskError';                channel = 'System';      id = 51;   provider = 'disk' },
-        @{ cat = 'diskError';                channel = 'System';      id = 153;  provider = 'disk' },
-        @{ cat = 'diskError';                channel = 'System';      id = 55;   provider = 'Ntfs' },
-        @{ cat = 'criticalApplicationError'; channel = 'Application'; id = 1000; provider = 'Application Error' },
-        @{ cat = 'criticalApplicationError'; channel = 'Application'; id = 1002; provider = 'Application Hang' }
+        @{ cat = 'unexpectedShutdown';       channel = 'System';      id = 41;   provider = 'Microsoft-Windows-Kernel-Power';             verdict = 'incluido:primary' },
+        @{ cat = 'unexpectedShutdown';       channel = 'System';      id = 6008; provider = 'EventLog';                                  verdict = 'incluido:corroborating' },
+        @{ cat = 'unexpectedShutdown';       channel = 'System';      id = 1001; provider = 'Microsoft-Windows-WER-SystemErrorReporting'; verdict = 'rejeitado:sem-doc-oficial' },
+        @{ cat = 'diskError';                channel = 'System';      id = 55;   provider = 'Ntfs';                                      verdict = 'incluido:primary' },
+        @{ cat = 'diskError';                channel = 'System';      id = 98;   provider = 'Ntfs';                                      verdict = 'incluido:primary' },
+        @{ cat = 'diskError';                channel = 'System';      id = 50;   provider = 'Ntfs';                                      verdict = 'candidato:mensagem-nao-citada-na-doc' },
+        @{ cat = 'diskError';                channel = 'System';      id = 140;  provider = 'Ntfs';                                      verdict = 'candidato:mensagem-nao-citada-na-doc' },
+        @{ cat = 'diskError';                channel = 'System';      id = 7;    provider = 'disk';                                      verdict = 'rejeitado:sem-doc-oficial' },
+        @{ cat = 'diskError';                channel = 'System';      id = 51;   provider = 'Disk';                                      verdict = 'rejeitado:benigno-sem-decodificar-binario' },
+        @{ cat = 'diskError';                channel = 'System';      id = 153;  provider = 'disk';                                      verdict = 'rejeitado:sobrecarga-nao-falha-de-midia' },
+        @{ cat = 'criticalApplicationError'; channel = 'Application'; id = 1000; provider = 'Application Error';                         verdict = 'incluido:primary' },
+        @{ cat = 'criticalApplicationError'; channel = 'Application'; id = 1002; provider = 'Application Hang';                          verdict = 'rejeitado:sem-doc-oficial' }
     )
     $results = @()
     foreach ($c in $candidates) {
-        $count = 0; $last = $null; $err = $null
+        $count = $null; $countSemFiltroDeProvedor = $null; $last = $null
+        $providersVistos = @(); $err = $null
+
+        # Contagem correta: casa provedor E id.
         try {
-            $ev = @(Get-WinEvent -FilterHashtable @{ LogName = $c.channel; Id = $c.id; StartTime = $since } -ErrorAction Stop)
+            $ev = @(Get-WinEvent -FilterHashtable @{
+                LogName = $c.channel; ProviderName = $c.provider; Id = $c.id; StartTime = $since
+            } -ErrorAction Stop)
             $count = $ev.Count
             if ($count -gt 0) { $last = $ev[0].TimeCreated.ToString('o') }
         } catch {
-            # "No events were found" e resultado valido, nao erro.
-            if ($_.Exception.Message -notmatch 'No events were found|Nenhum evento') { $err = $_.Exception.Message }
+            # "No events were found" e resultado valido igual a zero, nao erro de coleta.
+            if ($_.Exception.Message -match 'No events were found|Nenhum evento') { $count = 0 }
+            else { $err = $_.Exception.Message }
         }
+
+        # Contagem sem filtro de provedor, so para expor contaminacao. Se as duas
+        # divergirem, o ID e compartilhado com outro provedor nesta maquina — e a
+        # lista de quais provedores sao esta em providersVistos.
+        try {
+            $evAll = @(Get-WinEvent -FilterHashtable @{
+                LogName = $c.channel; Id = $c.id; StartTime = $since
+            } -ErrorAction Stop)
+            $countSemFiltroDeProvedor = $evAll.Count
+            $providersVistos = @($evAll | ForEach-Object { $_.ProviderName } | Sort-Object -Unique)
+        } catch {
+            if ($_.Exception.Message -match 'No events were found|Nenhum evento') { $countSemFiltroDeProvedor = 0 }
+        }
+
         $results += [pscustomobject][ordered]@{
             category = $c.cat; channel = $c.channel; eventId = $c.id
-            expectedProvider = $c.provider; count = $count; lastOccurrence = $last; error = $err
+            expectedProvider = $c.provider; verdict = $c.verdict
+            count = $count; countSemFiltroDeProvedor = $countSemFiltroDeProvedor
+            providersVistos = $providersVistos
+            lastOccurrence = $last; error = $err
         }
     }
-    [ordered]@{ windowDays = 30; since = $since.ToString('o'); candidates = $results }
+
+    # Recorrencia POR APLICACAO, nao agregada. EST-003 hoje soma tudo e dispara em
+    # qualquer maquina de escritorio; o que e achado e o MESMO programa travando
+    # varias vezes. Isto mede a distribuicao para calibrar o limiar.
+    # Privacidade: so o nome do executavel que falhou, nunca caminho de documento
+    # de usuario (doc 02 §9). Properties[0] do Application Error 1000 e o nome do app.
+    $porAplicacao = @(); $errPorAplicacao = $null
+    try {
+        $crashes = @(Get-WinEvent -FilterHashtable @{
+            LogName = 'Application'; ProviderName = 'Application Error'; Id = 1000; StartTime = $since
+        } -ErrorAction Stop)
+        $porAplicacao = @($crashes | ForEach-Object {
+            # Properties pode vir vazio; indexar sem guardar lanca sob StrictMode 2.0.
+            $p = $_.Properties
+            if ($p -and $p.Count -gt 0 -and $null -ne $p[0].Value) { [string]$p[0].Value } else { '(desconhecido)' }
+        } | Group-Object | Sort-Object Count -Descending | Select-Object -First 10 |
+            ForEach-Object { [pscustomobject]@{ app = $_.Name; count = $_.Count } })
+    } catch {
+        if ($_.Exception.Message -notmatch 'No events were found|Nenhum evento') { $errPorAplicacao = $_.Exception.Message }
+    }
+
+    [ordered]@{
+        windowDays = 30
+        since = $since.ToString('o')
+        candidates = $results
+        crashesPorAplicacao = $porAplicacao
+        crashesPorAplicacaoError = $errPorAplicacao
+        comoLer = 'count e a medicao valida. countSemFiltroDeProvedor > count significa que outro provedor usa o mesmo ID nesta maquina — veja providersVistos. crashesPorAplicacao calibra o limiar de EST-003.'
+    }
 }
 
 # ---------------------------------------------------------------- gravação

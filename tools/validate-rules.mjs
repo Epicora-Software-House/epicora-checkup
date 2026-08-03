@@ -217,10 +217,42 @@ function validateRule(rule, file) {
 
 // ---------------------------------------------------------------- arquivos de apoio
 
+// Quantas entradas de dado o arquivo já tem. Serve para distinguir "vazio" de
+// "preenchido mas ainda não liberado", que são estados diferentes e o aviso não
+// deve confundir: o segundo é progresso real esperando validação de campo.
+function countSupportEntries(doc) {
+  if (Array.isArray(doc.builds)) return doc.builds.length;
+  if (doc.supported) return Object.values(doc.supported).reduce((n, v) => n + (Array.isArray(v) ? v.length : 0), 0);
+  if (doc.categories) {
+    return Object.values(doc.categories)
+      .reduce((n, c) => n + (Array.isArray(c?.events) ? c.events.length : 0), 0);
+  }
+  return null;   // arquivo sem forma conhecida de dado — não opinar
+}
+
+// Invariante do próprio repositório, em rules/event-ids.json: "Cada ID entra aqui
+// com verifiedSourceUrl preenchido, não antes." Regra escrita que o validador não
+// cobre é regra que alguém quebra de boa-fé.
+function validateVerifiedSources(name, doc) {
+  if (!doc.categories) return;
+  for (const [cat, body] of Object.entries(doc.categories)) {
+    for (const ev of body?.events ?? []) {
+      const onde = `${name} ${cat} id ${ev.eventId ?? '?'}`;
+      if (!ev.verifiedSourceUrl) errors.push(`${onde}: sem verifiedSourceUrl — ID não pode entrar sem fonte oficial`);
+      if (!ev.verifiedAt) errors.push(`${onde}: sem verifiedAt`);
+      if (!ev.provider) errors.push(`${onde}: sem provider — a consulta precisa filtrar por provedor, ID não é único entre provedores`);
+    }
+  }
+}
+
 function validateSupportFile(name, doc) {
+  validateVerifiedSources(name, doc);
   if (!('validUntil' in doc)) return;
   if (doc.validUntil === null) {
-    warnings.push(`${name}: validUntil nulo — arquivo ainda não preenchido. As regras que dependem dele resolvem Indeterminate.`);
+    const n = countSupportEntries(doc);
+    warnings.push(n
+      ? `${name}: ${n} entrada(s) preenchida(s), mas validUntil nulo — não liberado para avaliação. As regras que dependem dele resolvem Indeterminate.`
+      : `${name}: validUntil nulo — arquivo ainda não preenchido. As regras que dependem dele resolvem Indeterminate.`);
     return;
   }
   const until = new Date(`${doc.validUntil}T23:59:59Z`);
