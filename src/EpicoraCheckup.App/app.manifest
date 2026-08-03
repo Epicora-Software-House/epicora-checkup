@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v1">
+
+  <assemblyIdentity version="1.0.0.0" name="EpicoraCheckup.app" />
+
+  <trustInfo xmlns="urn:schemas-microsoft-com:asm.v2">
+    <security>
+      <requestedPrivileges xmlns="urn:schemas-microsoft-com:asm.v3">
+        <!--
+          highestAvailable, NÃO requireAdministrator — ver ADR-011.
+
+          Com requireAdministrator, o técnico sem a senha de administrador local não
+          consegue nem abrir a ferramenta, o que torna o critério de aceite 5 do doc 01
+          impossível de cumprir. Com highestAvailable, quem é administrador eleva e
+          coleta TPM, BitLocker e SMART; quem não é roda sem elevação e essas três
+          resolvem Indeterminate, com motivo, no relatório.
+        -->
+        <requestedExecutionLevel level="highestAvailable" uiAccess="false" />
+      </requestedPrivileges>
+    </security>
+  </trustInfo>
+
+  <!--
+    NÃO declarar dpiAware nem dpiAwareness aqui. Para .NET Framework 4.7+, a
+    documentação da Microsoft é explícita: o caminho pelo manifest "is no longer
+    recommended, since it overrides settings defined on the app.config file".
+    A configuração de DPI está em App.config.
+    https://learn.microsoft.com/en-us/dotnet/desktop/winforms/high-dpi-support-in-windows-forms
+  -->
+
+  <compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1">
+    <application>
+      <!-- Windows 10 e 11. Sem isto, APIs de compatibilidade reportam versão antiga. -->
+      <supportedOS Id="{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}" />
+    </application>
+  </compatibility>
+
+</assembly>

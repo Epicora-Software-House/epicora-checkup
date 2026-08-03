@@ -1,37 +1,173 @@
 {
-  "description": "IDs de evento do Windows por categoria, para o coletor 'events'. VAZIO DE PROPÓSITO — entregável da Fase 1.",
+  "description": "IDs de evento do Windows por categoria, para o coletor 'events'. Cada ID entra com verifiedSourceUrl da documentação oficial da Microsoft. Levantamento documental concluído; validação de campo pendente — ver 'estado'.",
   "docReference": "docs/02-especificacao-tecnica.md §4.11 · docs/03-matriz-riscos-otimizacoes.md §4.10",
-  "version": 0,
+  "version": 1,
   "validUntil": null,
-  "lastUpdated": null,
-  "sourceUrl": null,
+  "lastUpdated": "2026-08-03",
+  "sourceUrl": "https://learn.microsoft.com/en-us/troubleshoot/windows-server/backup-and-storage/troubleshoot-data-corruption-and-disk-errors",
+  "estado": {
+    "levantamentoDocumental": "concluído em 2026-08-03 — todo ID abaixo tem verifiedSourceUrl oficial",
+    "validacaoDeCampo": "PENDENTE",
+    "porQueValidUntilSegueNulo": "validUntil nulo mantém events.evaluated = false e EST-001..003 em Indeterminate. É deliberado: os IDs estão documentados, mas as contagens da sonda do DELL-G15 não são confiáveis porque a consulta não filtrava por provedor (ver bloqueios.filtroDeProvedor). Habilitar a avaliação com base em contagem contaminada é exatamente o falso positivo que o doc 02 §4.11 manda evitar.",
+    "bloqueios": {
+      "filtroDeProvedor": "Test-DataSources.ps1 consultava Get-WinEvent apenas por LogName + Id + StartTime, sem ProviderName. ID de evento NÃO é único entre provedores: as contagens medidas são limite superior, não medição. Corrigido na sonda em 2026-08-03; exige novo run.",
+      "contagemPorMaquinaConhecida": "comoPreencher passos 2–4: rodar a sonda corrigida numa máquina cujo histórico se conhece e conferir se a contagem bate com a realidade.",
+      "limiarDeEST003": "o limiar de 2 ocorrências agregadas não se sustenta — ver criticalApplicationError.notaDeAgregacao."
+    }
+  },
   "windowDays": 30,
   "channels": ["System", "Application"],
+  "queryRequirements": {
+    "filtrarPorProvedor": "OBRIGATÓRIO. A consulta deve casar ProviderName E Id. ID de evento não é único entre provedores — sem o filtro, a contagem soma eventos de origens não relacionadas.",
+    "naoSomarPapeis": "Contar apenas eventos com role = 'primary'. Os de role = 'corroborating' descrevem o MESMO fato por outro provedor e servem para confiança, nunca para contagem.",
+    "semEventoNaoEErro": "Get-WinEvent lança quando não há nenhum evento no filtro. 'No events were found' / 'Nenhum evento' é resultado válido igual a zero, não falha de coleta."
+  },
   "categories": {
-    "unexpectedShutdown": { "consumedBy": "EST-001", "events": [] },
-    "diskError": { "consumedBy": "EST-002", "events": [] },
-    "criticalApplicationError": { "consumedBy": "EST-003", "events": [] }
+    "unexpectedShutdown": {
+      "consumedBy": "EST-001",
+      "notaDeAgregacao": "41 e 6008 são emitidos uma vez cada por boot que sucedeu a um desligamento sujo — descrevem o mesmo desligamento. A sonda do DELL-G15 mediu 17 e 17, o que confirma a duplicidade. Somar daria 34 desligamentos onde houve 17. Contar só o primary.",
+      "events": [
+        {
+          "channel": "System",
+          "provider": "Microsoft-Windows-Kernel-Power",
+          "eventId": 41,
+          "level": "Critical",
+          "role": "primary",
+          "note": "'The system has rebooted without cleanly shutting down first.' A Microsoft documenta três cenários: stop error (tela azul), botão de força mantido por 4+ segundos, e queda de energia sem código registrado. Os três são desligamento inesperado de verdade. Escolhido como primary por ter página de troubleshooting oficial e nenhuma condição de falso positivo documentada.",
+          "verifiedAt": "2026-08-03",
+          "verifiedSourceUrl": "https://learn.microsoft.com/en-us/troubleshoot/windows-client/performance/event-id-41-restart"
+        },
+        {
+          "channel": "System",
+          "provider": "EventLog",
+          "eventId": 6008,
+          "level": "Error",
+          "role": "corroborating",
+          "note": "'The previous system shutdown at <hora> on <data> was unexpected.' Corroborante, não primary, porque TEM falso positivo documentado pela Microsoft: é registrado após desligamento normal quando as duas condições ocorrem juntas — máquina bloqueada ou com protetor de tela com senha, E desligamento iniciado por programa que usa InitiateSystemShutdownEx com a flag de força. Nesse caso o serviço de log não é notificado e classifica um desligamento ordenado como inesperado.",
+          "verifiedAt": "2026-08-03",
+          "verifiedSourceUrl": "https://support.microsoft.com/en-us/topic/event-id-6008-is-unexpectedly-logged-to-the-system-event-log-after-you-shut-down-and-restart-your-computer-2e517ea0-e592-b3ad-d572-501c033f4567"
+        }
+      ]
+    },
+    "diskError": {
+      "consumedBy": "EST-002",
+      "notaDeAgregacao": "Só a família de corrupção de NTFS entra aqui. A Microsoft afirma que esses eventos indicam corrupção de sistema de arquivos causada por setor defeituoso no disco ou por requisição de I/O que não completou — que é precisamente o sinal que EST-002 quer. Eventos de timeout e retry do subsistema de armazenamento foram REJEITADOS: ver candidatosRejeitados. Isso importa porque EST-002 é Critical com verdictInfluence 'Replace' — é a regra de maior consequência da matriz e a que substitui o SMART detalhado descartado no ADR-004.",
+      "events": [
+        {
+          "channel": "System",
+          "provider": "Ntfs",
+          "eventId": 55,
+          "level": "Error",
+          "role": "primary",
+          "note": "'The file system structure on the disk is corrupt and unusable. Please run the chkdsk utility on the volume.' A Microsoft lista este ID entre os que indicam corrupção de dados ou erro de disco, e atribui a causa a setor defeituoso ou I/O que não completou.",
+          "verifiedAt": "2026-08-03",
+          "verifiedSourceUrl": "https://learn.microsoft.com/en-us/troubleshoot/windows-server/backup-and-storage/troubleshoot-data-corruption-and-disk-errors"
+        },
+        {
+          "channel": "System",
+          "provider": "Ntfs",
+          "eventId": 98,
+          "level": "Error",
+          "role": "primary",
+          "note": "'Volume C: (\\Device\\HarddiskVolume3) needs to be taken offline to perform a Full Chkdsk.' Mesma família e mesma causa raiz que o 55, segundo a mesma página.",
+          "verifiedAt": "2026-08-03",
+          "verifiedSourceUrl": "https://learn.microsoft.com/en-us/troubleshoot/windows-server/backup-and-storage/troubleshoot-data-corruption-and-disk-errors"
+        }
+      ],
+      "documentadosMasNaoIncluidos": [
+        {
+          "provider": "Ntfs",
+          "eventIds": [50, 140],
+          "porQue": "A mesma página oficial afirma que 'NTFS events such as Event ID 55, 50, 140, and 98 indicate file system corruption' — então pertencem à família. Não entram ainda porque a página não cita o texto exato de nenhum dos dois, e o doc 02 §4.11 exige confirmar antes de registrar. Incluir depois de confirmar a mensagem e o nível na doc e de medir a frequência em campo.",
+          "verifiedSourceUrl": "https://learn.microsoft.com/en-us/troubleshoot/windows-server/backup-and-storage/troubleshoot-data-corruption-and-disk-errors"
+        }
+      ]
+    },
+    "criticalApplicationError": {
+      "consumedBy": "EST-003",
+      "notaDeAgregacao": "ATENÇÃO — a agregação atual de EST-003 está errada e a regra não deve ser habilitada sem corrigi-la. Duas razões, ambas medidas: (1) A sonda contou 8 eventos 1000 e 21 eventos 1002 no DELL-G15, uma máquina em uso normal. Com o limiar de '> 2 agregado', toda máquina de escritório vira achado — e achado que dispara em todas as máquinas não é achado, é ruído que desgasta a credibilidade do relatório. (2) 'Recorrente' precisa ser por aplicação: o mesmo programa travando 6 vezes é achado; 6 programas diferentes travando uma vez cada é uso normal de computador. O coletor precisa agrupar por 'Faulting application name' e devolver o máximo por aplicação, não o total. Isso é campo derivado no coletor, como manda rules/README.md §Operadores.",
+      "events": [
+        {
+          "channel": "Application",
+          "provider": "Application Error",
+          "eventId": 1000,
+          "level": "Error",
+          "role": "primary",
+          "note": "Task Category 'Application Crashing Events'. A Microsoft é explícita: 'The Event ID 1000 with the Error level is the actual application crashing event.' O corpo do evento traz 'Faulting application name', que é o campo pelo qual a recorrência deve ser agrupada.",
+          "verifiedAt": "2026-08-03",
+          "verifiedSourceUrl": "https://learn.microsoft.com/en-us/troubleshoot/windows-server/performance/troubleshoot-application-service-crashing-behavior"
+        }
+      ]
+    }
   },
-  "eventShape": {
-    "channel": "System",
-    "provider": "nome exato do provedor",
-    "eventId": 0,
-    "level": "Critical | Error | Warning",
-    "note": "o que este ID significa e por que está nesta categoria",
-    "verifiedAt": "AAAA-MM-DD",
-    "verifiedSourceUrl": "URL da documentação oficial da Microsoft"
-  },
-  "porQueVazio": "O documento técnico §4.11 registra: 'não vou listar números de ID que não posso confirmar'. Preencher de memória é exatamente o caminho para contar ao cliente que a máquina dele teve 40 erros de disco quando teve zero. Cada ID entra aqui com verifiedSourceUrl preenchido, não antes.",
+  "candidatosRejeitados": [
+    {
+      "provider": "disk",
+      "eventId": 153,
+      "categoriaTentada": "diskError",
+      "medidoEmCampo": "37 ocorrências em 30 dias no DELL-G15, máquina em uso normal e sem sintoma de disco",
+      "porQueRejeitado": "A Microsoft afirma que 153 indica que o SUBSISTEMA DE ARMAZENAMENTO ESTÁ SOBRECARREGADO, o que faz requisições estourarem timeout — é registrado quando o driver miniport do Storport expira uma requisição. A remediação que a própria doc indica é redistribuir carga entre controladores, não trocar disco. Contar isso como evidência de disco morrendo, numa regra Critical com verdictInfluence 'Replace', é fábrica de falso positivo: o técnico recomendaria substituir um disco saudável. As 37 ocorrências de campo confirmam a leitura.",
+      "verifiedSourceUrl": "https://learn.microsoft.com/en-us/troubleshoot/windows-server/backup-and-storage/troubleshoot-data-corruption-and-disk-errors"
+    },
+    {
+      "provider": "storahci / Storport",
+      "eventId": 129,
+      "categoriaTentada": "diskError",
+      "porQueRejeitado": "Mesma razão do 153, e a doc trata os dois juntos: 'Similar to Event ID 153, Event ID 129 indicates that the storage subsystem is overloaded.' Diferem só em qual camada expirou a requisição. Não é sinal de falha de mídia.",
+      "verifiedSourceUrl": "https://learn.microsoft.com/en-us/troubleshoot/windows-server/backup-and-storage/troubleshoot-data-corruption-and-disk-errors"
+    },
+    {
+      "provider": "Disk",
+      "eventId": 51,
+      "categoriaTentada": "diskError",
+      "medidoEmCampo": "0 ocorrências no DELL-G15",
+      "porQueRejeitado": "Nível Warning, e a Microsoft diz explicitamente que há casos benignos em que 'no harmful effects are experienced' e 'you can safely ignore the log entries. No action is required' — o exemplo citado é mídia gravável em branco inserida com dispositivo USB conectado. Separar o caso real do benigno exige decodificar a seção de dados binários do evento (sense key 0x03 MEDIUM_ERROR e 0x04 HARDWARE_ERROR são reais; 0x06 UNIT_ATTENTION com ASC 0x29 BUS_RESET é benigno). Contagem crua deste ID não é defensável, e decodificar binário de evento está fora do escopo da v1.",
+      "verifiedSourceUrl": "https://learn.microsoft.com/en-us/troubleshoot/windows-server/backup-and-storage/event-id-51-information"
+    },
+    {
+      "provider": "Classpnp",
+      "eventId": 157,
+      "categoriaTentada": "diskError",
+      "porQueRejeitado": "'Disk 2 has been surprise removed.' A doc lista quatro causas possíveis, e só uma é falha de disco — as outras são erro de fabric SAN, problema de barramento SCSI e usuário desconectando o disco com a máquina ligada. Em notebook com HD externo ou pendrive, o caso benigno é o comum. Ambíguo por construção.",
+      "verifiedSourceUrl": "https://learn.microsoft.com/en-us/troubleshoot/windows-server/backup-and-storage/troubleshoot-data-corruption-and-disk-errors"
+    },
+    {
+      "provider": "disk",
+      "eventId": 7,
+      "categoriaTentada": "diskError",
+      "medidoEmCampo": "0 ocorrências no DELL-G15",
+      "porQueRejeitado": "'The device, \\Device\\HarddiskX\\DRX, has a bad block' seria semanticamente o sinal ideal para EST-002, mas não encontrei página oficial da Microsoft que documente este ID — só threads de Q&A e fórum arquivado, que não são fonte verificada. O doc 02 §4.11 é a regra: não registrar ID que não se pode confirmar. Reabrir se aparecer doc oficial.",
+      "verifiedSourceUrl": null
+    },
+    {
+      "provider": "Microsoft-Windows-WER-SystemErrorReporting",
+      "eventId": 1001,
+      "categoriaTentada": "unexpectedShutdown",
+      "medidoEmCampo": "0 ocorrências no DELL-G15, contra 17 do ID 41 — ou seja, nenhum dos 17 desligamentos foi tela azul com dump gravado",
+      "porQueRejeitado": "Sem página oficial que documente este ID, só Q&A. Some-se que seria redundante: mede um subconjunto do 41 (apenas os desligamentos que foram bugcheck com dump). Cuidado ao reabrir — existem DOIS eventos 1001 diferentes: este, no canal System, de bugcheck; e o do 'Windows Error Reporting' no canal Application, que é relatório de falha de aplicação. Não são a mesma coisa.",
+      "verifiedSourceUrl": null
+    },
+    {
+      "provider": "Application Hang",
+      "eventId": 1002,
+      "categoriaTentada": "criticalApplicationError",
+      "medidoEmCampo": "21 ocorrências no DELL-G15",
+      "porQueRejeitado": "Sem página oficial que documente o ID — a página de crash de aplicação da Microsoft cobre 1000 e 1001, não 1002. É provavelmente legítimo, e 21 ocorrências mostram que é frequente, mas 'provavelmente' não passa a regra do doc 02 §4.11. Candidato número um a incluir quando houver fonte oficial: travamento de aplicação é sintoma que o cliente relata em voz alta.",
+      "verifiedSourceUrl": null
+    }
+  ],
+  "porQueVazio": "Não está mais vazio. O levantamento documental foi feito em 2026-08-03 e cada ID incluído tem verifiedSourceUrl oficial. O que sobrou de vazio é deliberado: validUntil segue nulo até a validação de campo, e cada candidato rejeitado ficou registrado com o motivo em candidatosRejeitados — para que ninguém os re-adicione de memória. O princípio do doc 02 §4.11 continua valendo: preencher de memória é o caminho para contar ao cliente que a máquina dele teve 40 erros de disco quando teve zero.",
   "comoPreencher": [
-    "1. Levantar os IDs na documentação oficial da Microsoft, por provedor.",
-    "2. Rodar tools/prototype/Test-DataSources.ps1 numa máquina que sabidamente teve o problema — queda de energia, disco em falha.",
-    "3. Conferir se a contagem bate com a realidade conhecida daquela máquina.",
-    "4. Só então registrar o ID aqui, com verifiedAt e verifiedSourceUrl.",
-    "5. Definir validUntil e habilitar as regras EST-* correspondentes."
+    "1. [FEITO em 2026-08-03] Levantar os IDs na documentação oficial da Microsoft, por provedor.",
+    "2. Rodar tools/prototype/Test-DataSources.ps1 (versão com filtro de provedor) numa máquina que sabidamente teve o problema — queda de energia, disco em falha.",
+    "3. Conferir se a contagem bate com a realidade conhecida daquela máquina. Para unexpectedShutdown, conferir também que 41 e 6008 batem entre si: divergência grande indica o falso positivo documentado do 6008.",
+    "4. Corrigir a agregação de EST-003 para recorrência por aplicação, agrupando por 'Faulting application name', e calibrar o limiar contra o parque real.",
+    "5. Definir validUntil, escrever os clientText com o comercial e habilitar as regras EST-* correspondentes."
   ],
   "naoColetar": [
     "Canal Security — fora do escopo de privacidade (doc 01 §7.1)",
     "Eventos de logon de usuário — fora do escopo de privacidade",
-    "O log inteiro sem filtro — é lento e infla o JSON (doc 02 §4.11)"
+    "O log inteiro sem filtro — é lento e infla o JSON (doc 02 §4.11)",
+    "O nome do arquivo ou o caminho de documento de usuário que apareça no corpo de um evento — só o nome do executável que falhou (doc 02 §9)"
   ]
 }

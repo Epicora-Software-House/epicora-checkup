@@ -1,0 +1,60 @@
+<Project>
+
+  <!--
+    Alvo do projeto, fixado num só lugar.
+
+    ADR-001: .NET Framework 4.7.2, x64. Nenhum projeto pode sobrescrever o alvo
+    individualmente — se precisar, altera-se o ADR, não o csproj.
+
+    ADR-010: projetos SDK-style. Por isso a propriedade aqui é TargetFramework
+    (net472) e não o TargetFrameworkVersion (v4.7.2) do formato legado que o
+    ADR-001 citou no seu exemplo. Mesmo alvo, nome de propriedade diferente.
+
+    tests/Directory.Build.props importa este arquivo. Não duplicar valor lá.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+
+    <!-- PlatformTarget é o que define a arquitetura do binário emitido, e funciona com
+         o Platform padrão (AnyCPU). NÃO declarar <Platforms>x64</Platforms> aqui: sem um
+         -p:Platform=x64 correspondente na linha de comando, isso quebra a resolução de
+         OutputPath em projeto SDK-style. A plataforma de EXECUÇÃO dos testes é fixada
+         separadamente, em tests/x64.runsettings. -->
+    <PlatformTarget>x64</PlatformTarget>
+
+    <!-- 7.3 é o padrão do compilador para net472. Fixado para o build não mudar
+         de comportamento quando o runner do CI trocar de versão do Visual Studio. -->
+    <LangVersion>7.3</LangVersion>
+
+    <!-- Build reproduzível: mesmo fonte, mesmo binário. Importa para o SHA-256
+         publicado ao lado do release (doc 02 §8.4 mitigação 2) ter significado. -->
+    <Deterministic>true</Deterministic>
+
+    <NeutralLanguage>pt-BR</NeutralLanguage>
+    <Company>Epicora Software House</Company>
+    <Product>Epicora Checkup</Product>
+
+    <!-- Sem geração automática de AssemblyInfo: a versão entra pelo CI e é gravada
+         no JSON de saída (doc 02 §8.5). Um lugar só, para poder auditar qual versão
+         produziu qual relatório. -->
+    <Version Condition="'$(Version)' == ''">0.1.0</Version>
+
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      Assemblies de referência via NuGet, e não via targeting pack instalado.
+
+      O runner windows-latest do GitHub Actions hoje traz o componente
+      Microsoft.Net.Component.4.7.2.TargetingPack, mas a imagem muda sem aviso.
+      Este pacote é o caminho documentado pela Microsoft para compilar sem depender
+      do developer pack estar instalado, e é build-time only por PrivateAssets.
+      https://learn.microsoft.com/en-us/dotnet/framework/migration-guide/reference-assemblies
+    -->
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="All" />
+  </ItemGroup>
+
+</Project>

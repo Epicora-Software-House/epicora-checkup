@@ -1,7 +1,7 @@
 {
   "category": "Estabilidade",
   "docReference": "docs/03-matriz-riscos-otimizacoes.md §4.10",
-  "note": "Categoria inteira bloqueada por rules/event-ids.json, que está vazio. O documento técnico §4.11 é explícito: os IDs de evento não foram registrados porque não podem ser confirmados sem consulta à documentação da Microsoft. Levantamento é entregável da Fase 1. Enquanto events.evaluated for false, as três regras resolvem Indeterminate.",
+  "note": "Categoria inteira bloqueada por rules/event-ids.json. O levantamento documental foi concluído em 2026-08-03 — cada ID incluído tem verifiedSourceUrl oficial — mas validUntil segue nulo porque a validação de campo não foi feita. Enquanto events.evaluated for false, as três regras resolvem Indeterminate. O que ainda falta está em event-ids.json §estado.bloqueios.",
   "rules": [
     {
       "id": "EST-001",
@@ -9,7 +9,7 @@
       "enabled": false,
       "enabledBlockedBy": ["clientText", "sourceValidation"],
       "sourceConfidence": "B",
-      "validationNote": "Depende de rules/event-ids.json. Levantar os IDs de desligamento inesperado na documentação oficial e validar a contagem contra uma máquina que sabidamente teve quedas de energia.",
+      "validationNote": "IDs levantados em 2026-08-03: Kernel-Power 41 como primary, EventLog 6008 como corroborante. NÃO SOMAR os dois — são emitidos uma vez cada por boot que sucedeu a desligamento sujo, e a sonda mediu 17 e 17 na mesma máquina; somar daria 34 onde houve 17. O 6008 tem falso positivo documentado pela Microsoft (máquina bloqueada + desligamento forçado por InitiateSystemShutdownEx), e é por isso que não é o primary. Falta validar a contagem contra máquina que sabidamente teve quedas de energia.",
       "category": "Estabilidade",
       "severity": "High",
       "weight": 12,
@@ -29,7 +29,7 @@
       "enabled": false,
       "enabledBlockedBy": ["clientText", "sourceValidation"],
       "sourceConfidence": "B",
-      "validationNote": "ACHADO DE ALTO VALOR. Erro de disco no log frequentemente antecede falha física e é evidência mais confiável que o SMART básico — é o que substitui o SMART detalhado descartado no ADR-004. Quando dispara junto com STO-004, a coincidência é o sinal mais forte possível de disco morrendo, e o relatório deve apresentar os dois juntos, não como dois achados soltos.",
+      "validationNote": "ACHADO DE ALTO VALOR. Erro de disco no log frequentemente antecede falha física e é evidência mais confiável que o SMART básico — é o que substitui o SMART detalhado descartado no ADR-004. Quando dispara junto com STO-004, a coincidência é o sinal mais forte possível de disco morrendo, e o relatório deve apresentar os dois juntos, não como dois achados soltos. ESCOPO ESTREITADO em 2026-08-03: só a família de corrupção de NTFS (55, 98) entra na contagem. Os IDs 153 e 129 foram REJEITADOS porque a Microsoft afirma que indicam sobrecarga do subsistema de armazenamento, não falha de mídia — a sonda mediu 37 ocorrências de 153 numa máquina saudável, e numa regra Critical com verdictInfluence 'Replace' isso faria o técnico recomendar trocar disco bom. O ID 51 foi rejeitado porque a doc diz que pode ser ignorado com segurança em casos benignos e separar exige decodificar binário. Motivo de cada rejeição em event-ids.json §candidatosRejeitados — não re-adicionar de memória.",
       "category": "Estabilidade",
       "severity": "Critical",
       "weight": 20,
@@ -54,7 +54,7 @@
       "enabled": false,
       "enabledBlockedBy": ["clientText", "sourceValidation"],
       "sourceConfidence": "B",
-      "validationNote": "Limiar de 2 ocorrências é convenção, não valor com respaldo. 'Recorrente' precisa ser calibrado com o parque real — aplicação que trava uma vez não é achado.",
+      "validationNote": "AGREGAÇÃO ERRADA — não habilitar antes de corrigir. O limiar de 2 ocorrências é convenção sem respaldo, e a sonda mostrou por quê: 8 eventos 1000 e 21 eventos 1002 no DELL-G15, máquina em uso normal. Com '> 2 agregado', toda máquina de escritório vira achado, e achado que dispara em todas não é achado, é ruído que desgasta o relatório. 'Recorrente' precisa ser por aplicação: o mesmo programa travando 6 vezes é achado; 6 programas travando uma vez cada é uso normal. O evento 1000 traz 'Faulting application name', que é o campo de agrupamento. DECISÃO DE SCHEMA PENDENTE: events.data tem additionalProperties false, então um campo novo tipo maxErrorsPerApplication exige alterar o schema 1.0. Alternativa mais barata e recomendada — redefinir criticalApplicationErrors como o máximo por aplicação em vez do total, o que é mudança de semântica documentada na description, não campo novo. Escolher explicitamente; não decidir dentro do código.",
       "category": "Estabilidade",
       "severity": "Medium",
       "weight": 6,

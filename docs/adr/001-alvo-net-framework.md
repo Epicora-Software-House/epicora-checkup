@@ -25,11 +25,15 @@ A vertical de Rede da Epicora já inclui servidores no escopo comercial. Coleta 
 Fixar em `Directory.Build.props` na raiz de `src/`, não projeto a projeto:
 
 ```xml
-<TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+<TargetFramework>net472</TargetFramework>
 <PlatformTarget>x64</PlatformTarget>
 ```
 
 Nenhum projeto pode sobrescrever o alvo individualmente.
+
+> **Correção de 2026-08-03.** A versão original deste ADR escrevia `<TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>`, que é a propriedade do formato legado de `.csproj`. O [ADR-010](010-projetos-sdk-style-e-ui-em-codigo.md) adotou projetos SDK-style, onde a propriedade equivalente é `<TargetFramework>net472</TargetFramework>`. **O alvo não mudou** — 4.7.2, x64. Mudou só o nome da propriedade, e o exemplo acima foi corrigido para não induzir a erro.
+>
+> `tests/` é irmão de `src/` e não herda o `Directory.Build.props` por proximidade, então `tests/Directory.Build.props` importa o de `src/` em vez de repetir os valores.
 
 ## Ponto de atenção
 

@@ -75,7 +75,7 @@ node tools/evaluate-rules.mjs tests/fixtures/sintetica-vermelha.json --incluir-p
 | Arquivo | Conteúdo | Estado |
 |---|---|---|
 | `startup-exclusions.json` | Fabricantes e processos que **não podem** ser desativados na Fase 5 | Semeado, cresce com o campo |
-| `event-ids.json` | IDs de evento do Windows por categoria | **Vazio** — levantamento da Fase 1 |
+| `event-ids.json` | IDs de evento do Windows por categoria | **IDs levantados** com fonte oficial (2026-08-03); `validUntil` nulo até validação de campo |
 | `windows-builds.json` | Build mais recente conhecida, com `validUntil` | **Vazio** — ver ADR-005 |
 | `win11-cpu-support.json` | CPUs suportadas por fabricante, com `validUntil` | **Vazio** — ver ADR-006 |
 

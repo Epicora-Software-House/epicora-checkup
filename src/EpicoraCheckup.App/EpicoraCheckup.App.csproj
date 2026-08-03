@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    WinForms, telas 1-4 e 7 (Fase 2). Telas 5 e 6 são Fase 5 e não existem aqui.
+
+    UI escrita em código, sem designer (ADR-010). Todo texto exibido vive em Strings.cs,
+    num só lugar (ADR-008) — é o que permite o comercial revisar texto sem caçar literais.
+
+    Este é o ÚNICO projeto que referencia WinForms. A regra de dependência do doc 02 §2
+    existe para que Rules, Collectors e Reporting sejam testáveis sem UI e reaproveitáveis
+    no consolidador.
+  -->
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>EpicoraCheckup.App</RootNamespace>
+
+    <!-- O binário é EpicoraCheckup.exe (doc 01 §1). O nome do asset precisa ser fixo
+         entre releases para a URL de download estável do GitHub funcionar (doc 02 §8.1). -->
+    <AssemblyName>EpicoraCheckup</AssemblyName>
+
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Configuration" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EpicoraCheckup.Core\EpicoraCheckup.Core.csproj" />
+    <ProjectReference Include="..\EpicoraCheckup.Rules\EpicoraCheckup.Rules.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Declarado explicitamente, e não herdado por transitividade de Rules: este projeto
+         usa JsonConvert direto para ler a fixture e persistir os campos da tela 1.
+         Depender de referência transitiva quebra no dia em que Rules trocar de parser. -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+</Project>

@@ -33,6 +33,25 @@ node tools/evaluate-rules.mjs tests/fixtures/sintetica-verde.json --json
 node tools/validate-schema.mjs
 ```
 
+## `EpicoraCheckup.Rules.Tests/` — os testes do motor C#
+
+Dois contratos por fixture, e os dois são verificados:
+
+| Teste | Saída esperada |
+|---|---|
+| `Apenas_regras_habilitadas_reproduz_o_bloco_da_fixture` | os blocos `findings`/`score` gravados dentro da própria fixture |
+| `Matriz_completa_reproduz_o_golden_file` | `expected/sintetica-*.matriz-completa.json` |
+
+Mais `SemanticaDoMotorTests`, que cobre o que os golden files não cobrem: os cantos onde um refactor divergiria em silêncio — ausente versus nulo-explícito, o guard de `indeterminateWhen`, a assimetria de `notContains`, os limites das faixas do semáforo.
+
+Os testes leem a matriz e as fixtures **reais** do repositório, não cópias embutidas. É deliberado: quem edita uma regra e esquece de regenerar os golden files precisa ver o teste ficar vermelho.
+
+```
+dotnet test tests\EpicoraCheckup.Rules.Tests\EpicoraCheckup.Rules.Tests.csproj --settings tests\x64.runsettings
+```
+
+Só roda em Windows — .NET Framework 4.7.2 não compila em macOS. O CI faz isso a cada push.
+
 ## `expected/` — contrato de aceite do motor C#
 
 `sintetica-<cor>.matriz-completa.json` é a saída do motor de referência em Node com **todas as 61 regras**, incluindo as pendentes.

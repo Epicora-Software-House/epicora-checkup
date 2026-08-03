@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Motor de regras. Declarativo: as regras vivem em rules/*.json, não como if
+    espalhado pelo código (doc 02 §3.5).
+
+    Não referencia WinForms nem App. O contrato de aceite deste projeto são os
+    golden files em tests/expected/ — ver EpicoraCheckup.Rules.Tests.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>EpicoraCheckup.Rules</RootNamespace>
+    <AssemblyName>EpicoraCheckup.Rules</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EpicoraCheckup.Core\EpicoraCheckup.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- net472 não traz System.Text.Json. Newtonsoft é a opção madura para este alvo.
+         O empacotamento em executável único (doc 01 §4) é assunto da Fase 3 e está
+         registrado como ponto aberto no README de src/. -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+</Project>

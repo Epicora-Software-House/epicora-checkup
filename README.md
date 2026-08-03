@@ -25,16 +25,28 @@ Sobre **decisões**, quem manda é `docs/adr/`. Os três documentos são registr
 docs/       Especificação e decisões
 schema/     Modelo de dados: JSON Schema + mapeamento campo → decisão comercial
 rules/      Matriz de regras, declarativa e versionada
-tools/      Protótipo PowerShell (Fase 1) e utilitários Node
-tests/      Fixtures anonimizadas e sondas de fontes de dados
-src/        Solução C# (Fase 2 em diante)
+tools/      Protótipo PowerShell (fallback permanente) e utilitários Node
+tests/      Fixtures, golden files do motor e testes C#
+src/        Solução C# — ver src/README.md
 ```
 
 ## Estado atual
 
-**Fase 0 (modelo de dados) e Fase 1 (protótipo PowerShell)** em desenvolvimento.
+**Fase 0** fechada: dez decisões registradas em [`docs/adr/`](docs/adr/), schema 1.0 congelado, cada campo mapeado à decisão comercial que sustenta.
 
-O protótipo PowerShell em `tools/prototype/` **não é descartável** — é o fallback permanente para quando o EDR de um cliente bloquear o executável. Ver [ADR-009](docs/adr/009-prototipo-powershell-e-fallback-permanente.md).
+**Fase 1** em campo. O coletor PowerShell cobre os 16 domínios e foi sondado numa máquina; a meta da fase é 5–10. O protótipo **não é descartável** — é o fallback permanente para quando o EDR de um cliente bloquear o executável ([ADR-009](docs/adr/009-prototipo-powershell-e-fallback-permanente.md)).
+
+**Fase 2** em andamento: `Core`, `Rules` e o executável WinForms com as telas 1, 2, 3, 4 e 7 existem, e o motor de regras é verificado contra os *golden files* em `tests/expected/`. Faltam os **coletores** — que dependem do pré-voo — e a gravação de JSON/HTML/log. Ver [`src/README.md`](src/README.md).
+
+Até os coletores existirem, a ferramenta roda em **modo demonstração**, que percorre as telas com dados de uma fixture e não grava arquivo nenhum:
+
+```
+EpicoraCheckup.exe --demonstracao fixtures\sintetica-vermelha.json
+```
+
+O CI publica o artefato `EpicoraCheckup-teste` com o executável, a matriz e as fixtures — é o pacote para quem for testar as telas. **Não é assinado**, então o SmartScreen vai reclamar (ADR-003, esperado).
+
+> **Pré-voo pendente.** As últimas mudanças no `.ps1` nasceram de dado de campo, mas **nunca rodaram em Windows**. Nada que dependa do coletor é confiável até esse run acontecer.
 
 ## Como rodar o que já existe
 
@@ -44,12 +56,21 @@ O protótipo PowerShell em `tools/prototype/` **não é descartável** — é o 
 tools\prototype\EpicoraCheckup.bat
 ```
 
-**Validar as regras, no Mac** (Node 18+):
+**Validar schema, regras e protótipo, no Mac** (Node 18+):
 
 ```sh
-node tools/validate-rules.mjs
+npm ci
+npm run check
 node tools/evaluate-rules.mjs tests/fixtures/sintetica-vermelha.json
 ```
+
+**Motor de regras C#, só em Windows** — .NET Framework não compila em macOS:
+
+```
+dotnet test tests\EpicoraCheckup.Rules.Tests\EpicoraCheckup.Rules.Tests.csproj --settings tests\x64.runsettings
+```
+
+O CI em [`.github/workflows/build.yml`](.github/workflows/build.yml) roda os dois a cada push. Ele é também a máquina de build do projeto, porque o desenvolvimento acontece em Mac.
 
 ## Regras de contribuição que não são negociáveis
 

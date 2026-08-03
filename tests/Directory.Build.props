@@ -1,0 +1,15 @@
+<Project>
+
+  <!--
+    Os projetos de teste usam o mesmo alvo dos projetos de produção. O ADR-001 manda
+    fixar em src/Directory.Build.props, e tests/ é irmão de src/ — não herda por
+    proximidade. Então importa de lá, em vez de repetir o valor e deixar os dois
+    divergirem em silêncio.
+  -->
+  <Import Project="..\src\Directory.Build.props" />
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+</Project>
