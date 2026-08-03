@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Testes do motor de regras. Doc 02 §10: é a parte mais testável e a que mais importa,
+    porque regra errada gera relatório errado gera reunião perdida.
+
+    Alvo e plataforma vêm de ../Directory.Build.props, que importa o de src/ (ADR-001).
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>EpicoraCheckup.Rules.Tests</RootNamespace>
+    <AssemblyName>EpicoraCheckup.Rules.Tests</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\EpicoraCheckup.Rules\EpicoraCheckup.Rules.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+</Project>

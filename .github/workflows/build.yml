@@ -1,0 +1,119 @@
+name: build
+
+# Doc 02 §8.5: build → testes de regra → assinatura → publicação.
+# A etapa de assinatura NÃO existe aqui, e é decisão registrada: ADR-003 decidiu nenhum
+# certificado na v1. Publicação em release entra na Fase 3.
+#
+# Este workflow também é a máquina de build do projeto: .NET Framework 4.7.2 e WinForms
+# não compilam em macOS, e o desenvolvimento acontece em Mac. É aqui que se descobre se
+# o C# compila.
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # Invariantes que não dependem de Windows: schema, matriz de regras e as proibições
+  # do protótipo PowerShell. São baratos, então rodam primeiro e em paralelo.
+  regras:
+    name: schema, matriz e protótipo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - run: npm ci
+
+      # validate-schema + validate-rules + check-prototype.
+      # Sai diferente de zero em erro; aviso não quebra o build.
+      - name: npm run check
+        run: npm run check
+
+  motor:
+    name: motor de regras (net472, x64)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # O runner traz o targeting pack do 4.7.2 via VS Enterprise 2022, mas a imagem muda
+      # sem aviso. src/Directory.Build.props também referencia
+      # Microsoft.NETFramework.ReferenceAssemblies, que é o caminho documentado pela
+      # Microsoft para não depender disso.
+      - name: dotnet --info
+        run: dotnet --info
+
+      - name: restore
+        run: dotnet restore tests/EpicoraCheckup.Rules.Tests/EpicoraCheckup.Rules.Tests.csproj
+
+      # Compila o grafo inteiro: o projeto de teste referencia Rules, que referencia Core.
+      - name: build
+        run: dotnet build tests/EpicoraCheckup.Rules.Tests/EpicoraCheckup.Rules.Tests.csproj --configuration Release --no-restore
+
+      # O runsettings fixa a plataforma de execução em x64. Sem isso o vstest pode
+      # escolher x86 para assembly de .NET Framework e falhar ao carregar um binário x64,
+      # com uma mensagem que não parece ter nada a ver com a causa.
+      - name: testes
+        run: dotnet test tests/EpicoraCheckup.Rules.Tests/EpicoraCheckup.Rules.Tests.csproj --configuration Release --no-build --settings tests/x64.runsettings --logger "console;verbosity=normal"
+
+  # O projeto App não é referenciado por nenhum teste, então o job acima NÃO o compila.
+  # Este job existe para isso, e para produzir o pacote que vai para quem testa.
+  # Depende de `motor`: motor de regras vermelho não gera executável.
+  app:
+    name: executável WinForms
+    runs-on: windows-latest
+    needs: motor
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: publish
+        run: dotnet publish src/EpicoraCheckup.App/EpicoraCheckup.App.csproj --configuration Release --output publish
+
+      # A ferramenta lê a matriz de rules/ em tempo de execução, e o modo demonstração lê
+      # uma fixture. Sem os dois ao lado do executável, o pacote não roda.
+      # Ponto aberto registrado em src/README.md: executável único ainda não resolvido, então
+      # o pacote é uma pasta, não um arquivo.
+      - name: montar pacote
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path pacote | Out-Null
+          Copy-Item publish/* pacote/ -Recurse -Force
+          Copy-Item rules pacote/rules -Recurse -Force
+          New-Item -ItemType Directory -Force -Path pacote/fixtures | Out-Null
+          Copy-Item tests/fixtures/*.json pacote/fixtures/ -Force
+          @'
+          Epicora Checkup — pacote de teste
+
+          Este pacote NAO e uma release. Nao esta assinado, e o SmartScreen vai
+          reclamar de aplicativo nao reconhecido (doc 02 §8.4 — e esperado, nao e defeito).
+
+          Para percorrer as telas com dados de exemplo, sem coletar nada desta maquina
+          e sem gravar nenhum arquivo:
+
+              EpicoraCheckup.exe --demonstracao fixtures\sintetica-vermelha.json
+
+          Fixtures disponiveis:
+              sintetica-verde.json      maquina saudavel, nenhum achado
+              sintetica-amarela.json    execucao SEM elevacao, etapas ignoradas
+              sintetica-vermelha.json   achados criticos, veredito Substituir
+
+          Executar sem --demonstracao ainda nao funciona: os coletores reais nao foram
+          portados do prototipo PowerShell. Ate entao, a coleta de verdade e feita por
+          tools\prototype\EpicoraCheckup.bat.
+          '@ | Set-Content -Path pacote/LEIA-ME.txt -Encoding UTF8
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: EpicoraCheckup-teste
+          path: pacote/
+          if-no-files-found: error

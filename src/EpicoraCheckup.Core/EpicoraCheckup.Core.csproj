@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Contratos e modelo. Alvo e plataforma vêm de ../Directory.Build.props (ADR-001).
+
+    Regra de dependência (doc 02 §2): Collectors, Rules, Optimizers e Reporting
+    dependem de Core. Core não depende de nenhum deles, e NENHUM deles referencia
+    WinForms. É o que permite testar tudo sem UI e reaproveitar no consolidador.
+
+    Core também não referencia biblioteca de JSON: são POCOs e interfaces. A forma
+    serializada é responsabilidade de quem serializa.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>EpicoraCheckup.Core</RootNamespace>
+    <AssemblyName>EpicoraCheckup.Core</AssemblyName>
+  </PropertyGroup>
+
+</Project>

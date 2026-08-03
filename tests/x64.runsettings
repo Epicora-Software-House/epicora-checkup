@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+
+  <!--
+    O alvo é x64 (ADR-001), mas o vstest escolhe x86 por padrão em vários cenários de
+    .NET Framework. Carregar um assembly x64 num host x86 falha com
+    BadImageFormatException, cuja mensagem não aponta para a causa. Fixado aqui.
+  -->
+
+  <RunConfiguration>
+    <TargetPlatform>x64</TargetPlatform>
+    <TargetFrameworkVersion>net472</TargetFrameworkVersion>
+  </RunConfiguration>
+
+</RunSettings>

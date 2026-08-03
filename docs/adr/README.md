@@ -1,6 +1,6 @@
 # Decisões de arquitetura (ADR)
 
-Os nove pontos abertos da seção 11 do documento técnico. Uma decisão por arquivo.
+Uma decisão por arquivo. As de 001 a 009 são os nove pontos abertos da seção 11 do documento técnico; de 010 em diante são decisões que surgiram na implementação e que não cabia resolver dentro do código.
 
 **Regra:** nenhum destes é resolvido dentro do código por decisão individual de quem implementa. Se a implementação encontrar motivo para contrariar um ADR, o caminho é alterar o ADR — não contornar no código.
 
@@ -15,6 +15,8 @@ Os nove pontos abertos da seção 11 do documento técnico. Uma decisão por arq
 | [007](007-desativacao-de-item-de-inicializacao.md) | Mover entrada para chave própria, não escrever em `StartupApproved` | ✅ Aceita | Fase 5 |
 | [008](008-idioma.md) | pt-BR apenas na v1 | ✅ Aceita | — |
 | [009](009-prototipo-powershell-e-fallback-permanente.md) | Protótipo PowerShell é fallback permanente | ✅ Aceita | — |
+| [010](010-projetos-sdk-style-e-ui-em-codigo.md) | Projetos SDK-style, UI escrita em código | ✅ Aceita | — |
+| [011](011-nivel-de-execucao-solicitado.md) | `highestAvailable`, não `requireAdministrator` | ⚠️ Aceita — **confirmar com a direção técnica** | — |
 
 ## Estados
 
