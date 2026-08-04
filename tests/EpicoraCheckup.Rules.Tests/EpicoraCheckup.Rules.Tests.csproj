@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\EpicoraCheckup.Rules\EpicoraCheckup.Rules.csproj" />
+    <ProjectReference Include="..\..\src\EpicoraCheckup.Reporting\EpicoraCheckup.Reporting.csproj" />
   </ItemGroup>
 
   <ItemGroup>

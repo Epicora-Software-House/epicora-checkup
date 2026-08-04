@@ -3,46 +3,19 @@ using System.Collections.Generic;
 using System.IO;
 using EpicoraCheckup.Core.Contracts;
 using EpicoraCheckup.Core.Model;
+using EpicoraCheckup.Reporting;
 using Newtonsoft.Json;
 
 namespace EpicoraCheckup.App
 {
-    /// <summary>Campos da tela 1. Persistidos entre máquinas da mesma visita.</summary>
-    public sealed class Identification
-    {
-        public string Technician { get; set; }
-        public string Client { get; set; }
-        public string Unit { get; set; }
-        public string DiagnosticId { get; set; }
-
-        public bool IsComplete =>
-            !string.IsNullOrWhiteSpace(Technician) &&
-            !string.IsNullOrWhiteSpace(Client) &&
-            !string.IsNullOrWhiteSpace(DiagnosticId);
-    }
-
-    /// <summary>Campos da tela 4. Os três primeiros são obrigatórios (doc 01 §5).</summary>
-    public sealed class ManualData
-    {
-        public string MachineLabel { get; set; }
-        public string Responsible { get; set; }
-        public string Department { get; set; }
-        public string PhysicalLocation { get; set; }
-        public string AssetTag { get; set; }
-        public string PhysicalCondition { get; set; }
-        public string Notes { get; set; }
-
-        public bool IsComplete =>
-            !string.IsNullOrWhiteSpace(MachineLabel) &&
-            !string.IsNullOrWhiteSpace(Responsible) &&
-            !string.IsNullOrWhiteSpace(Department);
-    }
-
     /// <summary>
     /// Estado da execução, carregado entre as telas.
     ///
     /// Uma instância por execução da ferramenta. Não é singleton estático: a tela recebe a
     /// instância, o que torna possível instanciar uma tela em teste sem montar estado global.
+    ///
+    /// <see cref="Identification"/> e <see cref="ManualData"/> vivem em Core porque Reporting
+    /// também precisa deles, e Reporting não referencia WinForms.
     /// </summary>
     public sealed class SessionState
     {
@@ -71,6 +44,12 @@ namespace EpicoraCheckup.App
         public IList<Finding> Findings { get; set; } = new List<Finding>();
 
         public Score Score { get; set; }
+
+        /// <summary>
+        /// Log da execução. Acumula em memória e é gravado no fim, junto com o relatório —
+        /// o nome do arquivo depende do hostname, que só se conhece depois de coletar.
+        /// </summary>
+        public RunLog Log { get; } = new RunLog();
 
         /// <summary>Arquivos efetivamente gravados, para a tela 7. Vazio em demonstração.</summary>
         public IList<string> GeneratedFiles { get; } = new List<string>();
@@ -102,6 +81,7 @@ namespace EpicoraCheckup.App
                 Identification.Client = saved.Client;
                 Identification.Unit = saved.Unit;
                 Identification.DiagnosticId = saved.DiagnosticId;
+                Identification.CorporateEnvironment = saved.CorporateEnvironment;
             }
             catch (Exception)
             {

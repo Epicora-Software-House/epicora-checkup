@@ -12,7 +12,7 @@ O alvo é fixado em `Directory.Build.props` e **nenhum projeto pode sobrescrevê
 | `EpicoraCheckup.Rules` | ✅ | Motor de regras declarativo, lendo `rules/*.json` |
 | `EpicoraCheckup.App` | ✅ | WinForms: telas 1, 2, 3, 4 e 7 |
 | `EpicoraCheckup.Collectors` | ⬜ | Um coletor por domínio. **Depende do pré-voo** — porte do `.ps1` só depois do campo |
-| `EpicoraCheckup.Reporting` | ⬜ | JSON, HTML, log |
+| `EpicoraCheckup.Reporting` | ✅ | Documento do schema 1.0, relatório HTML autocontido e log de execução |
 | `EpicoraCheckup.Optimizers` | ⬜ | Fase 5 |
 | `EpicoraCheckup.Consolidator` | ⬜ | Fase 4 |
 
@@ -70,6 +70,18 @@ Três detalhes do contrato que não são óbvios e que já mordem quem refatora:
 1. **A ordem de carga dos arquivos de regra é parte da saída.** `Score.VerdictDrivenBy` preserva a ordem de carga — ordinal por nome de arquivo — e não a ordem de exibição, que é ordenada por severidade depois.
 2. **Ausente e nulo-explícito são estados diferentes.** `equals` contra `null` é verdadeiro para um campo nulo e falso para um campo ausente. Por isso existe o tipo `Missing` em vez de usar `null`.
 3. **`notContains` sobre valor que não é texto nem lista devolve falso**, não verdadeiro. Assimetria herdada do motor de referência, e correta: não se afirma "não contém" sobre algo que não pôde ser lido.
+
+## Um documento, dois usos
+
+`CheckupDocument.Build` monta o documento do schema 1.0, e ele é usado **duas vezes**: sem `findings`, é a entrada do motor de regras na tela 2; com eles, é o arquivo que o consolidador lê.
+
+Isso não é economia de código, é correção. OS-004 lê `manual.corporateEnvironment`, que não está dentro de coletor nenhum — avaliar sobre um documento que só tem `collectors` faz a regra perder a marcação do técnico **em silêncio**, sem erro e sem teste vermelho. Foi exatamente o bug da primeira versão, e `ReportingTests.Marcacao_de_ambiente_corporativo_chega_ate_OS004` existe para ele não voltar.
+
+Como só `corporateEnvironment` alimenta regra, e ele vem da tela 1, avaliar na tela 2 — antes da tela 4 — não perde nada.
+
+## A saída é verificada contra o schema
+
+Não há validador de JSON Schema gratuito e decente para net472, então quem confere é o `ajv` que já cobre as fixtures. Os testes gravam amostras em `tests/generated/` e o CI roda `tools/validate-schema.mjs` em cima delas. Sem esse passo, "monta o documento do schema" seria afirmação sem verificação.
 
 ## Pontos abertos, registrados
 

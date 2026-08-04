@@ -4,11 +4,15 @@ using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 using EpicoraCheckup.App.Controls;
+using EpicoraCheckup.Reporting;
 
 namespace EpicoraCheckup.App.Screens
 {
     /// <summary>
     /// Tela 7 — arquivos gerados, e fim.
+    ///
+    /// É aqui que a gravação acontece, e não antes: o documento precisa dos dados manuais da
+    /// tela 4, e escrever mais cedo produziria um arquivo que diverge do que está na tela.
     ///
     /// Mostra o caminho e abre a pasta. **Nada é enviado para servidor nenhum** — a
     /// afirmação está na tela porque é uma das perguntas que o responsável de TI do cliente
@@ -17,6 +21,9 @@ namespace EpicoraCheckup.App.Screens
     internal sealed class Screen7Save : ScreenBase
     {
         private readonly Panel _corpo = new Panel { Dock = DockStyle.Fill, AutoScroll = true, BackColor = Theme.Fundo };
+
+        private string _pastaDoCliente;
+        private string _erroDeGravacao;
 
         internal Screen7Save(SessionState session) : base(session)
         {
@@ -27,29 +34,69 @@ namespace EpicoraCheckup.App.Screens
 
         internal override string AdvanceText => Strings.Tela7Encerrar;
 
-        // Voltar da tela final para editar dados manuais e não regravar deixaria o arquivo
-        // em disco divergindo do que está na tela. Terminal.
+        // Voltar da tela final para editar dados manuais deixaria o arquivo em disco
+        // divergindo do que está na tela. Terminal.
         internal override bool CanGoBack => false;
 
         internal override void OnEnter()
         {
             _corpo.Controls.Clear();
 
+            // Demonstração NÃO grava, em nenhuma circunstância. Um relatório derivado de
+            // fixture não pode circular, e depois que o arquivo existe nenhum aviso na tela
+            // impede alguém de entregá-lo.
             if (Session.IsDemo)
             {
                 Stack(_corpo, Note(Strings.DemonstracaoTela7, Theme.DemoFundo));
                 return;
             }
 
-            if (Session.GeneratedFiles.Count == 0)
+            if (Session.CollectorResults.Count == 0)
             {
-                Stack(_corpo, Note(Strings.Tela7RelatorioPendente, Theme.Medio));
+                Stack(_corpo, Note(Strings.ColetoresNaoPortados, Theme.Medio));
+                return;
+            }
+
+            if (Session.GeneratedFiles.Count == 0 && _erroDeGravacao == null) WriteReports();
+
+            if (_erroDeGravacao != null)
+            {
+                Stack(_corpo, Note(string.Format(Strings.Tela7FalhaAoGravar, _erroDeGravacao), Theme.Critico));
                 return;
             }
 
             Stack(_corpo, FileList());
             Stack(_corpo, Note(Strings.Tela7NadaEnviado, Theme.TextoSecundario));
             Stack(_corpo, OpenFolderButton());
+        }
+
+        private void WriteReports()
+        {
+            try
+            {
+                Session.Log.Info("montando documento do schema 1.0");
+
+                var documento = CheckupDocument.Build(ReportInputFactory.From(Session, withEvaluation: true));
+
+                var escritos = ReportWriter.WriteAll(
+                    documento,
+                    Session.OutputDirectory,
+                    Session.Identification.Client,
+                    Session.Log,
+                    Session.FinishedAt ?? DateTimeOffset.Now);
+
+                foreach (var caminho in escritos)
+                    Session.GeneratedFiles.Add(caminho);
+
+                _pastaDoCliente = Path.GetDirectoryName(escritos[0]);
+            }
+            catch (Exception ex)
+            {
+                // Falhar aqui é o pior momento: a coleta acabou e o dado existe só em memória.
+                // Então a mensagem diz o que houve, em vez de sumir com a tela.
+                Session.Log.Error("falha ao gravar o relatório", ex);
+                _erroDeGravacao = ex.Message;
+            }
         }
 
         private Control FileList()
@@ -117,16 +164,14 @@ namespace EpicoraCheckup.App.Screens
 
         private void OpenOutputFolder()
         {
+            var pasta = _pastaDoCliente ?? Session.OutputDirectory;
+
             try
             {
-                if (!Directory.Exists(Session.OutputDirectory)) return;
+                if (!Directory.Exists(pasta)) return;
 
                 // UseShellExecute para o Explorer abrir a pasta, e não tentar executá-la.
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = Session.OutputDirectory,
-                    UseShellExecute = true
-                });
+                Process.Start(new ProcessStartInfo { FileName = pasta, UseShellExecute = true });
             }
             catch (Exception ex)
             {

@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using EpicoraCheckup.App.Demo;
 using EpicoraCheckup.Core.Contracts;
 using EpicoraCheckup.Core.Orchestration;
+using EpicoraCheckup.Reporting;
 using EpicoraCheckup.Rules;
 
 namespace EpicoraCheckup.App.Screens
@@ -102,6 +103,9 @@ namespace EpicoraCheckup.App.Screens
                 Session.StartedAt = DateTimeOffset.Now;
                 _cronometro.Start();
 
+                Session.Log.Info($"início da coleta — elevado: {Session.IsElevated}, " +
+                                 $"{conjunto.Count} coletores" + (Session.IsDemo ? " (DEMONSTRAÇÃO)" : string.Empty));
+
                 var orquestrador = new CollectionOrchestrator(conjunto);
 
                 // Progress<T> criado AQUI, na thread da UI: é o que garante que cada Report
@@ -122,7 +126,7 @@ namespace EpicoraCheckup.App.Screens
                 Session.CollectorResults = resultados;
                 Session.FinishedAt = DateTimeOffset.Now;
 
-                Evaluate(resultados);
+                Evaluate();
 
                 _cronometro.Stop();
                 _rodapeEstado.Text = string.Format(Strings.Tela2Concluida, Session.Elapsed.TotalSeconds);
@@ -134,6 +138,7 @@ namespace EpicoraCheckup.App.Screens
             catch (Exception ex)
             {
                 _cronometro.Stop();
+                Session.Log.Error("coleta interrompida", ex);
                 _failure = ex.Message;
                 _rodapeEstado.ForeColor = Theme.Alto;
                 _rodapeEstado.Text = ex.Message;
@@ -142,19 +147,32 @@ namespace EpicoraCheckup.App.Screens
         }
 
         /// <summary>
-        /// Avalia a matriz sobre os RESULTADOS dos coletores, não sobre o arquivo de onde eles
-        /// porventura vieram. No modo demonstração as duas coisas seriam parecidas, e o atalho
-        /// faria a demonstração exercitar um caminho que produção não usa.
+        /// Avalia a matriz sobre o documento COMPLETO, montado a partir dos resultados dos
+        /// coletores — não sobre o arquivo de onde eles porventura vieram.
+        ///
+        /// Documento completo, e não só o bloco de coletores: OS-004 lê
+        /// <c>manual.corporateEnvironment</c>, que não está dentro de coletor nenhum. Avaliar
+        /// sobre um documento parcial faz a regra perder a marcação do técnico em silêncio.
+        ///
+        /// Nenhum outro campo de <c>manual</c> alimenta regra, então avaliar aqui — antes da
+        /// tela 4 — não perde nada: a marcação de ambiente corporativo vem da tela 1.
         /// </summary>
-        private void Evaluate(IList<CollectorResult> resultados)
+        private void Evaluate()
         {
             var rules = RuleRepository.LoadFromDirectory(RulesLocator.Find());
-            var documento = CollectionDocumentBuilder.FromResults(resultados);
+            var documento = CheckupDocument.Build(ReportInputFactory.From(Session, withEvaluation: false));
 
             var avaliacao = new RuleEngine(rules).Evaluate(documento);
 
             Session.Findings = avaliacao.Result.Findings;
             Session.Score = avaliacao.Result.Score;
+
+            foreach (var aviso in avaliacao.Warnings)
+                Session.Log.Warn("matriz: " + aviso);
+
+            Session.Log.Info($"avaliação: {avaliacao.Result.Findings.Count} regras avaliadas, " +
+                             $"score {avaliacao.Result.Score.Value} ({avaliacao.Result.Score.Band}), " +
+                             $"veredito {avaliacao.Result.Score.Verdict}");
         }
 
         private IReadOnlyList<ICollector> BuildCollectors()
@@ -201,8 +219,27 @@ namespace EpicoraCheckup.App.Screens
 
             row.Update(progress);
 
-            // Mantém a etapa corrente visível numa lista de dezesseis itens.
-            if (progress.Phase == CollectorPhase.Running) _lista.ScrollControlIntoView(row);
+            switch (progress.Phase)
+            {
+                case CollectorPhase.Running:
+                    Session.Log.Debug($"coletor {progress.CollectorId}: início");
+                    // Mantém a etapa corrente visível numa lista de dezesseis itens.
+                    _lista.ScrollControlIntoView(row);
+                    break;
+
+                case CollectorPhase.Completed:
+                    Session.Log.Info($"coletor {progress.CollectorId}: concluído em {progress.DurationMs} ms — {progress.Summary}");
+                    break;
+
+                case CollectorPhase.Skipped:
+                    Session.Log.Info($"coletor {progress.CollectorId}: ignorado — {progress.Detail}");
+                    break;
+
+                case CollectorPhase.Failed:
+                    Session.Log.Error($"coletor {progress.CollectorId}: falhou após {progress.DurationMs} ms — " +
+                                      (progress.TimedOut ? "tempo limite excedido" : progress.Detail));
+                    break;
+            }
         }
 
         protected override void Dispose(bool disposing)
