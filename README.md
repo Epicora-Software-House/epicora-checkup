@@ -34,7 +34,9 @@ src/        Solução C# — ver src/README.md
 
 **Fase 0** fechada: dez decisões registradas em [`docs/adr/`](docs/adr/), schema 1.0 congelado, cada campo mapeado à decisão comercial que sustenta.
 
-**Fase 1** em campo. O coletor PowerShell cobre os 16 domínios e foi sondado numa máquina; a meta da fase é 5–10. O protótipo **não é descartável** — é o fallback permanente para quando o EDR de um cliente bloquear o executável ([ADR-009](docs/adr/009-prototipo-powershell-e-fallback-permanente.md)).
+**Fase 1** validada em **2 máquinas** de 5–10, ambas notebooks. As duas rodadas renderam correções reais de coleta. O restante da validação foi **adiado por decisão registrada** ([ADR-012](docs/adr/012-ordem-porte-antes-do-campo.md)): o campo é retomado com o executável pronto, não com o protótipo.
+
+O protótipo **não é descartável** — é o fallback permanente para quando o EDR de um cliente bloquear o executável ([ADR-009](docs/adr/009-prototipo-powershell-e-fallback-permanente.md)), e segue em sincronia com o schema.
 
 **Fase 2** em andamento: `Core`, `Rules` e o executável WinForms com as telas 1, 2, 3, 4 e 7 existem, e o motor de regras é verificado contra os *golden files* em `tests/expected/`. Faltam os **coletores** — que dependem do pré-voo — e a gravação de JSON/HTML/log. Ver [`src/README.md`](src/README.md).
 
