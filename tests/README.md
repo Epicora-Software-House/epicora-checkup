@@ -42,6 +42,8 @@ Dois contratos por fixture, e os dois são verificados:
 | `Apenas_regras_habilitadas_reproduz_o_bloco_da_fixture` | os blocos `findings`/`score` gravados dentro da própria fixture |
 | `Matriz_completa_reproduz_o_golden_file` | `expected/sintetica-*.matriz-completa.json` |
 
+`ReportingTests` cobre a montagem do documento de saída: as regras de serialização do doc 02 §5 (datas com offset, ausente vira null, `corporateEnvironment` é `true` ou `null` mas nunca `false`), a regra de nome de arquivo espelhando o protótipo, o escape de HTML, e o round-trip fixture → resultados → documento → motor. Ele também grava as amostras em `tests/generated/` que o CI valida contra o schema.
+
 Mais `SemanticaDoMotorTests`, que cobre o que os golden files não cobrem: os cantos onde um refactor divergiria em silêncio — ausente versus nulo-explícito, o guard de `indeterminateWhen`, a assimetria de `notContains`, os limites das faixas do semáforo.
 
 Os testes leem a matriz e as fixtures **reais** do repositório, não cópias embutidas. É deliberado: quem edita uma regra e esquece de regenerar os golden files precisa ver o teste ficar vermelho.

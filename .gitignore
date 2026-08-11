@@ -15,6 +15,9 @@ tests/probes/*.json
 # Arquivos com sufixo -raw são a saída direta da máquina e ficam de fora.
 tests/fixtures/*-raw.json
 
+# Amostras geradas pelos testes para o validador de schema conferir. Saída de build.
+tests/generated/
+
 # macOS
 .DS_Store
 

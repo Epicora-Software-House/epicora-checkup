@@ -66,6 +66,24 @@ jobs:
       - name: testes
         run: dotnet test tests/EpicoraCheckup.Rules.Tests/EpicoraCheckup.Rules.Tests.csproj --configuration Release --no-build --settings tests/x64.runsettings --logger "console;verbosity=normal"
 
+      # Os testes gravam documentos de exemplo em tests/generated/. Não existe validador de
+      # JSON Schema decente e gratuito para net472, então quem confere é o mesmo ajv que já
+      # cobre as fixtures. É isto que prova que a saída do C# está no schema 1.0 — sem isso,
+      # "monta o documento" seria afirmação sem verificação.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - run: npm ci
+
+      - name: saída no schema 1.0
+        shell: pwsh
+        run: |
+          $amostras = Get-ChildItem tests/generated/*.json -ErrorAction SilentlyContinue
+          if (-not $amostras) { throw "os testes não geraram amostra em tests/generated/" }
+          node tools/validate-schema.mjs @($amostras.FullName)
+
   # O projeto App não é referenciado por nenhum teste, então o job acima NÃO o compila.
   # Este job existe para isso, e para produzir o pacote que vai para quem testa.
   # Depende de `motor`: motor de regras vermelho não gera executável.

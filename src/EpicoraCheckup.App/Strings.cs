@@ -53,6 +53,11 @@ namespace EpicoraCheckup.App
             "Esta ferramenta lê apenas metadados de hardware, software e configuração. " +
             "Não acessa conteúdo de arquivos, e-mails, mensagens ou histórico de navegação.";
 
+        internal const string Tela1Corporativo = "O parque desta empresa é corporativo";
+        internal const string Tela1CorporativoDica =
+            "Marque quando houver padronização de TI, mesmo sem domínio. Habilita a avaliação de " +
+            "edição Home do Windows, que em escritório pequeno sem domínio passaria despercebida.";
+
         internal const string Tela1Iniciar = "Iniciar coleta";
 
         internal const string Tela1Elevado =
@@ -147,10 +152,10 @@ namespace EpicoraCheckup.App
             "Nada foi enviado para nenhum servidor. Os arquivos estão apenas nesta máquina, " +
             "e é o técnico que os leva.";
 
-        internal const string Tela7RelatorioPendente =
-            "A gravação do JSON, do relatório HTML e do log ainda não foi implementada.\n\n" +
-            "Ela entra junto com os coletores reais, porque as duas coisas montam o mesmo " +
-            "documento do schema 1.0 e escrever uma sem a outra produziria arquivo pela metade.";
+        internal const string Tela7FalhaAoGravar =
+            "Não foi possível gravar o relatório.\n\n{0}\n\n" +
+            "A coleta foi concluída e os dados estão em memória, mas não chegaram ao disco. " +
+            "Verifique se há espaço e permissão de escrita na pasta de saída e refaça a coleta.";
 
         internal const string Tela7AbrirPasta = "Abrir pasta";
         internal const string Tela7Encerrar = "Encerrar";
