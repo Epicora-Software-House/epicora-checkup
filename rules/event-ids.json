@@ -3,20 +3,35 @@
   "docReference": "docs/02-especificacao-tecnica.md §4.11 · docs/03-matriz-riscos-otimizacoes.md §4.10",
   "version": 1,
   "validUntil": null,
-  "lastUpdated": "2026-08-03",
+  "lastUpdated": "2026-08-11",
   "sourceUrl": "https://learn.microsoft.com/en-us/troubleshoot/windows-server/backup-and-storage/troubleshoot-data-corruption-and-disk-errors",
   "estado": {
     "levantamentoDocumental": "concluído em 2026-08-03 — todo ID abaixo tem verifiedSourceUrl oficial",
-    "validacaoDeCampo": "PENDENTE",
+    "validacaoDeCampo": "PARCIAL — uma máquina (JULIA-LAPTOP, Acer Nitro, Windows 11 Home 25H2, 2026-08-11), elevada e sem elevação. Confirmou a contaminação por provedor e corrigiu o nome do provedor de NTFS. Falta máquina com histórico conhecido de queda de energia ou de disco em falha, que é o que valida a CONTAGEM (passos 2 e 3 de comoPreencher).",
     "porQueValidUntilSegueNulo": "validUntil nulo mantém events.evaluated = false e EST-001..003 em Indeterminate. É deliberado: os IDs estão documentados, mas as contagens da sonda do DELL-G15 não são confiáveis porque a consulta não filtrava por provedor (ver bloqueios.filtroDeProvedor). Habilitar a avaliação com base em contagem contaminada é exatamente o falso positivo que o doc 02 §4.11 manda evitar.",
     "bloqueios": {
-      "filtroDeProvedor": "Test-DataSources.ps1 consultava Get-WinEvent apenas por LogName + Id + StartTime, sem ProviderName. ID de evento NÃO é único entre provedores: as contagens medidas são limite superior, não medição. Corrigido na sonda em 2026-08-03; exige novo run.",
+      "filtroDeProvedor": "RESOLVIDO e CONFIRMADO EM CAMPO. A sonda com ProviderName mediu a contaminação: ver estado.medicaoDeCampo.contaminacaoMedida.",
       "contagemPorMaquinaConhecida": "comoPreencher passos 2–4: rodar a sonda corrigida numa máquina cujo histórico se conhece e conferir se a contagem bate com a realidade.",
-      "limiarDeEST003": "o limiar de 2 ocorrências agregadas não se sustenta — ver criticalApplicationError.notaDeAgregacao."
+      "limiarDeEST003": "MEDIDO E CONFIRMADO. 12 eventos agregados numa máquina de uso normal — o limiar de '> 2' dispararia. Mas são 10 travamentos de UM programa (AcerRegistrationBackGroundTask.exe, bloatware do fabricante) e 2 de outro. A agregação por aplicação não só evita o ruído como produz achado MELHOR: 'AcerRegistrationBackGroundTask.exe travou 10 vezes em 30 dias' é acionável; '12 erros de aplicação' não é."
+    },
+    "medicaoDeCampo": {
+      "maquina": "JULIA-LAPTOP · Acer Nitro AN515-43 · Windows 11 Home Single Language 25H2 · 2026-08-11",
+      "porQueImporta": "A contaminação por provedor deixou de ser hipótese e virou número.",
+      "contaminacaoMedida": [
+        "Ntfs/55: 0 com filtro de provedor, 24 SEM filtro — e os 24 são de Microsoft-Windows-Kernel-Processor-Power, que não tem relação com disco.",
+        "Ntfs/98: 0 com o provedor errado, 9 sob Microsoft-Windows-Ntfs — o nome curto produzia falso NEGATIVO.",
+        "disk/153: 0 com filtro, 4 SEM filtro, todos de Microsoft-Windows-Kernel-Boot.",
+        "Somadas, 28 ocorrências sem relação com disco seriam contadas como erro de disco por uma consulta sem ProviderName — numa regra Critical com verdictInfluence 'Replace'."
+      ],
+      "desligamento": "Kernel-Power/41 = 1 e EventLog/6008 = 1 na mesma janela. Confirma que descrevem o MESMO desligamento e que somar daria o dobro.",
+      "aplicacao": "Application Error/1000 = 12, sem contaminação (providersVistos = apenas 'Application Error'). Distribuição: AcerRegistrationBackGroundTask.exe 10, ACCStd.exe 2."
     }
   },
   "windowDays": 30,
-  "channels": ["System", "Application"],
+  "channels": [
+    "System",
+    "Application"
+  ],
   "queryRequirements": {
     "filtrarPorProvedor": "OBRIGATÓRIO. A consulta deve casar ProviderName E Id. ID de evento não é único entre provedores — sem o filtro, a contagem soma eventos de origens não relacionadas.",
     "naoSomarPapeis": "Contar apenas eventos com role = 'primary'. Os de role = 'corroborating' descrevem o MESMO fato por outro provedor e servem para confiança, nunca para contagem.",
@@ -51,33 +66,36 @@
     },
     "diskError": {
       "consumedBy": "EST-002",
-      "notaDeAgregacao": "Só a família de corrupção de NTFS entra aqui. A Microsoft afirma que esses eventos indicam corrupção de sistema de arquivos causada por setor defeituoso no disco ou por requisição de I/O que não completou — que é precisamente o sinal que EST-002 quer. Eventos de timeout e retry do subsistema de armazenamento foram REJEITADOS: ver candidatosRejeitados. Isso importa porque EST-002 é Critical com verdictInfluence 'Replace' — é a regra de maior consequência da matriz e a que substitui o SMART detalhado descartado no ADR-004.",
+      "notaDeAgregacao": "Só a família de corrupção de NTFS entra aqui. A Microsoft afirma que esses eventos indicam corrupção de sistema de arquivos causada por setor defeituoso no disco ou por requisição de I/O que não completou — que é precisamente o sinal que EST-002 quer. Eventos de timeout e retry do subsistema de armazenamento foram REJEITADOS: ver candidatosRejeitados. Isso importa porque EST-002 é Critical com verdictInfluence 'Replace' — é a regra de maior consequência da matriz e a que substitui o SMART detalhado descartado no ADR-004. NOME DO PROVEDOR: 'Microsoft-Windows-Ntfs', medido em campo. O nome curto 'Ntfs', que a documentação usa no texto corrido, NÃO casa com nenhum evento em Windows 11 — devolve zero e a regra vira falso negativo silencioso.",
       "events": [
         {
           "channel": "System",
-          "provider": "Ntfs",
+          "provider": "Microsoft-Windows-Ntfs",
           "eventId": 55,
           "level": "Error",
           "role": "primary",
-          "note": "'The file system structure on the disk is corrupt and unusable. Please run the chkdsk utility on the volume.' A Microsoft lista este ID entre os que indicam corrupção de dados ou erro de disco, e atribui a causa a setor defeituoso ou I/O que não completou.",
-          "verifiedAt": "2026-08-03",
+          "note": "'The file system structure on the disk is corrupt and unusable. Please run the chkdsk utility on the volume.' A Microsoft lista este ID entre os que indicam corrupção de dados ou erro de disco, e atribui a causa a setor defeituoso ou I/O que não completou. PROVEDOR CORRIGIDO EM CAMPO (2026-08-11): é 'Microsoft-Windows-Ntfs', não 'Ntfs'.",
+          "verifiedAt": "2026-08-11",
           "verifiedSourceUrl": "https://learn.microsoft.com/en-us/troubleshoot/windows-server/backup-and-storage/troubleshoot-data-corruption-and-disk-errors"
         },
         {
           "channel": "System",
-          "provider": "Ntfs",
+          "provider": "Microsoft-Windows-Ntfs",
           "eventId": 98,
           "level": "Error",
           "role": "primary",
-          "note": "'Volume C: (\\Device\\HarddiskVolume3) needs to be taken offline to perform a Full Chkdsk.' Mesma família e mesma causa raiz que o 55, segundo a mesma página.",
-          "verifiedAt": "2026-08-03",
+          "note": "'Volume C: (\\Device\\HarddiskVolume3) needs to be taken offline to perform a Full Chkdsk.' Mesma família e mesma causa raiz que o 55, segundo a mesma página. PROVEDOR MEDIDO EM CAMPO (2026-08-11): a sonda do JULIA-LAPTOP contou 9 ocorrências sob 'Microsoft-Windows-Ntfs' e ZERO sob 'Ntfs' — o nome antigo produzia falso negativo.",
+          "verifiedAt": "2026-08-11",
           "verifiedSourceUrl": "https://learn.microsoft.com/en-us/troubleshoot/windows-server/backup-and-storage/troubleshoot-data-corruption-and-disk-errors"
         }
       ],
       "documentadosMasNaoIncluidos": [
         {
-          "provider": "Ntfs",
-          "eventIds": [50, 140],
+          "provider": "Microsoft-Windows-Ntfs",
+          "eventIds": [
+            50,
+            140
+          ],
           "porQue": "A mesma página oficial afirma que 'NTFS events such as Event ID 55, 50, 140, and 98 indicate file system corruption' — então pertencem à família. Não entram ainda porque a página não cita o texto exato de nenhum dos dois, e o doc 02 §4.11 exige confirmar antes de registrar. Incluir depois de confirmar a mensagem e o nível na doc e de medir a frequência em campo.",
           "verifiedSourceUrl": "https://learn.microsoft.com/en-us/troubleshoot/windows-server/backup-and-storage/troubleshoot-data-corruption-and-disk-errors"
         }
