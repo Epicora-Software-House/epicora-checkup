@@ -478,6 +478,19 @@ if (-not $SkipBatteryReport) {
         $wmi = Select-Raw (Get-CimInstance Win32_Battery -ErrorAction SilentlyContinue) `
             @('Name','DeviceID','DesignCapacity','FullChargeCapacity','EstimatedChargeRemaining','BatteryStatus','Chemistry')
 
+        # MEDIDO EM CAMPO (JULIA-LAPTOP, 2026-08-11): o coletor devolveu designCapacityMwh
+        # null, e portanto wearPercent null, porque Win32_Battery.DesignCapacity vem nulo
+        # — o que ja era previsto — E o fallback para Win32_PortableBattery nao produziu
+        # nada. So que a sonda NUNCA sondou Win32_PortableBattery, entao nao da para saber
+        # se a classe nao devolveu instancia ou se devolveu com DesignCapacity nulo. Sao
+        # correcoes diferentes. Esta sonda existe para separar os dois casos.
+        #
+        # O powercfg TEM o dado na mesma maquina: DESIGN CAPACITY 57.488 mWh.
+        # Atencao ao separador: em pt-BR o ponto e separador de MILHAR, entao e 57488 mWh,
+        # nao 57,488. Parsear isso sem tratar locale produz desgaste absurdo.
+        $portable = Select-Raw (Get-CimInstance Win32_PortableBattery -ErrorAction SilentlyContinue) `
+            @('Name','DeviceID','DesignCapacity','DesignVoltage','CapacityMultiplier','Chemistry','Location')
+
         $report = $null
         if (@($wmi).Count -gt 0) {
             # UNICA ESCRITA DE TODO O SCRIPT, e em pasta temporaria. Removida logo abaixo.
@@ -498,7 +511,7 @@ if (-not $SkipBatteryReport) {
                 if (Test-Path $tmp) { Remove-Item $tmp -Force -ErrorAction SilentlyContinue }
             }
         }
-        [ordered]@{ win32Battery = $wmi; batteryReport = $report }
+        [ordered]@{ win32Battery = $wmi; win32PortableBattery = $portable; batteryReport = $report }
     }
 }
 
@@ -526,10 +539,11 @@ Invoke-Probe -Id 'eventIdCandidates' -Confidence 'B' `
         @{ cat = 'unexpectedShutdown';       channel = 'System';      id = 41;   provider = 'Microsoft-Windows-Kernel-Power';             verdict = 'incluido:primary' },
         @{ cat = 'unexpectedShutdown';       channel = 'System';      id = 6008; provider = 'EventLog';                                  verdict = 'incluido:corroborating' },
         @{ cat = 'unexpectedShutdown';       channel = 'System';      id = 1001; provider = 'Microsoft-Windows-WER-SystemErrorReporting'; verdict = 'rejeitado:sem-doc-oficial' },
-        @{ cat = 'diskError';                channel = 'System';      id = 55;   provider = 'Ntfs';                                      verdict = 'incluido:primary' },
-        @{ cat = 'diskError';                channel = 'System';      id = 98;   provider = 'Ntfs';                                      verdict = 'incluido:primary' },
-        @{ cat = 'diskError';                channel = 'System';      id = 50;   provider = 'Ntfs';                                      verdict = 'candidato:mensagem-nao-citada-na-doc' },
-        @{ cat = 'diskError';                channel = 'System';      id = 140;  provider = 'Ntfs';                                      verdict = 'candidato:mensagem-nao-citada-na-doc' },
+        @{ cat = 'diskError';                channel = 'System';      id = 55;   provider = 'Microsoft-Windows-Ntfs';                    verdict = 'incluido:primary' },
+        @{ cat = 'diskError';                channel = 'System';      id = 98;   provider = 'Microsoft-Windows-Ntfs';                    verdict = 'incluido:primary' },
+        @{ cat = 'diskError';                channel = 'System';      id = 50;   provider = 'Microsoft-Windows-Ntfs';                    verdict = 'candidato:mensagem-nao-citada-na-doc' },
+        @{ cat = 'diskError';                channel = 'System';      id = 140;  provider = 'Microsoft-Windows-Ntfs';                    verdict = 'candidato:mensagem-nao-citada-na-doc' },
+        @{ cat = 'diskError';                channel = 'System';      id = 98;   provider = 'Ntfs';                                      verdict = 'controle:nome-curto-devolve-zero' },
         @{ cat = 'diskError';                channel = 'System';      id = 7;    provider = 'disk';                                      verdict = 'rejeitado:sem-doc-oficial' },
         @{ cat = 'diskError';                channel = 'System';      id = 51;   provider = 'Disk';                                      verdict = 'rejeitado:benigno-sem-decodificar-binario' },
         @{ cat = 'diskError';                channel = 'System';      id = 153;  provider = 'disk';                                      verdict = 'rejeitado:sobrecarga-nao-falha-de-midia' },

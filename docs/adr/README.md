@@ -17,6 +17,7 @@ Uma decisão por arquivo. As de 001 a 009 são os nove pontos abertos da seção
 | [009](009-prototipo-powershell-e-fallback-permanente.md) | Protótipo PowerShell é fallback permanente | ✅ Aceita | — |
 | [010](010-projetos-sdk-style-e-ui-em-codigo.md) | Projetos SDK-style, UI escrita em código | ✅ Aceita | — |
 | [011](011-nivel-de-execucao-solicitado.md) | `highestAvailable`, não `requireAdministrator` | ⚠️ Aceita — **confirmar com a direção técnica** | — |
+| [012](012-ordem-porte-antes-do-campo.md) | Portar os coletores antes de completar o campo | ✅ Aceita | — |
 
 ## Estados
 

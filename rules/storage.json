@@ -6,13 +6,17 @@
       "id": "STO-001",
       "version": 1,
       "enabled": false,
-      "enabledBlockedBy": ["sourceValidation"],
+      "enabledBlockedBy": [
+        "sourceValidation"
+      ],
       "sourceConfidence": "M",
-      "validationNote": "MSFT_PhysicalDisk.MediaType em root\\Microsoft\\Windows\\Storage — confirmar nomes de propriedade e valores enumerados em campo (doc 02 §4.3). NUNCA usar Win32_DiskDrive.MediaType, que retorna 'Fixed hard disk media' também para SSD.",
+      "validationNote": "FONTE VALIDADA EM CAMPO. VALIDADO EM 2 NOTEBOOKS (DELL-G15 2026-07-29 e JULIA-LAPTOP/Acer 2026-08-11), elevado e sem elevação. MSFT_PhysicalDisk.MediaType devolveu SSD com BusType NVMe, e responde SEM elevação. Win32_DiskDrive.MediaType na mesma máquina devolveu 'Fixed hard disk media' para o SSD, confirmando a armadilha do doc 02 §4.3. FALTA um desktop e uma máquina cujo disco de sistema seja HDD — só assim se prova que a regra DISPARA, e não apenas que não dispara. MSFT_PhysicalDisk.MediaType em root\\Microsoft\\Windows\\Storage — confirmar nomes de propriedade e valores enumerados em campo (doc 02 §4.3). NUNCA usar Win32_DiskDrive.MediaType, que retorna 'Fixed hard disk media' também para SSD.",
       "category": "Armazenamento",
       "severity": "Critical",
       "weight": 25,
-      "requires": ["collectors.storage.data.systemDisk.mediaType"],
+      "requires": [
+        "collectors.storage.data.systemDisk.mediaType"
+      ],
       "indeterminateWhen": {
         "path": "collectors.storage.data.systemDisk.mediaType",
         "operator": "equals",
@@ -44,7 +48,9 @@
       "category": "Armazenamento",
       "severity": "Critical",
       "weight": 20,
-      "requires": ["collectors.storage.data.systemVolume.freePercent"],
+      "requires": [
+        "collectors.storage.data.systemVolume.freePercent"
+      ],
       "indeterminateWhen": null,
       "condition": {
         "path": "collectors.storage.data.systemVolume.freePercent",
@@ -59,25 +65,42 @@
         "collectors.storage.data.systemVolume.freeBytes",
         "collectors.storage.data.systemVolume.sizeBytes"
       ],
-      "linkedOptimizations": ["OPT-TEMP", "OPT-WU", "OPT-OLD", "OPT-BIN"],
+      "linkedOptimizations": [
+        "OPT-TEMP",
+        "OPT-WU",
+        "OPT-OLD",
+        "OPT-BIN"
+      ],
       "verdictInfluence": null
     },
     {
       "id": "STO-003",
       "version": 1,
       "enabled": false,
-      "enabledBlockedBy": ["clientText"],
+      "enabledBlockedBy": [
+        "clientText"
+      ],
       "sourceConfidence": "A",
       "validationNote": null,
       "category": "Armazenamento",
       "severity": "High",
       "weight": 10,
-      "requires": ["collectors.storage.data.systemVolume.freePercent"],
+      "requires": [
+        "collectors.storage.data.systemVolume.freePercent"
+      ],
       "indeterminateWhen": null,
       "condition": {
         "allOf": [
-          { "path": "collectors.storage.data.systemVolume.freePercent", "operator": "greaterThan", "value": 9.9999 },
-          { "path": "collectors.storage.data.systemVolume.freePercent", "operator": "lessThan", "value": 20 }
+          {
+            "path": "collectors.storage.data.systemVolume.freePercent",
+            "operator": "greaterThan",
+            "value": 9.9999
+          },
+          {
+            "path": "collectors.storage.data.systemVolume.freePercent",
+            "operator": "lessThan",
+            "value": 20
+          }
         ]
       },
       "title": "Espaço livre em disco entre 10% e 20%",
@@ -87,20 +110,27 @@
         "collectors.storage.data.systemVolume.driveLetter",
         "collectors.storage.data.systemVolume.freeBytes"
       ],
-      "linkedOptimizations": ["OPT-TEMP", "OPT-WU"],
+      "linkedOptimizations": [
+        "OPT-TEMP",
+        "OPT-WU"
+      ],
       "verdictInfluence": null
     },
     {
       "id": "STO-004",
       "version": 1,
       "enabled": false,
-      "enabledBlockedBy": ["sourceValidation"],
+      "enabledBlockedBy": [
+        "sourceValidation"
+      ],
       "sourceConfidence": "M",
-      "validationNote": "MSStorageDriver_FailurePredictStatus em root\\wmi — exige elevação e não responde em todo controlador. Validar em campo, inclusive em máquina com RAID e com NVMe.",
+      "validationNote": "BUG CORRIGIDO EM 2026-08-11, FONTE AINDA NÃO VALIDADA. O coletor só atribuía a leitura SMART quando havia exatamente UM disco; o JULIA-LAPTOP tem SSD de sistema mais HD de dados e failurePredicted saiu null nos dois, com o dado em mãos. Agora correlaciona pelo modelo. LIMITAÇÃO MEDIDA: MSStorageDriver_FailurePredictStatus respondeu para o disco SATA e NÃO para o NVMe — em máquina com disco de sistema NVMe, que é o padrão novo, STO-004 resolve Indeterminate por ausência de fonte. Exige elevação, confirmado nas duas máquinas. MSStorageDriver_FailurePredictStatus em root\\wmi — exige elevação e não responde em todo controlador. Validar em campo, inclusive em máquina com RAID e com NVMe.",
       "category": "Armazenamento",
       "severity": "Critical",
       "weight": 30,
-      "requires": ["collectors.storage.data.systemDisk.failurePredicted"],
+      "requires": [
+        "collectors.storage.data.systemDisk.failurePredicted"
+      ],
       "indeterminateWhen": null,
       "condition": {
         "path": "collectors.storage.data.systemDisk.failurePredicted",
@@ -121,13 +151,18 @@
       "id": "STO-005",
       "version": 1,
       "enabled": false,
-      "enabledBlockedBy": ["clientText", "sourceValidation"],
+      "enabledBlockedBy": [
+        "clientText",
+        "sourceValidation"
+      ],
       "sourceConfidence": "M",
       "validationNote": "MSFT_PhysicalDisk.HealthStatus — confirmar valores enumerados reais em campo.",
       "category": "Armazenamento",
       "severity": "High",
       "weight": 15,
-      "requires": ["collectors.storage.data.systemDisk.healthStatus"],
+      "requires": [
+        "collectors.storage.data.systemDisk.healthStatus"
+      ],
       "indeterminateWhen": {
         "path": "collectors.storage.data.systemDisk.healthStatus",
         "operator": "equals",
@@ -152,7 +187,10 @@
       "id": "STO-006",
       "version": 1,
       "enabled": false,
-      "enabledBlockedBy": ["clientText", "sourceValidation"],
+      "enabledBlockedBy": [
+        "clientText",
+        "sourceValidation"
+      ],
       "sourceConfidence": "B",
       "validationNote": "Detecção do estado do TRIM tem confiança baixa. Doc 03 §4.1: se não for confiável, manter desabilitada na v1 em vez de arriscar falso positivo por um achado de peso 3.",
       "category": "Armazenamento",
@@ -169,22 +207,36 @@
       },
       "condition": {
         "allOf": [
-          { "path": "collectors.storage.data.systemDisk.mediaType", "operator": "equals", "value": "SSD" },
-          { "path": "collectors.storage.data.systemDisk.trimEnabled", "operator": "isFalse" }
+          {
+            "path": "collectors.storage.data.systemDisk.mediaType",
+            "operator": "equals",
+            "value": "SSD"
+          },
+          {
+            "path": "collectors.storage.data.systemDisk.trimEnabled",
+            "operator": "isFalse"
+          }
         ]
       },
       "title": "SSD sem TRIM habilitado",
       "clientText": null,
       "recommendedAction": null,
-      "evidenceFields": ["collectors.storage.data.systemDisk.model"],
-      "linkedOptimizations": ["OPT-TRIM"],
+      "evidenceFields": [
+        "collectors.storage.data.systemDisk.model"
+      ],
+      "linkedOptimizations": [
+        "OPT-TRIM"
+      ],
       "verdictInfluence": null
     },
     {
       "id": "STO-007",
       "version": 1,
       "enabled": false,
-      "enabledBlockedBy": ["clientText", "sourceValidation"],
+      "enabledBlockedBy": [
+        "clientText",
+        "sourceValidation"
+      ],
       "sourceConfidence": "M",
       "validationNote": "Percentual de fragmentação exige análise de volume, que é operação lenta. Medir custo de tempo em campo antes de habilitar — a meta de 90 s vale mais que um achado de peso 3.",
       "category": "Armazenamento",
@@ -201,28 +253,44 @@
       },
       "condition": {
         "allOf": [
-          { "path": "collectors.storage.data.systemDisk.mediaType", "operator": "equals", "value": "HDD" },
-          { "path": "collectors.storage.data.systemDisk.fragmentationPercent", "operator": "greaterThan", "value": 15 }
+          {
+            "path": "collectors.storage.data.systemDisk.mediaType",
+            "operator": "equals",
+            "value": "HDD"
+          },
+          {
+            "path": "collectors.storage.data.systemDisk.fragmentationPercent",
+            "operator": "greaterThan",
+            "value": 15
+          }
         ]
       },
       "title": "HDD com fragmentação relevante",
       "clientText": null,
       "recommendedAction": null,
-      "evidenceFields": ["collectors.storage.data.systemDisk.fragmentationPercent"],
-      "linkedOptimizations": ["OPT-DEFRAG"],
+      "evidenceFields": [
+        "collectors.storage.data.systemDisk.fragmentationPercent"
+      ],
+      "linkedOptimizations": [
+        "OPT-DEFRAG"
+      ],
       "verdictInfluence": null
     },
     {
       "id": "STO-008",
       "version": 1,
       "enabled": false,
-      "enabledBlockedBy": ["clientText"],
+      "enabledBlockedBy": [
+        "clientText"
+      ],
       "sourceConfidence": "A",
       "validationNote": null,
       "category": "Armazenamento",
       "severity": "Medium",
       "weight": 6,
-      "requires": ["collectors.storage.data.systemDisk.sizeBytes"],
+      "requires": [
+        "collectors.storage.data.systemDisk.sizeBytes"
+      ],
       "indeterminateWhen": null,
       "condition": {
         "path": "collectors.storage.data.systemDisk.sizeBytes",

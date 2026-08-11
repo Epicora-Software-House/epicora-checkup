@@ -502,8 +502,44 @@ Invoke-Collector -Id 'storage' -DisplayName 'Armazenamento e saúde de disco' -R
             }
         }
     }
-    if ($smart.Count -eq 1 -and $disks.Count -eq 1) {
-        $disks[0].failurePredicted = @($smart.Values)[0]
+    # Correlaciona SMART com o disco pelo MODELO embutido no InstanceName.
+    #
+    # MEDIDO EM CAMPO (JULIA-LAPTOP, 2 discos): a versão anterior só atribuía quando havia
+    # exatamente um disco E uma leitura SMART. Num notebook com SSD de sistema + HD de dados
+    # — configuração corriqueira — o guard falhava e failurePredicted ficava null nos DOIS,
+    # com o dado SMART em mãos. STO-004 é Critical: perder a leitura é perder o achado de
+    # maior urgência do produto.
+    #
+    # O InstanceName tem a forma "SCSI\Disk&Ven_WDC&Prod_WD10SPZX-21Z10T0\5&1ca0da9&0&000000_0"
+    # e o modelo do disco é "WDC WD10SPZX-21Z10T0". Normalizando os dois para maiúsculas
+    # alfanuméricas, cada palavra do modelo aparece no InstanceName — mas NÃO contíguas,
+    # porque "Prod_" fica no meio. Por isso o teste é palavra a palavra, não substring.
+    #
+    # Se duas leituras casarem com o mesmo disco, ou uma leitura casar com dois discos,
+    # NÃO atribui: modelos iguais em duas baias são ambiguidade real, e null (Indeterminate)
+    # é melhor que apontar falha prevista no disco errado.
+    if ($smart.Count -gt 0) {
+        $norm = { param($t) if ($null -eq $t) { '' } else { ([string]$t).ToUpperInvariant() -replace '[^A-Z0-9]', '' } }
+
+        foreach ($inst in $smart.Keys) {
+            $instNorm = & $norm $inst
+            $casaram = @()
+
+            for ($i = 0; $i -lt $disks.Count; $i++) {
+                $modelo = $disks[$i].model
+                if ([string]::IsNullOrWhiteSpace($modelo)) { continue }
+
+                $palavras = @([string]$modelo -split '\s+' | Where-Object { $_ })
+                $todas = $true
+                foreach ($p in $palavras) {
+                    $pn = & $norm $p
+                    if ($pn.Length -lt 3 -or $instNorm -notlike "*$pn*") { $todas = $false; break }
+                }
+                if ($todas) { $casaram += $i }
+            }
+
+            if ($casaram.Count -eq 1) { $disks[$casaram[0]].failurePredicted = $smart[$inst] }
+        }
     }
 
     $vols = @()
