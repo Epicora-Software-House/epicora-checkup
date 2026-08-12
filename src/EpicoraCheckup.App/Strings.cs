@@ -34,10 +34,8 @@ namespace EpicoraCheckup.App
             "estarem prontos. Um relatório de demonstração nunca pode ser entregue a um cliente, " +
             "e é por isso que ele não gera arquivo.";
 
-        internal const string ColetoresNaoPortados =
-            "Os coletores de dados ainda não foram implementados nesta versão.\n\n" +
-            "Para revisar as telas com dados de exemplo, execute com:\n\n" +
-            "    EpicoraCheckup.exe --demonstracao <arquivo.json>";
+        internal const string NenhumColetor =
+            "Nenhuma etapa de coleta foi montada para esta execução.";
 
         // ---------------------------------------------------------------- tela 1
 
@@ -147,10 +145,13 @@ namespace EpicoraCheckup.App
             "Nada foi enviado para nenhum servidor. Os arquivos estão apenas nesta máquina, " +
             "e é o técnico que os leva.";
 
-        internal const string Tela7RelatorioPendente =
-            "A gravação do JSON, do relatório HTML e do log ainda não foi implementada.\n\n" +
-            "Ela entra junto com os coletores reais, porque as duas coisas montam o mesmo " +
-            "documento do schema 1.0 e escrever uma sem a outra produziria arquivo pela metade.";
+        internal const string Tela7FalhaAoGravar =
+            "Não foi possível gravar os arquivos desta máquina.\n\n{0}\n\n" +
+            "A coleta em si deu certo. Verifique se a pasta ao lado do executável aceita " +
+            "gravação — pen drive protegido, pasta de rede e antivírus bloqueando escrita são " +
+            "as causas comuns — e rode de novo nesta máquina.";
+
+        internal const string Tela7Aviso = "Atenção: {0}";
 
         internal const string Tela7AbrirPasta = "Abrir pasta";
         internal const string Tela7Encerrar = "Encerrar";

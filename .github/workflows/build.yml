@@ -66,13 +66,42 @@ jobs:
       - name: testes
         run: dotnet test tests/EpicoraCheckup.Rules.Tests/EpicoraCheckup.Rules.Tests.csproj --configuration Release --no-build --settings tests/x64.runsettings --logger "console;verbosity=normal"
 
-  # O projeto App não é referenciado por nenhum teste, então o job acima NÃO o compila.
+  # Coletores e gravação. Job separado do motor de propósito: são as duas partes que tocam a
+  # máquina do cliente, e rodam em paralelo com o motor em vez de esperar por ele.
+  #
+  # O que estes testes cobrem é a DERIVAÇÃO — o que a ferramenta conclui a partir do que a
+  # máquina respondeu — e o contrato do arquivo gravado. As fontes (WMI, registro, fsutil)
+  # não são simuladas: elas são exercitadas em campo, com a sonda.
+  coletores:
+    name: coletores e gravação (net472, x64)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: restore
+        run: |
+          dotnet restore tests/EpicoraCheckup.Collectors.Tests/EpicoraCheckup.Collectors.Tests.csproj
+          dotnet restore tests/EpicoraCheckup.Reporting.Tests/EpicoraCheckup.Reporting.Tests.csproj
+
+      - name: build
+        run: |
+          dotnet build tests/EpicoraCheckup.Collectors.Tests/EpicoraCheckup.Collectors.Tests.csproj --configuration Release --no-restore
+          dotnet build tests/EpicoraCheckup.Reporting.Tests/EpicoraCheckup.Reporting.Tests.csproj --configuration Release --no-restore
+
+      # O --settings não é opcional: sem ele o vstest pode escolher x86 para assembly de
+      # .NET Framework e falhar ao carregar um binário x64.
+      - name: testes
+        run: |
+          dotnet test tests/EpicoraCheckup.Collectors.Tests/EpicoraCheckup.Collectors.Tests.csproj --configuration Release --no-build --settings tests/x64.runsettings --logger "console;verbosity=normal"
+          dotnet test tests/EpicoraCheckup.Reporting.Tests/EpicoraCheckup.Reporting.Tests.csproj --configuration Release --no-build --settings tests/x64.runsettings --logger "console;verbosity=normal"
+
+  # O projeto App não é referenciado por nenhum teste, então os jobs acima NÃO o compilam.
   # Este job existe para isso, e para produzir o pacote que vai para quem testa.
-  # Depende de `motor`: motor de regras vermelho não gera executável.
+  # Depende dos dois: motor ou coletor vermelho não gera executável.
   app:
     name: executável WinForms
     runs-on: windows-latest
-    needs: motor
+    needs: [motor, coletores]
     steps:
       - uses: actions/checkout@v4
 
@@ -97,6 +126,15 @@ jobs:
           Este pacote NAO e uma release. Nao esta assinado, e o SmartScreen vai
           reclamar de aplicativo nao reconhecido (doc 02 §8.4 — e esperado, nao e defeito).
 
+          Coleta de verdade nesta maquina, gravando JSON, HTML e log em
+          .\EpicoraCheckup\<CLIENTE>\:
+
+              EpicoraCheckup.exe
+
+          Roda com e sem privilegio de administrador. Sem ele, TPM, BitLocker e a
+          verificacao SMART do disco aparecem como "nao foi possivel verificar" — o
+          relatorio sai parcial e honesto, nao sai errado.
+
           Para percorrer as telas com dados de exemplo, sem coletar nada desta maquina
           e sem gravar nenhum arquivo:
 
@@ -107,9 +145,9 @@ jobs:
               sintetica-amarela.json    execucao SEM elevacao, etapas ignoradas
               sintetica-vermelha.json   achados criticos, veredito Substituir
 
-          Executar sem --demonstracao ainda nao funciona: os coletores reais nao foram
-          portados do prototipo PowerShell. Ate entao, a coleta de verdade e feita por
-          tools\prototype\EpicoraCheckup.bat.
+          A matriz tem 61 regras e 5 habilitadas: a lista de riscos sai curta de
+          proposito. As outras 56 aguardam texto aprovado pelo comercial ou validacao
+          de fonte em campo.
           '@ | Set-Content -Path pacote/LEIA-ME.txt -Encoding UTF8
 
       - uses: actions/upload-artifact@v4

@@ -52,6 +52,29 @@ dotnet test tests\EpicoraCheckup.Rules.Tests\EpicoraCheckup.Rules.Tests.csproj -
 
 Só roda em Windows — .NET Framework 4.7.2 não compila em macOS. O CI faz isso a cada push.
 
+## `EpicoraCheckup.Collectors.Tests/` — a derivação dos coletores
+
+O que se testa aqui é **o que a ferramenta conclui a partir do que a máquina respondeu**, não a leitura das fontes. WMI, registro e `fsutil` não são simulados: fonte se exercita em campo, com a sonda, que é o instrumento certo para isso.
+
+Por isso cada coletor tem a parte que lê separada da parte que decide. A segunda recebe um `PropertyBag` montado à mão — com os tipos que WMI entrega de verdade, texto onde a classe declara texto — e roda em qualquer máquina.
+
+A cobertura segue os achados de campo, porque é onde os defeitos apareceram:
+
+| Teste | Achado que ele impede de voltar |
+|---|---|
+| `ArmazenamentoTests` | SMART perdido em máquina com dois discos (JULIA-LAPTOP), e leitura atribuída ao disco errado |
+| `ContasTests` | `isLocalAdmin` falso-negativo com token filtrado do UAC (DELL-G15, SEC-007) |
+| `RedeTests` | `Wired` inalcançável sem `NdisPhysicalMedium` |
+| `FonteDeDadosTests` | campo de texto ausente chegando ao motor como campo preenchido |
+| `BateriaTests` | desgaste negativo, e dado de uma bateria atribuído à outra |
+| `ConsolidacaoTests` | "sem antivírus" para quem tem EDR, e `Unknown` contando como reprovado no Windows 11 |
+
+## `EpicoraCheckup.Reporting.Tests/` — o contrato do arquivo gravado
+
+JSON fora do schema 1.0 não entra no consolidador, e o erro só apareceria semanas depois, no escritório, com a visita encerrada. Então: blocos exatos do schema, datas com offset de fuso, UTF-8 sem BOM, campo opcional vazio como `null` e não como string vazia, nome de arquivo sanitizado com fallback.
+
+Do relatório HTML, verifica-se o que é requisito e não estética: autocontido (sem `http`, sem `<script>`), imprimível (`@media print`), texto de fora escapado, e a separação entre risco e "não foi possível verificar".
+
 ## `expected/` — contrato de aceite do motor C#
 
 `sintetica-<cor>.matriz-completa.json` é a saída do motor de referência em Node com **todas as 61 regras**, incluindo as pendentes.

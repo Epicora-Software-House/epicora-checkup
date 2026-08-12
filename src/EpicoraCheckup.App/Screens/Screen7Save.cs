@@ -1,9 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Reflection;
 using System.Windows.Forms;
 using EpicoraCheckup.App.Controls;
+using EpicoraCheckup.Reporting;
 
 namespace EpicoraCheckup.App.Screens
 {
@@ -17,6 +20,9 @@ namespace EpicoraCheckup.App.Screens
     internal sealed class Screen7Save : ScreenBase
     {
         private readonly Panel _corpo = new Panel { Dock = DockStyle.Fill, AutoScroll = true, BackColor = Theme.Fundo };
+
+        private IList<string> _avisos = new List<string>();
+        private string _falha;
 
         internal Screen7Save(SessionState session) : base(session)
         {
@@ -41,15 +47,65 @@ namespace EpicoraCheckup.App.Screens
                 return;
             }
 
-            if (Session.GeneratedFiles.Count == 0)
+            // Grava ao ENTRAR na tela, não ao sair da tela 4: o arquivo tem que existir antes
+            // de a ferramenta afirmar que existe. Uma vez gravado, não regrava — voltar não é
+            // possível a partir daqui, e regravar duplicaria arquivo por navegação.
+            if (Session.GeneratedFiles.Count == 0 && _falha == null) Save();
+
+            if (_falha != null)
             {
-                Stack(_corpo, Note(Strings.Tela7RelatorioPendente, Theme.Medio));
+                Stack(_corpo, Note(string.Format(Strings.Tela7FalhaAoGravar, _falha), Theme.Alto));
                 return;
             }
 
             Stack(_corpo, FileList());
+
+            foreach (var aviso in _avisos)
+                Stack(_corpo, Note(string.Format(Strings.Tela7Aviso, aviso), Theme.Medio));
+
             Stack(_corpo, Note(Strings.Tela7NadaEnviado, Theme.TextoSecundario));
             Stack(_corpo, OpenFolderButton());
+        }
+
+        /// <summary>
+        /// Grava JSON, HTML e log.
+        ///
+        /// Falha aqui não fecha a janela nem descarta a coleta: o texto explica o que
+        /// aconteceu, e o técnico ainda pode tratar o problema — pasta somente leitura, disco
+        /// cheio, antivírus bloqueando a escrita — sem refazer a visita.
+        /// </summary>
+        private void Save()
+        {
+            try
+            {
+                var arquivos = ReportWriter.Write(
+                    Session.ToRun(VersaoDaFerramenta()), Session.OutputDirectory);
+
+                foreach (var caminho in arquivos.All) Session.GeneratedFiles.Add(caminho);
+
+                Session.ReportDirectory = arquivos.Directory;
+                _avisos = arquivos.Warnings;
+            }
+            catch (Exception ex)
+            {
+                _falha = ex.Message;
+            }
+        }
+
+        /// <summary>
+        /// Versão gravada no JSON e no rodapé do relatório. Vem do assembly, que o CI carimba —
+        /// é o que permite auditar qual versão produziu qual relatório (doc 02 §8.5).
+        /// </summary>
+        private static string VersaoDaFerramenta()
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+
+            var informacional = assembly
+                .GetCustomAttribute<AssemblyInformationalVersionAttribute>();
+
+            return informacional != null && !string.IsNullOrWhiteSpace(informacional.InformationalVersion)
+                ? informacional.InformationalVersion
+                : assembly.GetName().Version.ToString();
         }
 
         private Control FileList()
@@ -119,12 +175,16 @@ namespace EpicoraCheckup.App.Screens
         {
             try
             {
-                if (!Directory.Exists(Session.OutputDirectory)) return;
+                // A pasta dos arquivos DESTA máquina, não a pasta de saída: com várias máquinas
+                // na mesma visita, abrir a raiz obriga o técnico a procurar.
+                var pasta = Session.ReportDirectory ?? Session.OutputDirectory;
+
+                if (!Directory.Exists(pasta)) return;
 
                 // UseShellExecute para o Explorer abrir a pasta, e não tentar executá-la.
                 Process.Start(new ProcessStartInfo
                 {
-                    FileName = Session.OutputDirectory,
+                    FileName = pasta,
                     UseShellExecute = true
                 });
             }

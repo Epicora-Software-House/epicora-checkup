@@ -11,16 +11,27 @@ O alvo é fixado em `Directory.Build.props` e **nenhum projeto pode sobrescrevê
 | `EpicoraCheckup.Core` | ✅ | Contratos (`ICollector`, `CollectorResult`, `CollectionContext`), modelo (`Finding`, `Score`, enums) e orquestrador |
 | `EpicoraCheckup.Rules` | ✅ | Motor de regras declarativo, lendo `rules/*.json` |
 | `EpicoraCheckup.App` | ✅ | WinForms: telas 1, 2, 3, 4 e 7 |
-| `EpicoraCheckup.Collectors` | ⬜ | Um coletor por domínio. **Depende do pré-voo** — porte do `.ps1` só depois do campo |
-| `EpicoraCheckup.Reporting` | ⬜ | JSON, HTML, log |
+| `EpicoraCheckup.Collectors` | ✅ | Os 16 coletores portados do `.ps1` (ADR-012), mais a consolidação dos campos derivados |
+| `EpicoraCheckup.Reporting` | ✅ | JSON do schema 1.0, relatório HTML e log |
 | `EpicoraCheckup.Optimizers` | ⬜ | Fase 5 |
 | `EpicoraCheckup.Consolidator` | ⬜ | Fase 4 |
 
 As telas 5 e 6 são de otimização e pertencem à Fase 5. O fluxo é 1 → 2 → 3 → 4 → 7.
 
-## Modo demonstração
+## Coletores
 
-Os coletores reais só podem ser portados depois do pré-voo, mas as telas e os textos de cliente precisam de revisão antes disso. Então:
+Um por domínio, na ordem em que rodam (`WindowsCollectorSet`). Cada arquivo tem duas partes, e a separação é o que torna o porte testável:
+
+- **O coletor** lê as fontes — WMI, registro, `fsutil`, assinatura de arquivo. Não é testado por teste automatizado: fonte se exercita em campo, com a sonda.
+- **`*Facts`** decide o que aquilo significa, a partir de `PropertyBag` — o retrato de uma instância, já desconectado da fonte. É função pura, roda em qualquer máquina, e é onde estão os testes.
+
+Três coisas que não são óbvias e que mordem quem mexer:
+
+1. **`Payload.Sanitized` não é cosmético.** Atribuir um `string` nulo a um `JObject` produz um token de tipo `String` com conteúdo nulo — não um token nulo. Serializado dá no mesmo; em memória, não: o motor decide disponibilidade por `Type == JTokenType.Null` e passaria a tratar campo não coletado como campo preenchido. Uma falha de coleta viraria achado avaliado em vez de `Indeterminate`.
+2. **`RequiresElevation` é `false` em quase tudo, e isso foi medido.** Só TPM, BitLocker e SMART exigem privilégio, e as três degradam para null isoladamente. Marcar um coletor inteiro descartaria de graça a família de achados mais valiosa em toda visita sem senha de administrador.
+3. **A consolidação roda depois da coleta, não dentro dela.** `Consolidation.Apply` preenche o que depende de mais de um coletor — o cruzamento antivírus × software e a elegibilidade de Windows 11. Acoplar coletores entre si faria o tempo limite de um derrubar o outro.
+
+## Modo demonstração
 
 ```
 EpicoraCheckup.exe --demonstracao tests\fixtures\sintetica-vermelha.json
@@ -30,13 +41,15 @@ Percorre o fluxo inteiro — as cinco telas, o motor de regras de verdade sobre 
 
 Não gravar é a proteção, não um detalhe: um relatório derivado de fixture não pode circular, e depois que o arquivo existe nenhum aviso na tela impede alguém de entregá-lo. A faixa roxa em todas as telas é o segundo aviso, não o primeiro.
 
-Sem `--demonstracao`, a ferramenta abre e explica que os coletores não foram portados. Não produz relatório vazio.
+A consolidação também não roda em demonstração: a fixture já vem consolidada, e reprocessá-la sobrescreveria o cenário gravado que os golden files esperam.
+
+Sem `--demonstracao`, a ferramenta coleta desta máquina e grava em `.\EpicoraCheckup\<CLIENTE>\`.
 
 ## O que o CI entrega para quem testa
 
 O job `app` publica o artefato `EpicoraCheckup-teste`: o executável, as dependências, a pasta `rules/` e as três fixtures sintéticas, mais um `LEIA-ME.txt`. É uma **pasta**, não um arquivo único — ver pontos abertos.
 
-O artefato depende do job `motor`: motor de regras vermelho não gera executável.
+O artefato depende dos jobs `motor` e `coletores`: motor de regras ou coletor vermelho não gera executável.
 
 **O `.exe` não é assinado** (ADR-003), então o SmartScreen vai reclamar de aplicativo não reconhecido em toda máquina. O doc 02 §8.4 diz que isso vai acontecer, não que pode. Para testador interno dá para prosseguir; não é caminho liso para cliente.
 
@@ -72,6 +85,12 @@ Três detalhes do contrato que não são óbvios e que já mordem quem refatora:
 3. **`notContains` sobre valor que não é texto nem lista devolve falso**, não verdadeiro. Assimetria herdada do motor de referência, e correta: não se afirma "não contém" sobre algo que não pôde ser lido.
 
 ## Pontos abertos, registrados
+
+**Nada disto rodou em Windows ainda.** Os coletores compilam, e a derivação e a gravação têm teste, mas nenhuma linha do porte tocou WMI de verdade. É o mesmo estado do `.ps1` desde os últimos achados de campo, e é o que o pré-voo resolve — ver o README da raiz.
+
+**`manual.corporateEnvironment` não é preenchido.** O campo existe no schema e habilita OS-004 em máquina fora de domínio, mas a tela 4 não tem a marcação, porque o doc 01 §5 não a lista entre os campos dela. Fica `null` — "não marcado" —, e o protótipo tem o parâmetro. Resolver é acrescentar um campo na tela 4 ou aceitar que OS-004 só vale em domínio.
+
+**`tool.rulesVersion` e `tool.commit` saem nulos.** O primeiro exige versionar a matriz; o segundo, o CI carimbar o commit no assembly. Os dois entram na Fase 3, junto com a publicação em release.
 
 **Executável único.** O doc 01 §4 exige arquivo único sem dependências, e `Rules` depende de `Newtonsoft.Json` porque net472 não traz `System.Text.Json`. Resolver é assunto da Fase 3 — ILRepack no CI, ou assemblies embutidos como recurso com handler de `AssemblyResolve`. Não decidir no código.
 
