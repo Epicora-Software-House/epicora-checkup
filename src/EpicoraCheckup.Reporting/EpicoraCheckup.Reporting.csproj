@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Gravação da saída: JSON do schema 1.0, relatório HTML e log (doc 01 §8).
+
+    Referencia Rules, e não só Core, de propósito: a forma serializada do JSON é CONTRATO
+    — os golden files em tests/expected/ são comparados contra ela, e o consolidador a lê.
+    Ter uma segunda configuração de serialização aqui é exatamente como o formato começa a
+    divergir entre quem grava o relatório e quem grava a fixture. Então reaproveita
+    CheckupJson e CollectionDocumentBuilder em vez de repeti-los.
+
+    Não referencia WinForms: o consolidador da Fase 4 vai reaproveitar este projeto.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>EpicoraCheckup.Reporting</RootNamespace>
+    <AssemblyName>EpicoraCheckup.Reporting</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EpicoraCheckup.Core\EpicoraCheckup.Core.csproj" />
+    <ProjectReference Include="..\EpicoraCheckup.Rules\EpicoraCheckup.Rules.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+</Project>
