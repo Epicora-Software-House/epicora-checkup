@@ -62,8 +62,8 @@
       "indeterminateWhen": null,
       "condition": { "path": "collectors.software.data.outdatedBrowsers", "operator": "isNotEmpty" },
       "title": "Navegador em versão desatualizada",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "O navegador desta máquina está em versão desatualizada. Como é por ele que passa a maior parte do contato com a internet, é também o alvo mais explorado — e a maioria das correções de navegador é justamente de falhas que permitem execução de código ao abrir uma página.",
+      "recommendedAction": "Atualizar o navegador e verificar por que a atualização automática não ocorreu.",
       "evidenceFields": ["collectors.software.data.browsers"],
       "linkedOptimizations": [],
       "verdictInfluence": null
@@ -106,8 +106,8 @@
       },
       "condition": { "path": "collectors.antivirus.data.activeProductCount", "operator": "greaterThan", "value": 1 },
       "title": "Mais de uma solução de antivírus ativa",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "Identificamos mais de uma solução de antivírus ativa nesta máquina. Dois antivírus em tempo real disputam os mesmos arquivos: o resultado costuma ser lentidão acentuada e, em alguns casos, um bloqueando o outro — deixando a máquina menos protegida do que estaria com apenas um.",
+      "recommendedAction": "Manter uma única solução de antivírus e remover a outra corretamente.",
       "evidenceFields": ["collectors.antivirus.data.products", "collectors.software.data.classification.antivirusProducts"],
       "linkedOptimizations": [],
       "verdictInfluence": null
@@ -126,8 +126,8 @@
       "indeterminateWhen": null,
       "condition": { "path": "collectors.software.data.classification.obsoleteRuntimes", "operator": "isNotEmpty" },
       "title": "Runtime obsoleto instalado",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "Esta máquina tem componentes instalados que não recebem mais correção de segurança do fabricante. Componentes nessa condição continuam sendo alvo conhecido, e costumam permanecer instalados porque algum sistema antigo os exigiu um dia — nem sempre ainda exige.",
+      "recommendedAction": "Verificar se algum sistema em uso ainda depende desses componentes e removê-los se não depender.",
       "evidenceFields": ["collectors.software.data.classification.obsoleteRuntimes"],
       "linkedOptimizations": [],
       "verdictInfluence": null
@@ -146,8 +146,8 @@
       "indeterminateWhen": null,
       "condition": { "path": "collectors.software.data.classification.potentiallyUnwanted", "operator": "isNotEmpty" },
       "title": "Software potencialmente indesejado instalado",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "Identificamos programas do tipo \"otimizador\", \"limpador\" ou barra de ferramentas instalados nesta máquina. Essa categoria costuma prometer ganho de desempenho e entregar o contrário: consumo em segundo plano, alteração de configurações do navegador e, em parte dos casos, exibição de anúncios.",
+      "recommendedAction": "Avaliar a remoção destes programas com o usuário responsável pela máquina.",
       "evidenceFields": ["collectors.software.data.classification.potentiallyUnwanted"],
       "linkedOptimizations": [],
       "verdictInfluence": null

@@ -86,8 +86,8 @@
         "value": "Licensed"
       },
       "title": "Windows não ativado",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "O Windows desta máquina não está com ativação válida no momento. Além das limitações de personalização, o estado de ativação afeta a entrega de algumas atualizações e costuma indicar licença que não acompanhou a máquina numa troca de equipamento ou reinstalação.",
+      "recommendedAction": "Verificar a licença desta máquina e regularizar a ativação.",
       "evidenceFields": ["collectors.os.data.activation.status", "collectors.os.data.activation.channel"],
       "linkedOptimizations": [],
       "verdictInfluence": null
@@ -142,8 +142,8 @@
         "operator": "isFalse"
       },
       "title": "Build do Windows desatualizada",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "Esta máquina está com uma versão do Windows anterior à mais recente publicada pela Microsoft. As correções de segurança do período entre as duas versões não estão aplicadas, o que mantém abertas falhas já corrigidas em outras máquinas do parque.",
+      "recommendedAction": "Aplicar as atualizações pendentes do Windows e verificar por que a máquina ficou para trás.",
       "evidenceFields": [
         "collectors.os.data.buildNumber",
         "collectors.os.data.ubr",

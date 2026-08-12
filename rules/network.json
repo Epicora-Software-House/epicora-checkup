@@ -48,8 +48,8 @@
         ]
       },
       "title": "Máquina fixa conectada por Wi-Fi",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "Esta é uma máquina fixa conectada por Wi-Fi. Em rede sem fio a velocidade é menor e menos estável que no cabo, o que se nota principalmente no acesso a arquivos em servidor e em chamadas de vídeo. Pode ser escolha deliberada por falta de ponto de rede no local.",
+      "recommendedAction": "Verificar se há ponto de rede disponível e avaliar a conexão por cabo.",
       "evidenceFields": ["collectors.network.data.adapters"],
       "linkedOptimizations": [],
       "verdictInfluence": null

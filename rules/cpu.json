@@ -47,8 +47,8 @@
         "operator": "isFalse"
       },
       "title": "Processador fora da lista de suportados para Windows 11",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "O processador desta máquina não consta na lista oficial de processadores suportados pelo Windows 11. Na prática, isso significa que a migração não é oferecida pelo caminho normal de atualização, ainda que o restante do hardware atenda aos requisitos. É o item que costuma decidir entre migrar a máquina e substituí-la.",
+      "recommendedAction": "Considerar substituição da máquina no planejamento de migração para Windows 11.",
       "evidenceFields": ["collectors.cpu.data.name", "collectors.cpu.data.normalizedName", "collectors.cpu.data.win11SupportBasis"],
       "linkedOptimizations": [],
       "verdictInfluence": "Replace"
@@ -70,8 +70,8 @@
         "operator": "isFalse"
       },
       "title": "Virtualização desabilitada no firmware",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "O recurso de virtualização está desabilitado no firmware desta máquina. Isso não afeta o uso comum, mas impede recursos que dependem dele — máquinas virtuais, subsistema Linux e parte das proteções de segurança baseadas em virtualização do Windows.",
+      "recommendedAction": "Habilitar a virtualização no firmware, se algum desses recursos for necessário.",
       "evidenceFields": ["collectors.cpu.data.name"],
       "linkedOptimizations": [],
       "verdictInfluence": null

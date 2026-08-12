@@ -172,8 +172,8 @@
         "value": "Healthy"
       },
       "title": "Estado de saúde do disco diferente de saudável",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "O próprio disco desta máquina está reportando estado de saúde diferente de normal. É um aviso emitido pelo equipamento antes da falha, e convém tratá-lo como prazo curto para agir, não como alarme falso.",
+      "recommendedAction": "Fazer backup dos dados e programar a substituição do disco.",
       "evidenceFields": [
         "collectors.storage.data.systemDisk.model",
         "collectors.storage.data.systemDisk.healthStatus"
@@ -217,8 +217,8 @@
         ]
       },
       "title": "SSD sem TRIM habilitado",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "O recurso TRIM está desabilitado no SSD desta máquina. Ele é o que permite ao disco reorganizar espaço liberado; sem ele, o desempenho de escrita cai gradualmente ao longo do tempo e a vida útil do disco encurta.",
+      "recommendedAction": "Habilitar o TRIM nesta máquina.",
       "evidenceFields": [
         "collectors.storage.data.systemDisk.model"
       ],
@@ -264,8 +264,8 @@
         ]
       },
       "title": "HDD com fragmentação relevante",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "O disco mecânico desta máquina está com fragmentação relevante. Em disco desse tipo, isso significa que o cabeçote precisa percorrer mais espaço para ler o mesmo arquivo, e o efeito aparece como lentidão geral que piora com o tempo.",
+      "recommendedAction": "Executar a desfragmentação do disco numa janela de manutenção.",
       "evidenceFields": [
         "collectors.storage.data.systemDisk.fragmentationPercent"
       ],

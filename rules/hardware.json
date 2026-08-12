@@ -22,8 +22,8 @@
         ]
       },
       "title": "Desgaste de bateria entre 30% e 50%",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "A bateria deste notebook perdeu entre 30% e 50% da capacidade original. O equipamento continua utilizável na tomada, mas a autonomia longe dela já é bem menor que a de fábrica, e a perda continua progredindo com o uso.",
+      "recommendedAction": "Programar a troca da bateria antes que a autonomia inviabilize o uso móvel.",
       "evidenceFields": ["collectors.battery.data.batteries", "collectors.battery.data.wearSource"],
       "linkedOptimizations": [],
       "verdictInfluence": null
@@ -42,8 +42,8 @@
       "indeterminateWhen": null,
       "condition": { "path": "collectors.battery.data.wearPercent", "operator": "greaterThan", "value": 50 },
       "title": "Desgaste de bateria acima de 50%",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "A bateria deste notebook perdeu mais da metade da capacidade original. Nessa condição o equipamento passa a depender da tomada, deixa de servir para reunião e visita externa, e corre risco de desligar sem aviso ao ser desconectado — com perda do que estiver aberto.",
+      "recommendedAction": "Substituir a bateria.",
       "evidenceFields": ["collectors.battery.data.batteries", "collectors.battery.data.wearSource"],
       "linkedOptimizations": [],
       "verdictInfluence": null
