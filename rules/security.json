@@ -37,8 +37,8 @@
         "operator": "isFalse"
       },
       "title": "Nenhuma solução de segurança detectada",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "Não identificamos solução de segurança ativa nesta máquina — nem o antivírus do próprio Windows, nem produto de terceiro. Sem isso, arquivo malicioso aberto por engano executa sem qualquer barreira, e esta máquina passa a ser porta de entrada para o restante da rede.",
+      "recommendedAction": "Ativar imediatamente uma solução de segurança nesta máquina.",
       "evidenceFields": [
         "collectors.antivirus.data.securityCenterAvailable",
         "collectors.antivirus.data.securitySoftwareInInventory",
@@ -75,8 +75,8 @@
         "value": "Outdated"
       },
       "title": "Antivírus com definições desatualizadas",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "O antivírus desta máquina está com as definições de ameaça desatualizadas. Antivírus com definição antiga protege contra o que já era conhecido, e não contra o que apareceu depois — que é justamente o que circula hoje.",
+      "recommendedAction": "Atualizar as definições do antivírus e verificar por que a atualização automática parou.",
       "evidenceFields": [
         "collectors.antivirus.data.products",
         "collectors.antivirus.data.defender.antivirusSignatureAgeDays"
@@ -112,8 +112,8 @@
         "value": "Off"
       },
       "title": "Proteção em tempo real desabilitada",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "A proteção em tempo real do antivírus desta máquina está desligada. O produto está instalado, mas não inspeciona arquivos no momento em que são abertos — ou seja, só encontraria uma ameaça numa varredura manual, depois de ela já ter executado.",
+      "recommendedAction": "Reativar a proteção em tempo real e verificar o que a desligou.",
       "evidenceFields": [
         "collectors.antivirus.data.products",
         "collectors.antivirus.data.defender.realtimeProtectionEnabled"
@@ -152,8 +152,8 @@
         ]
       },
       "title": "Notebook sem criptografia de disco",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "Este notebook não tem criptografia de disco ativa. Em caso de furto ou perda, basta remover o disco e ligá-lo em outro computador para ler todos os arquivos — senha do Windows não protege contra isso. Como o equipamento sai da empresa, o risco de exposição de dados de clientes é concreto.",
+      "recommendedAction": "Ativar a criptografia de disco (BitLocker) e guardar a chave de recuperação em local controlado.",
       "evidenceFields": [
         "collectors.security.data.bitlocker.volumes",
         "collectors.os.data.isHomeEdition"
@@ -192,8 +192,8 @@
         ]
       },
       "title": "Desktop sem criptografia de disco",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "Esta máquina não tem criptografia de disco ativa. Ela não sai da empresa, o que reduz o risco, mas em caso de furto do equipamento ou descarte sem apagamento seguro, os arquivos ficam legíveis para quem tiver o disco em mãos.",
+      "recommendedAction": "Avaliar a ativação da criptografia de disco, principalmente antes de descarte ou remanejamento.",
       "evidenceFields": [
         "collectors.security.data.bitlocker.volumes"
       ],
@@ -222,8 +222,8 @@
         "operator": "isTrue"
       },
       "title": "Firewall desabilitado em algum perfil",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "O firewall do Windows está desativado em ao menos um dos perfis de rede desta máquina. Sem ele, a máquina aceita conexões vindas da rede local sem filtro — que é exatamente o caminho que um ransomware usa para se espalhar de uma máquina infectada para as demais.",
+      "recommendedAction": "Reativar o firewall em todos os perfis e verificar o que o desativou.",
       "evidenceFields": [
         "collectors.security.data.firewall.profiles"
       ],
@@ -315,8 +315,8 @@
         "operator": "isTrue"
       },
       "title": "Acesso remoto RDP habilitado",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "O acesso remoto por Área de Trabalho Remota está habilitado nesta máquina. Isso pode ser intencional e é como muitas empresas acessam as próprias máquinas — mas, quando está ligado sem que ninguém saiba, é uma porta aberta, e é um dos alvos mais explorados quando exposta à internet.",
+      "recommendedAction": "Confirmar se o acesso remoto é necessário e, se for, restringi-lo à rede interna ou a VPN.",
       "evidenceFields": [
         "collectors.security.data.rdp.nlaRequired",
         "collectors.security.data.rdp.port"
@@ -347,8 +347,8 @@
         "value": 90
       },
       "title": "Sem atualização de segurança registrada nos últimos 90 dias",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "Não há registro de atualização de segurança instalada nesta máquina nos últimos 90 dias. Convém confirmar diretamente no Windows Update: o histórico consultado não lista todos os tipos de atualização, e a ausência de registro nem sempre significa ausência de atualização.",
+      "recommendedAction": "Verificar o Windows Update desta máquina e aplicar o que estiver pendente.",
       "evidenceFields": [
         "collectors.updates.data.lastUpdateDate",
         "collectors.updates.data.windowsUpdateServiceEnabled",
@@ -360,10 +360,8 @@
     {
       "id": "SEC-011",
       "version": 1,
-      "enabled": false,
-      "enabledBlockedBy": [
-        "clientText"
-      ],
+      "enabled": true,
+      "enabledBlockedBy": [],
       "sourceConfidence": "A",
       "validationNote": "Informativo, peso zero. Ferramenta de acesso remoto normalmente é legítima — pode ser o meio de suporte do próprio cliente. Registrar, não acusar.",
       "category": "Segurança",
@@ -378,8 +376,8 @@
         "operator": "isNotEmpty"
       },
       "title": "Ferramenta de acesso remoto instalada",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "Identificamos ferramenta de acesso remoto instalada nesta máquina. Isso não é necessariamente um problema — é comum para atendimento de suporte —, mas significa que existe um caminho de acesso ao computador a partir de fora da empresa. Vale confirmar quem tem esse acesso e se ele ainda é necessário.",
+      "recommendedAction": "Confirmar a origem e a necessidade da ferramenta de acesso remoto.",
       "evidenceFields": [
         "collectors.software.data.classification.remoteAccessTools"
       ],

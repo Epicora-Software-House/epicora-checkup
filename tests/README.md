@@ -24,7 +24,15 @@ Resultado com a matriz completa:
 | amarela | 11 | 27 | 23 | 32 | Fazer upgrade |
 | vermelha | 36 | 10 | 15 | 0 | Substituir |
 
-O bloco `findings` e `score` gravado dentro de cada fixture reflete **apenas as 5 regras habilitadas hoje** — que é o que a ferramenta produz de verdade. A saída da matriz inteira fica em `expected/`.
+O bloco `findings` e `score` gravado dentro de cada fixture reflete **apenas as 23 regras habilitadas hoje** — que é o que a ferramenta produz de verdade. A saída da matriz inteira fica em `expected/`.
+
+| Fixture | Não conforme | Score | Veredito |
+|---|---|---|---|
+| verde | 0 | 100 Verde | Manter |
+| amarela | 8 | 56 Amarelo | Manter |
+| vermelha | 14 | 0 Vermelho | Substituir |
+
+Vale comparar com a tabela acima: **com 23 regras a amarela sai Amarelo, como foi desenhada; com as 61 ela sai Vermelho.** A saturação do modelo de score aparece no volume de regras, não em cada regra — o que confirma que a recalibração pendente é do modelo, e não dos pesos individuais.
 
 ### Regenerar depois de mexer nas regras
 

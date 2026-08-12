@@ -17,8 +17,8 @@
       "indeterminateWhen": null,
       "condition": { "path": "collectors.win11.data.tpm.present", "operator": "isFalse" },
       "title": "TPM ausente",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "Esta máquina não possui o chip de segurança TPM, exigido pelo Windows 11. É requisito de hardware: não há configuração nem atualização que resolva. Como o Windows 10 já está fora do suporte gratuito, esta máquina fica sem caminho de atualização.",
+      "recommendedAction": "Incluir esta máquina no plano de substituição.",
       "evidenceFields": ["collectors.machine.data.model", "collectors.machine.data.approxAgeYears"],
       "linkedOptimizations": [],
       "verdictInfluence": "Replace"
@@ -42,8 +42,8 @@
         ]
       },
       "title": "TPM presente em versão inferior a 2.0",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "Esta máquina possui chip de segurança TPM, mas em versão anterior à 2.0, exigida pelo Windows 11. A versão do TPM é característica do hardware e não se atualiza — na prática, o efeito é o mesmo de não ter o chip.",
+      "recommendedAction": "Incluir esta máquina no plano de substituição.",
       "evidenceFields": ["collectors.win11.data.tpm.specVersionRaw"],
       "linkedOptimizations": [],
       "verdictInfluence": "Replace"
@@ -68,8 +68,8 @@
         ]
       },
       "title": "TPM 2.0 presente mas desativado no firmware",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "Esta máquina possui o chip de segurança TPM 2.0 exigido pelo Windows 11, mas ele está desativado no firmware. É uma configuração, e não uma limitação de hardware: habilitar leva alguns minutos por máquina e libera a migração sem trocar equipamento.",
+      "recommendedAction": "Habilitar o TPM no firmware desta máquina.",
       "evidenceFields": ["collectors.win11.data.tpm.specVersionRaw", "collectors.machine.data.model"],
       "linkedOptimizations": [],
       "verdictInfluence": null
@@ -97,8 +97,8 @@
         ]
       },
       "title": "Secure Boot desabilitado em firmware UEFI",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "O Secure Boot está desabilitado nesta máquina, que tem firmware compatível com ele. O recurso impede que código não autorizado seja carregado antes do Windows — que é como as infecções mais difíceis de remover se instalam — e também é requisito do Windows 11.",
+      "recommendedAction": "Habilitar o Secure Boot no firmware desta máquina.",
       "evidenceFields": ["collectors.win11.data.secureBoot.source"],
       "linkedOptimizations": [],
       "verdictInfluence": null
@@ -121,8 +121,8 @@
       },
       "condition": { "path": "collectors.win11.data.firmware.mode", "operator": "equals", "value": "Legacy" },
       "title": "Firmware em modo BIOS legado",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "Esta máquina está configurada em modo de inicialização legado, e não em UEFI. Isso impede o Secure Boot e a migração para Windows 11. A conversão sem reinstalar o sistema é possível em parte dos equipamentos, mas é procedimento com risco e precisa ser avaliado caso a caso.",
+      "recommendedAction": "Avaliar a conversão para UEFI, com backup prévio, ou considerar a substituição da máquina.",
       "evidenceFields": ["collectors.win11.data.firmware.detectionMethod", "collectors.storage.data.systemDisk.partitionStyle"],
       "linkedOptimizations": [],
       "verdictInfluence": null
@@ -141,8 +141,8 @@
       "indeterminateWhen": null,
       "condition": { "path": "collectors.win11.data.eligible", "operator": "isFalse" },
       "title": "Máquina não atende aos requisitos do Windows 11",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "Somados os requisitos verificados, esta máquina não atende ao necessário para receber o Windows 11. Como o Windows 10 já não recebe correção de segurança pelo canal gratuito, ela fica sem caminho de atualização — é máquina para o plano de substituição, e não para o de migração.",
+      "recommendedAction": "Incluir esta máquina no plano de substituição do parque.",
       "evidenceFields": [
         "collectors.win11.data.blockers",
         "collectors.win11.data.unknowns",

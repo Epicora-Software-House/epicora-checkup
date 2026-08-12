@@ -40,7 +40,7 @@ O protótipo **não é descartável** — é o fallback permanente para quando o
 
 **Fase 2** fecha o fluxo ponta a ponta: `Core`, `Rules`, os **16 coletores** portados do protótipo ([ADR-012](docs/adr/012-ordem-porte-antes-do-campo.md)), a **gravação** de JSON, HTML e log, e o executável WinForms com as telas 1, 2, 3, 4 e 7. O motor de regras é verificado contra os *golden files* em `tests/expected/`, a derivação dos coletores e o contrato do arquivo gravado têm testes próprios. Ver [`src/README.md`](src/README.md).
 
-O CI publica o artefato `EpicoraCheckup-teste` com o executável, a matriz e as fixtures. **Não é assinado**, então o SmartScreen vai reclamar (ADR-003, esperado).
+**Fase 3** entregou o executável único ([ADR-013](docs/adr/013-executavel-unico.md)): o CI mescla os assemblies e embute a matriz, e o artefato `EpicoraCheckup-teste` traz **um arquivo de ~1 MB**, sem DLL nem pasta `rules/` ao lado. Em tag `v*` sai um release com URL estável de download. **Não é assinado**, então o SmartScreen vai reclamar (ADR-003, esperado), e o SHA-256 publicado ao lado é o que permite conferir a origem do arquivo.
 
 O **modo demonstração** continua existindo, para revisar telas e textos sem tocar na máquina e sem gravar arquivo:
 

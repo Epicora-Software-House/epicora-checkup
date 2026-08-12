@@ -36,13 +36,32 @@ namespace EpicoraCheckup.Rules
                 throw new DirectoryNotFoundException($"pasta de regras não encontrada: {rulesDirectory}");
 
             var files = Directory.GetFiles(rulesDirectory, "*.json")
-                .Where(path => !SupportFiles.Contains(Path.GetFileName(path)))
-                .OrderBy(path => Path.GetFileName(path), StringComparer.Ordinal)
+                .Select(path => new KeyValuePair<string, string>(
+                    Path.GetFileName(path), ReadWithoutBom(path)));
+
+            return LoadFromFiles(files);
+        }
+
+        /// <summary>
+        /// Carrega a matriz a partir do CONTEÚDO dos arquivos, e não de uma pasta.
+        ///
+        /// Existe porque a matriz também viaja embutida no executável (ADR-013): arquivo
+        /// único não tem pasta ao lado de onde ler. A ordenação e o filtro de arquivos de
+        /// apoio vivem AQUI, e não em quem lê o disco, para que as duas origens produzam a
+        /// mesma matriz — inclusive a ordem de carga, que é parte do contrato de saída.
+        /// </summary>
+        public static IReadOnlyList<Rule> LoadFromFiles(IEnumerable<KeyValuePair<string, string>> files)
+        {
+            if (files == null) throw new ArgumentNullException(nameof(files));
+
+            var ordered = files
+                .Where(file => !SupportFiles.Contains(file.Key))
+                .OrderBy(file => file.Key, StringComparer.Ordinal)
                 .ToList();
 
             var rules = new List<Rule>();
-            foreach (var file in files)
-                rules.AddRange(LoadFile(file));
+            foreach (var file in ordered)
+                rules.AddRange(LoadFile(file.Key, file.Value));
 
             var duplicates = rules.GroupBy(r => r.Id, StringComparer.Ordinal)
                 .Where(g => g.Count() > 1)
@@ -55,15 +74,15 @@ namespace EpicoraCheckup.Rules
             return rules;
         }
 
-        private static IEnumerable<Rule> LoadFile(string path)
+        private static IEnumerable<Rule> LoadFile(string name, string content)
         {
-            var root = JObject.Parse(ReadWithoutBom(path));
+            var root = JObject.Parse(content);
             var array = root["rules"] as JArray;
 
             // Arquivo de categoria sem "rules" é erro de matriz, não ausência benigna:
             // uma categoria que silenciosamente não carrega some do relatório inteiro.
             if (array == null)
-                throw new InvalidDataException($"{Path.GetFileName(path)}: não tem a lista \"rules\"");
+                throw new InvalidDataException($"{name}: não tem a lista \"rules\"");
 
             return array.Select(token => token.ToObject<Rule>()).ToList();
         }

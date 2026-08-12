@@ -39,8 +39,8 @@
     {
       "id": "OS-002",
       "version": 1,
-      "enabled": false,
-      "enabledBlockedBy": ["clientText"],
+      "enabled": true,
+      "enabledBlockedBy": [],
       "sourceConfidence": "A",
       "validationNote": null,
       "category": "Sistema operacional",
@@ -58,8 +58,8 @@
         "value": ["Windows 8.1", "Windows 8", "Windows 7", "Older"]
       },
       "title": "Windows em versão totalmente fora de suporte",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "O Windows instalado nesta máquina está totalmente fora de suporte: não recebe correção de segurança há anos, e as falhas já conhecidas publicamente permanecem abertas. Além do risco de invasão, versões nessa condição deixam de ser aceitas por sistemas bancários, certificados digitais e software de gestão.",
+      "recommendedAction": "Substituir a máquina ou reinstalar com versão suportada do Windows, conforme o hardware permitir.",
       "evidenceFields": ["collectors.os.data.caption", "collectors.os.data.buildNumber"],
       "linkedOptimizations": [],
       "verdictInfluence": "Replace"
@@ -86,8 +86,8 @@
         "value": "Licensed"
       },
       "title": "Windows não ativado",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "O Windows desta máquina não está com ativação válida no momento. Além das limitações de personalização, o estado de ativação afeta a entrega de algumas atualizações e costuma indicar licença que não acompanhou a máquina numa troca de equipamento ou reinstalação.",
+      "recommendedAction": "Verificar a licença desta máquina e regularizar a ativação.",
       "evidenceFields": ["collectors.os.data.activation.status", "collectors.os.data.activation.channel"],
       "linkedOptimizations": [],
       "verdictInfluence": null
@@ -142,8 +142,8 @@
         "operator": "isFalse"
       },
       "title": "Build do Windows desatualizada",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "Esta máquina está com uma versão do Windows anterior à mais recente publicada pela Microsoft. As correções de segurança do período entre as duas versões não estão aplicadas, o que mantém abertas falhas já corrigidas em outras máquinas do parque.",
+      "recommendedAction": "Aplicar as atualizações pendentes do Windows e verificar por que a máquina ficou para trás.",
       "evidenceFields": [
         "collectors.os.data.buildNumber",
         "collectors.os.data.ubr",
@@ -155,8 +155,8 @@
     {
       "id": "OS-006",
       "version": 1,
-      "enabled": false,
-      "enabledBlockedBy": ["clientText"],
+      "enabled": true,
+      "enabledBlockedBy": [],
       "sourceConfidence": "A",
       "validationNote": null,
       "category": "Sistema operacional",
@@ -170,8 +170,8 @@
         "value": 30
       },
       "title": "Máquina sem reiniciar há mais de 30 dias",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "Esta máquina está há mais de 30 dias sem ser reiniciada. Atualizações de segurança do Windows só se completam depois de um reinício, então parte das correções já baixadas pode ainda não estar em vigor. É também causa comum de lentidão que se resolve sozinha ao reiniciar.",
+      "recommendedAction": "Reiniciar a máquina e combinar uma rotina de reinício periódico.",
       "evidenceFields": ["collectors.os.data.lastBootTime", "collectors.os.data.uptimeDays"],
       "linkedOptimizations": [],
       "verdictInfluence": null
@@ -179,8 +179,8 @@
     {
       "id": "OS-007",
       "version": 1,
-      "enabled": false,
-      "enabledBlockedBy": ["clientText"],
+      "enabled": true,
+      "enabledBlockedBy": [],
       "sourceConfidence": "A",
       "validationNote": null,
       "category": "Sistema operacional",
@@ -194,8 +194,8 @@
         "value": 5
       },
       "title": "Sistema instalado há mais de 5 anos sem reinstalação",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "O Windows desta máquina foi instalado há mais de cinco anos. Instalações antigas acumulam software residual, drivers de equipamentos que já não existem e configurações herdadas de outras épocas — o que se traduz em lentidão que a limpeza comum não resolve.",
+      "recommendedAction": "Avaliar reinstalação limpa do sistema numa janela de manutenção.",
       "evidenceFields": ["collectors.os.data.installDate"],
       "linkedOptimizations": [],
       "verdictInfluence": null

@@ -22,8 +22,8 @@
         ]
       },
       "title": "Desgaste de bateria entre 30% e 50%",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "A bateria deste notebook perdeu entre 30% e 50% da capacidade original. O equipamento continua utilizável na tomada, mas a autonomia longe dela já é bem menor que a de fábrica, e a perda continua progredindo com o uso.",
+      "recommendedAction": "Programar a troca da bateria antes que a autonomia inviabilize o uso móvel.",
       "evidenceFields": ["collectors.battery.data.batteries", "collectors.battery.data.wearSource"],
       "linkedOptimizations": [],
       "verdictInfluence": null
@@ -42,8 +42,8 @@
       "indeterminateWhen": null,
       "condition": { "path": "collectors.battery.data.wearPercent", "operator": "greaterThan", "value": 50 },
       "title": "Desgaste de bateria acima de 50%",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "A bateria deste notebook perdeu mais da metade da capacidade original. Nessa condição o equipamento passa a depender da tomada, deixa de servir para reunião e visita externa, e corre risco de desligar sem aviso ao ser desconectado — com perda do que estiver aberto.",
+      "recommendedAction": "Substituir a bateria.",
       "evidenceFields": ["collectors.battery.data.batteries", "collectors.battery.data.wearSource"],
       "linkedOptimizations": [],
       "verdictInfluence": null
@@ -51,8 +51,8 @@
     {
       "id": "HW-003",
       "version": 1,
-      "enabled": false,
-      "enabledBlockedBy": ["clientText"],
+      "enabled": true,
+      "enabledBlockedBy": [],
       "sourceConfidence": "A",
       "validationNote": "Faixa 5 a 7 anos, exclusiva com HW-004 e HW-005. A data do BIOS é APROXIMAÇÃO da idade da máquina, não fato — BIOS atualizado altera a data. O texto sempre diz 'aproximadamente'. Se a marcação manual do técnico contradisser, a marcação manual prevalece.",
       "category": "Hardware físico e bateria",
@@ -67,8 +67,8 @@
         ]
       },
       "title": "BIOS/UEFI sem atualização há mais de 5 anos",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "A versão de firmware (BIOS/UEFI) desta máquina é de aproximadamente cinco anos atrás. Atualizações de firmware corrigem falhas de segurança e problemas de compatibilidade que as atualizações do Windows não cobrem. Não é urgente, e é item de manutenção preventiva.",
+      "recommendedAction": "Verificar no site do fabricante se há atualização de firmware para este modelo.",
       "evidenceFields": ["collectors.machine.data.bios.releaseDate", "collectors.machine.data.bios.version"],
       "linkedOptimizations": [],
       "verdictInfluence": null
@@ -76,8 +76,8 @@
     {
       "id": "HW-004",
       "version": 1,
-      "enabled": false,
-      "enabledBlockedBy": ["clientText"],
+      "enabled": true,
+      "enabledBlockedBy": [],
       "sourceConfidence": "A",
       "validationNote": "Faixa 7 a 10 anos, exclusiva com HW-003 e HW-005.",
       "category": "Hardware físico e bateria",
@@ -92,8 +92,8 @@
         ]
       },
       "title": "Máquina com aproximadamente mais de 7 anos",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "Pela data do firmware, esta máquina tem aproximadamente mais de sete anos. É uma aproximação e não uma data exata, porque uma atualização de firmware altera essa referência. Nessa faixa de idade a probabilidade de falha de componentes cresce, e o custo de manutenção começa a competir com o de substituição.",
+      "recommendedAction": "Incluir esta máquina no plano de renovação do parque.",
       "evidenceFields": [
         "collectors.machine.data.bios.releaseDate",
         "collectors.machine.data.manufacturer",
@@ -105,8 +105,8 @@
     {
       "id": "HW-005",
       "version": 1,
-      "enabled": false,
-      "enabledBlockedBy": ["clientText"],
+      "enabled": true,
+      "enabledBlockedBy": [],
       "sourceConfidence": "A",
       "validationNote": "Faixa acima de 10 anos, exclusiva com HW-003 e HW-004.",
       "category": "Hardware físico e bateria",
@@ -116,8 +116,8 @@
       "indeterminateWhen": null,
       "condition": { "path": "collectors.machine.data.approxAgeYears", "operator": "greaterThan", "value": 10 },
       "title": "Máquina com aproximadamente mais de 10 anos",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "Pela data do firmware, esta máquina tem aproximadamente mais de dez anos — aproximação, não data exata. Nessa idade, peça de reposição é escassa, não há garantia há muito tempo, e uma falha significa parada de trabalho sem prazo definido para voltar.",
+      "recommendedAction": "Priorizar a substituição desta máquina.",
       "evidenceFields": [
         "collectors.machine.data.bios.releaseDate",
         "collectors.machine.data.manufacturer",
@@ -129,8 +129,8 @@
     {
       "id": "HW-006",
       "version": 1,
-      "enabled": false,
-      "enabledBlockedBy": ["clientText"],
+      "enabled": true,
+      "enabledBlockedBy": [],
       "sourceConfidence": "A",
       "validationNote": "REGRA PROPOSTA, não consta da matriz do documento 03. Dispositivo com erro no Gerenciador de Dispositivos é achado legítimo e barato de coletar. Precisa de clientText aprovado pelo comercial antes de entrar em release — é o mecanismo previsto no doc 03 §1.3.",
       "category": "Hardware físico e bateria",
@@ -140,8 +140,8 @@
       "indeterminateWhen": null,
       "condition": { "path": "collectors.devices.data.problemDeviceCount", "operator": "greaterThan", "value": 0 },
       "title": "Dispositivos sem driver ou com erro",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "O Windows está reportando um ou mais dispositivos com erro ou sem driver instalado nesta máquina. Na prática, isso costuma significar um recurso indisponível sem que o usuário saiba o motivo — leitor de cartão, webcam, som ou um periférico específico — e às vezes aparece como instabilidade intermitente.",
+      "recommendedAction": "Instalar os drivers pendentes a partir do site do fabricante.",
       "evidenceFields": ["collectors.devices.data.problemDevices"],
       "linkedOptimizations": [],
       "verdictInfluence": null

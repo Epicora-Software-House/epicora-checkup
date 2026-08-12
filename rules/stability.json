@@ -17,8 +17,8 @@
       "indeterminateWhen": { "path": "collectors.events.data.evaluated", "operator": "isFalse" },
       "condition": { "path": "collectors.events.data.unexpectedShutdowns", "operator": "greaterThan", "value": 0 },
       "title": "Desligamentos inesperados nos últimos 30 dias",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "Esta máquina registrou desligamentos inesperados nos últimos 30 dias — ou seja, desligou sem passar pelo procedimento normal. As causas mais comuns são fonte de alimentação, memória com defeito, superaquecimento ou queda de energia sem nobreak. Cada ocorrência é risco de corromper arquivo aberto.",
+      "recommendedAction": "Investigar a causa dos desligamentos e verificar a alimentação elétrica do posto.",
       "evidenceFields": ["collectors.events.data.unexpectedShutdowns", "collectors.events.data.matches"],
       "linkedOptimizations": [],
       "verdictInfluence": null
@@ -37,8 +37,8 @@
       "indeterminateWhen": { "path": "collectors.events.data.evaluated", "operator": "isFalse" },
       "condition": { "path": "collectors.events.data.diskErrors", "operator": "greaterThan", "value": 0 },
       "title": "Erros de disco no log de eventos",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "O Windows registrou erros de leitura ou escrita no disco desta máquina. Esse tipo de erro costuma anteceder a falha física do disco e é sinal mais confiável que o autodiagnóstico do próprio equipamento. O risco aqui é perda de dados, não lentidão.",
+      "recommendedAction": "Fazer backup dos dados agora e programar a substituição do disco.",
       "evidenceFields": [
         "collectors.events.data.diskErrors",
         "collectors.events.data.matches",
@@ -62,8 +62,8 @@
       "indeterminateWhen": { "path": "collectors.events.data.evaluated", "operator": "isFalse" },
       "condition": { "path": "collectors.events.data.criticalApplicationErrors", "operator": "greaterThan", "value": 2 },
       "title": "Erros críticos recorrentes de aplicação",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "Programas desta máquina vêm apresentando erros críticos de forma recorrente. Além da interrupção do trabalho e da perda do que não estava salvo, a repetição costuma indicar causa comum — driver, atualização mal aplicada ou hardware — e não defeito do programa em si.",
+      "recommendedAction": "Levantar quais aplicações falham e investigar a causa comum entre elas.",
       "evidenceFields": ["collectors.events.data.criticalApplicationErrors", "collectors.events.data.matches"],
       "linkedOptimizations": [],
       "verdictInfluence": null

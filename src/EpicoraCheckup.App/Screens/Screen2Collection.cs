@@ -169,10 +169,15 @@ namespace EpicoraCheckup.App.Screens
         /// </summary>
         private void Evaluate()
         {
-            var rules = RuleRepository.LoadFromDirectory(RulesLocator.Find());
+            var matriz = RulesLocator.Load();
+
+            // Qual matriz produziu este relatório: com a sobreposição por pasta (ADR-013), a
+            // resposta deixa de ser óbvia, e é a primeira pergunta de um achado contestado.
+            Session.Log.Info($"matriz carregada de {matriz.Origin} — {matriz.Rules.Count} regras");
+
             var documento = CheckupDocument.Build(ReportInputFactory.From(Session, withEvaluation: false));
 
-            var avaliacao = new RuleEngine(rules).Evaluate(documento);
+            var avaliacao = new RuleEngine(matriz.Rules).Evaluate(documento);
 
             Session.Findings = avaliacao.Result.Findings;
             Session.Score = avaliacao.Result.Score;

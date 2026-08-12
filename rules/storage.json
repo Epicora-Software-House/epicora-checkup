@@ -76,10 +76,8 @@
     {
       "id": "STO-003",
       "version": 1,
-      "enabled": false,
-      "enabledBlockedBy": [
-        "clientText"
-      ],
+      "enabled": true,
+      "enabledBlockedBy": [],
       "sourceConfidence": "A",
       "validationNote": null,
       "category": "Armazenamento",
@@ -104,8 +102,8 @@
         ]
       },
       "title": "Espaço livre em disco entre 10% e 20%",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "O disco desta máquina está com espaço livre entre 10% e 20%. Nessa faixa o Windows já perde desempenho, e a margem restante costuma acabar em poucas semanas de uso normal. Quando o espaço acaba de fato, as atualizações de segurança param de instalar.",
+      "recommendedAction": "Liberar espaço e acompanhar o crescimento do uso do disco.",
       "evidenceFields": [
         "collectors.storage.data.systemVolume.driveLetter",
         "collectors.storage.data.systemVolume.freeBytes"
@@ -174,8 +172,8 @@
         "value": "Healthy"
       },
       "title": "Estado de saúde do disco diferente de saudável",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "O próprio disco desta máquina está reportando estado de saúde diferente de normal. É um aviso emitido pelo equipamento antes da falha, e convém tratá-lo como prazo curto para agir, não como alarme falso.",
+      "recommendedAction": "Fazer backup dos dados e programar a substituição do disco.",
       "evidenceFields": [
         "collectors.storage.data.systemDisk.model",
         "collectors.storage.data.systemDisk.healthStatus"
@@ -219,8 +217,8 @@
         ]
       },
       "title": "SSD sem TRIM habilitado",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "O recurso TRIM está desabilitado no SSD desta máquina. Ele é o que permite ao disco reorganizar espaço liberado; sem ele, o desempenho de escrita cai gradualmente ao longo do tempo e a vida útil do disco encurta.",
+      "recommendedAction": "Habilitar o TRIM nesta máquina.",
       "evidenceFields": [
         "collectors.storage.data.systemDisk.model"
       ],
@@ -266,8 +264,8 @@
         ]
       },
       "title": "HDD com fragmentação relevante",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "O disco mecânico desta máquina está com fragmentação relevante. Em disco desse tipo, isso significa que o cabeçote precisa percorrer mais espaço para ler o mesmo arquivo, e o efeito aparece como lentidão geral que piora com o tempo.",
+      "recommendedAction": "Executar a desfragmentação do disco numa janela de manutenção.",
       "evidenceFields": [
         "collectors.storage.data.systemDisk.fragmentationPercent"
       ],
@@ -279,10 +277,8 @@
     {
       "id": "STO-008",
       "version": 1,
-      "enabled": false,
-      "enabledBlockedBy": [
-        "clientText"
-      ],
+      "enabled": true,
+      "enabledBlockedBy": [],
       "sourceConfidence": "A",
       "validationNote": null,
       "category": "Armazenamento",
@@ -298,8 +294,8 @@
         "value": 240000000000
       },
       "title": "Capacidade do disco de sistema abaixo de 240 GB",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "O disco de sistema desta máquina tem capacidade inferior a 240 GB. Com o Windows, o pacote de escritório e os arquivos do dia a dia, essa capacidade se esgota rapidamente, e o espaço livre volta a ser problema poucos meses depois de cada limpeza.",
+      "recommendedAction": "Avaliar substituição por disco de maior capacidade.",
       "evidenceFields": [
         "collectors.storage.data.systemDisk.model",
         "collectors.storage.data.systemDisk.sizeBytes"

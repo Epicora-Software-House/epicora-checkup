@@ -48,8 +48,8 @@
         ]
       },
       "title": "Máquina fixa conectada por Wi-Fi",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "Esta é uma máquina fixa conectada por Wi-Fi. Em rede sem fio a velocidade é menor e menos estável que no cabo, o que se nota principalmente no acesso a arquivos em servidor e em chamadas de vídeo. Pode ser escolha deliberada por falta de ponto de rede no local.",
+      "recommendedAction": "Verificar se há ponto de rede disponível e avaliar a conexão por cabo.",
       "evidenceFields": ["collectors.network.data.adapters"],
       "linkedOptimizations": [],
       "verdictInfluence": null
@@ -57,8 +57,8 @@
     {
       "id": "NET-003",
       "version": 1,
-      "enabled": false,
-      "enabledBlockedBy": ["clientText"],
+      "enabled": true,
+      "enabledBlockedBy": [],
       "sourceConfidence": "A",
       "validationNote": "IP fixo é frequentemente intencional. Só vira achado com contexto do padrão de rede do cliente, que a ferramenta não conhece. Peso 2 reflete isso.",
       "category": "Rede",
@@ -68,8 +68,8 @@
       "indeterminateWhen": null,
       "condition": { "path": "collectors.network.data.staticIpConfigured", "operator": "isTrue" },
       "title": "Endereço IP configurado manualmente",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "O endereço de rede desta máquina está configurado manualmente, em vez de ser obtido automaticamente. Isso não é um defeito, e às vezes é intencional — mas é uma configuração que se perde de vista com o tempo e costuma gerar conflito de endereço quando a rede muda.",
+      "recommendedAction": "Confirmar se a configuração manual é intencional e mantê-la documentada.",
       "evidenceFields": ["collectors.network.data.adapters"],
       "linkedOptimizations": [],
       "verdictInfluence": null
@@ -77,8 +77,8 @@
     {
       "id": "NET-004",
       "version": 1,
-      "enabled": false,
-      "enabledBlockedBy": ["clientText"],
+      "enabled": true,
+      "enabledBlockedBy": [],
       "sourceConfidence": "A",
       "validationNote": "Máquina em domínio com DNS público configurado tipicamente quebra resolução de nomes internos e é causa de problemas intermitentes difíceis de diagnosticar. Achado de alto valor de suporte.",
       "category": "Rede",
@@ -88,8 +88,8 @@
       "indeterminateWhen": null,
       "condition": { "path": "collectors.network.data.publicDnsInDomainEnvironment", "operator": "isTrue" },
       "title": "DNS público configurado em rede com domínio",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "Esta máquina está em domínio, mas usa servidor de DNS público em vez do servidor da rede interna. Nessa condição, nomes internos deixam de ser resolvidos corretamente, e o sintoma aparece de forma intermitente — compartilhamento que some, sistema interno que não abre, login lento —, o que torna o problema demorado de diagnosticar.",
+      "recommendedAction": "Corrigir a configuração de DNS para o servidor do domínio.",
       "evidenceFields": ["collectors.network.data.adapters", "collectors.machine.data.domain"],
       "linkedOptimizations": [],
       "verdictInfluence": null

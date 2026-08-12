@@ -291,8 +291,13 @@ namespace EpicoraCheckup.Rules.Tests
                     Notes = (string)manual["notes"]
                 },
                 IsElevated = (bool?)execution["elevated"] ?? false,
-                StartedAt = DateTimeOffset.Parse((string)execution["startedAt"]),
-                FinishedAt = DateTimeOffset.Parse((string)execution["finishedAt"]),
+                // Conversão pelo token, e não por (string) + Parse: o Json.NET reconhece a
+                // data ISO da fixture e guarda um token de DATA, cujo (string) sai no formato
+                // invariante enquanto o Parse lê na cultura da máquina. Passa no runner do CI,
+                // que é en-US, e quebra em máquina pt-BR — que é onde o projeto é desenvolvido
+                // e onde a ferramenta roda.
+                StartedAt = (DateTimeOffset)execution["startedAt"],
+                FinishedAt = (DateTimeOffset)execution["finishedAt"],
                 Collectors = CollectorsFrom(fixture)
             };
         }

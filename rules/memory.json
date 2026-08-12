@@ -6,10 +6,8 @@
     {
       "id": "MEM-001",
       "version": 1,
-      "enabled": false,
-      "enabledBlockedBy": [
-        "clientText"
-      ],
+      "enabled": true,
+      "enabledBlockedBy": [],
       "sourceConfidence": "A",
       "validationNote": null,
       "category": "Memória",
@@ -25,8 +23,8 @@
         "value": 5
       },
       "title": "Memória RAM de 4 GB ou menos",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "Esta máquina possui 4 GB de memória ou menos, abaixo do que o Windows atual precisa para operar com folga. O efeito prático é o computador passar a usar o disco como memória: lentidão constante, travamentos ao abrir vários programas e desgaste acelerado do disco.",
+      "recommendedAction": "Avaliar ampliação de memória, se houver slot disponível, ou substituição da máquina.",
       "evidenceFields": [
         "collectors.memory.data.totalBytes",
         "collectors.memory.data.freeSlots"
@@ -37,10 +35,8 @@
     {
       "id": "MEM-002",
       "version": 1,
-      "enabled": false,
-      "enabledBlockedBy": [
-        "clientText"
-      ],
+      "enabled": true,
+      "enabledBlockedBy": [],
       "sourceConfidence": "A",
       "validationNote": "Dispara apenas quando freeSlots não pôde ser determinado. Se a contagem de slots funcionar em campo, MEM-003 ou MEM-004 assumem e esta praticamente não ocorre.",
       "category": "Memória",
@@ -69,8 +65,8 @@
         ]
       },
       "title": "Memória RAM de 8 GB ou menos, slots não verificados",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "Esta máquina possui 8 GB de memória, quantidade que hoje limita o uso simultâneo de navegador, sistema de gestão e planilhas. Não foi possível verificar se há slot de memória livre, então o custo da ampliação só pode ser confirmado com o gabinete aberto.",
+      "recommendedAction": "Verificar presencialmente se há slot livre e orçar a ampliação de memória.",
       "evidenceFields": [
         "collectors.memory.data.totalBytes"
       ],
@@ -175,10 +171,8 @@
     {
       "id": "MEM-005",
       "version": 1,
-      "enabled": false,
-      "enabledBlockedBy": [
-        "clientText"
-      ],
+      "enabled": true,
+      "enabledBlockedBy": [],
       "sourceConfidence": "A",
       "validationNote": null,
       "category": "Memória",
@@ -193,8 +187,8 @@
         "operator": "isTrue"
       },
       "title": "Módulos de memória com velocidades diferentes",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "Os módulos de memória instalados têm velocidades diferentes entre si. Quando isso acontece, todos passam a operar na velocidade do mais lento, e parte da capacidade adquirida não é aproveitada. O impacto no dia a dia é pequeno, mas é desperdício de um investimento já feito.",
+      "recommendedAction": "Padronizar os módulos de memória numa próxima manutenção.",
       "evidenceFields": [
         "collectors.memory.data.modules"
       ],

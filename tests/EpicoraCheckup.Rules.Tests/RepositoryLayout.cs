@@ -13,7 +13,7 @@ namespace EpicoraCheckup.Rules.Tests
     /// </summary>
     internal static class RepositoryLayout
     {
-        private static readonly Lazy<string> RootLazy = new Lazy<string>(FindRoot);
+        private static readonly Lazy<string> RootLazy = new Lazy<string>(() => FindRoot());
 
         internal static string Root => RootLazy.Value;
 
@@ -23,9 +23,32 @@ namespace EpicoraCheckup.Rules.Tests
 
         internal static string ExpectedDirectory => Path.Combine(Root, "tests", "expected");
 
-        private static string FindRoot()
+        /// <summary>
+        /// Sobe a partir da pasta de saída até achar a raiz.
+        ///
+        /// O caminho deste arquivo entra como segunda tentativa para o caso de a saída do
+        /// build ficar fora da árvore do repositório — o que acontece quando estes mesmos
+        /// fontes são compilados num andaime de fora, por exemplo para rodar os testes num
+        /// Mac, já que net472 não executa aqui.
+        /// </summary>
+        private static string FindRoot(
+            [System.Runtime.CompilerServices.CallerFilePath] string arquivoDesteFonte = null)
         {
-            var directory = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
+            var root = ClimbFrom(AppDomain.CurrentDomain.BaseDirectory)
+                       ?? ClimbFrom(Path.GetDirectoryName(arquivoDesteFonte));
+
+            if (root != null) return root;
+
+            throw new DirectoryNotFoundException(
+                $"não achei a raiz do repositório subindo de {AppDomain.CurrentDomain.BaseDirectory} " +
+                "— esperava encontrar uma pasta com rules/ e schema/");
+        }
+
+        private static string ClimbFrom(string start)
+        {
+            if (string.IsNullOrEmpty(start)) return null;
+
+            var directory = new DirectoryInfo(start);
 
             while (directory != null)
             {
@@ -39,9 +62,7 @@ namespace EpicoraCheckup.Rules.Tests
                 directory = directory.Parent;
             }
 
-            throw new DirectoryNotFoundException(
-                $"não achei a raiz do repositório subindo de {AppDomain.CurrentDomain.BaseDirectory} " +
-                "— esperava encontrar uma pasta com rules/ e schema/");
+            return null;
         }
     }
 }
