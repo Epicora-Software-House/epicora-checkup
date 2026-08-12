@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Testes dos coletores.
+
+    O que se testa aqui é a DERIVAÇÃO: o que a ferramenta conclui a partir do que a máquina
+    respondeu. As fontes — WMI, registro, fsutil — não são simuladas; elas são exercitadas em
+    campo, com a sonda, que é o instrumento certo para isso.
+
+    Por isso todo coletor tem a parte que lê separada da parte que decide: a segunda recebe
+    PropertyBag montado à mão e roda em qualquer máquina, inclusive no Mac onde o
+    desenvolvimento acontece.
+
+    Alvo e plataforma vêm de ../Directory.Build.props (ADR-001).
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>EpicoraCheckup.Collectors.Tests</RootNamespace>
+    <AssemblyName>EpicoraCheckup.Collectors.Tests</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\EpicoraCheckup.Collectors\EpicoraCheckup.Collectors.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+</Project>
