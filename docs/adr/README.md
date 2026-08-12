@@ -18,6 +18,7 @@ Uma decisão por arquivo. As de 001 a 009 são os nove pontos abertos da seção
 | [010](010-projetos-sdk-style-e-ui-em-codigo.md) | Projetos SDK-style, UI escrita em código | ✅ Aceita | — |
 | [011](011-nivel-de-execucao-solicitado.md) | `highestAvailable`, não `requireAdministrator` | ⚠️ Aceita — **confirmar com a direção técnica** | — |
 | [012](012-ordem-porte-antes-do-campo.md) | Portar os coletores antes de completar o campo | ✅ Aceita | — |
+| [013](013-executavel-unico.md) | Assemblies mesclados e matriz embutida no executável | ✅ Aceita | — |
 
 ## Estados
 

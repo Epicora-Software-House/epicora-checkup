@@ -117,53 +117,126 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # A mesclagem acontece dentro do publish, no alvo ExecutavelUnico do csproj
+      # (ADR-013). Sai um EpicoraCheckup.exe com os quatro assemblies do projeto, o
+      # Newtonsoft.Json e a matriz de regras dentro.
       - name: publish
         run: dotnet publish src/EpicoraCheckup.App/EpicoraCheckup.App.csproj --configuration Release --output publish
 
-      # A ferramenta lê a matriz de rules/ em tempo de execução, e o modo demonstração lê
-      # uma fixture. Sem os dois ao lado do executável, o pacote não roda.
-      # Ponto aberto registrado em src/README.md: executável único ainda não resolvido, então
-      # o pacote é uma pasta, não um arquivo.
+      # Se a mesclagem falhar, o publish ainda produz um exe — só que dependente das DLLs
+      # ao lado. Ele rodaria no runner e quebraria na máquina do cliente, que é o pior
+      # lugar para descobrir. Então o pacote só se monta com a prova de que sobrou um
+      # arquivo só.
+      - name: conferir que é executável único
+        shell: pwsh
+        run: |
+          $sobrando = Get-ChildItem publish -Filter *.dll
+          if ($sobrando) { throw "a mesclagem não aconteceu: $($sobrando.Name -join ', ')" }
+
+          $exe = Get-Item publish/EpicoraCheckup.exe
+          if ($exe.Length -lt 800KB) { throw "EpicoraCheckup.exe tem $($exe.Length) bytes — pequeno demais para conter a matriz e o Newtonsoft" }
+
+          Write-Host "EpicoraCheckup.exe: $([math]::Round($exe.Length / 1MB, 2)) MB"
+
       - name: montar pacote
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path pacote | Out-Null
-          Copy-Item publish/* pacote/ -Recurse -Force
-          Copy-Item rules pacote/rules -Recurse -Force
+          Copy-Item publish/EpicoraCheckup.exe pacote/ -Force
+
+          # As fixtures são o único acessório que sobrou, e só servem ao modo demonstração
+          # — revisão de tela e de texto no escritório. O técnico em campo usa o .exe sozinho.
           New-Item -ItemType Directory -Force -Path pacote/fixtures | Out-Null
           Copy-Item tests/fixtures/*.json pacote/fixtures/ -Force
-          @'
+
+          # SHA-256 ao lado do binário: doc 02 §8.4, mitigação 2. Sem certificado de
+          # assinatura (ADR-003), é o que permite conferir que o arquivo baixado é o que o
+          # CI produziu.
+          $hash = (Get-FileHash pacote/EpicoraCheckup.exe -Algorithm SHA256).Hash.ToLower()
+          "$hash  EpicoraCheckup.exe" | Set-Content -Path pacote/EpicoraCheckup.exe.sha256 -Encoding ASCII
+
+          @"
           Epicora Checkup — pacote de teste
 
           Este pacote NAO e uma release. Nao esta assinado, e o SmartScreen vai
           reclamar de aplicativo nao reconhecido (doc 02 §8.4 — e esperado, nao e defeito).
+          Em "Mais informacoes" > "Executar assim mesmo".
 
-          Coleta de verdade nesta maquina, gravando JSON, HTML e log em
-          .\EpicoraCheckup\<CLIENTE>\:
+          E UM ARQUIVO SO. Basta o EpicoraCheckup.exe: a matriz de regras vai dentro
+          dele. Copie para a maquina, execute, e pronto.
 
               EpicoraCheckup.exe
+
+          Grava JSON, HTML e log em .\EpicoraCheckup\<CLIENTE>\, ao lado de onde o
+          executavel estiver.
 
           Roda com e sem privilegio de administrador. Sem ele, TPM, BitLocker e a
           verificacao SMART do disco aparecem como "nao foi possivel verificar" — o
           relatorio sai parcial e honesto, nao sai errado.
 
-          Para percorrer as telas com dados de exemplo, sem coletar nada desta maquina
-          e sem gravar nenhum arquivo:
+          SHA-256 do binario: $hash
+          Confira com:  Get-FileHash EpicoraCheckup.exe -Algorithm SHA256
+
+          --------------------------------------------------------------------
+
+          Modo demonstracao, para revisar telas e textos sem tocar nesta maquina e
+          sem gravar arquivo nenhum:
 
               EpicoraCheckup.exe --demonstracao fixtures\sintetica-vermelha.json
 
-          Fixtures disponiveis:
               sintetica-verde.json      maquina saudavel, nenhum achado
               sintetica-amarela.json    execucao SEM elevacao, etapas ignoradas
               sintetica-vermelha.json   achados criticos, veredito Substituir
 
+          Para trocar a matriz sem recompilar, coloque uma pasta rules\ ao lado do
+          executavel: ela tem precedencia sobre a embutida, e o log registra qual foi
+          usada.
+
           A matriz tem 61 regras e 23 habilitadas: a lista de riscos ainda sai curta
           de proposito. As outras 38 aguardam texto aprovado pelo comercial ou
           validacao de fonte em campo.
-          '@ | Set-Content -Path pacote/LEIA-ME.txt -Encoding UTF8
+          "@ | Set-Content -Path pacote/LEIA-ME.txt -Encoding UTF8
 
       - uses: actions/upload-artifact@v4
         with:
           name: EpicoraCheckup-teste
           path: pacote/
           if-no-files-found: error
+
+  # Publicação em release, só em tag v* (doc 02 §8.1).
+  #
+  # É o que dá a URL estável de download:
+  #   https://github.com/<owner>/<repo>/releases/latest/download/EpicoraCheckup.exe
+  #
+  # Ela resolve sempre para o binário mais recente, sem mudar de endereço a cada versão —
+  # o que permite guiar o técnico por telefone com um link só. Depende de o nome do asset
+  # ser fixo entre releases, e é por isso que o AssemblyName não carrega número de versão.
+  release:
+    name: publicar release
+    runs-on: ubuntu-latest
+    needs: app
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      # Escopo mínimo, e só neste job: os outros seguem com contents: read.
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: EpicoraCheckup-teste
+          path: pacote
+
+      - name: publicar
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            pacote/EpicoraCheckup.exe
+            pacote/EpicoraCheckup.exe.sha256
+          body: |
+            Arquivo único, sem instalação. Baixe o `EpicoraCheckup.exe` e execute.
+
+            **Não é assinado** (ADR-003): o SmartScreen vai avisar que o aplicativo não é
+            reconhecido. É esperado — em "Mais informações" > "Executar assim mesmo".
+            Confira o SHA-256 publicado ao lado antes de executar.
+
+            Se o EDR do cliente bloquear o executável, o caminho alternativo é o protótipo
+            PowerShell em `tools/prototype/` (ADR-009).

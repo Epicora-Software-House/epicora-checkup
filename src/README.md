@@ -47,7 +47,11 @@ Sem `--demonstracao`, a ferramenta coleta desta máquina e grava em `.\EpicoraCh
 
 ## O que o CI entrega para quem testa
 
-O job `app` publica o artefato `EpicoraCheckup-teste`: o executável, as dependências, a pasta `rules/` e as três fixtures sintéticas, mais um `LEIA-ME.txt`. É uma **pasta**, não um arquivo único — ver pontos abertos.
+O job `app` publica o artefato `EpicoraCheckup-teste`: **o `EpicoraCheckup.exe` sozinho**, o SHA-256 dele, um `LEIA-ME.txt` e as três fixtures sintéticas — que só servem ao modo demonstração. O executável não precisa de nada ao lado (ADR-013).
+
+O job confere isso antes de montar o pacote: se sobrar qualquer `.dll` no publish, ou se o executável for pequeno demais para conter a matriz, o build falha. Um exe que depende de DLL ao lado roda no runner e quebra na máquina do cliente, que é o pior lugar para descobrir.
+
+Em tag `v*`, o job `release` publica o executável e o hash num release do GitHub. É o que dá a URL estável do doc 02 §8.1 — `releases/latest/download/EpicoraCheckup.exe` —, que resolve sempre para o binário mais recente e permite guiar o técnico por telefone com um link só.
 
 O artefato depende dos jobs `motor` e `coletores`: motor de regras ou coletor vermelho não gera executável.
 
@@ -102,7 +106,9 @@ Não há validador de JSON Schema gratuito e decente para net472, então quem co
 
 **`tool.rulesVersion` e `tool.commit` saem nulos.** O primeiro exige versionar a matriz; o segundo, o CI carimbar o commit no assembly. Os dois entram na Fase 3, junto com a publicação em release.
 
-**Executável único.** O doc 01 §4 exige arquivo único sem dependências, e `Rules` depende de `Newtonsoft.Json` porque net472 não traz `System.Text.Json`. Resolver é assunto da Fase 3 — ILRepack no CI, ou assemblies embutidos como recurso com handler de `AssemblyResolve`. Não decidir no código.
+**Executável único — resolvido ([ADR-013](../docs/adr/013-executavel-unico.md)).** O `publish` em Release mescla os quatro assemblies e o `Newtonsoft.Json` dentro do `.exe` com ILRepack, e a matriz de regras viaja embutida como recurso. Sai um arquivo de ~1 MB, sem `.exe.config` e sem pasta `rules/` ao lado. O `build` normal continua produzindo as DLLs soltas, porque depurar binário mesclado é pior e em desenvolvimento não há motivo para pagar isso.
+
+Uma pasta `rules/` ao lado do executável **tem precedência** sobre a matriz embutida — é o que atende o doc 02 §3.5, que exige trocar regra sem recompilar. O log registra de onde a matriz veio em toda execução: com sobreposição, "qual matriz produziu este número" deixa de ter resposta óbvia, e é a primeira pergunta de um achado contestado.
 
 **`.sln`.** Não há solução comitada, de propósito — ver [ADR-010](../docs/adr/010-projetos-sdk-style-e-ui-em-codigo.md) para o comando que gera na primeira máquina Windows. O CI não depende dela.
 

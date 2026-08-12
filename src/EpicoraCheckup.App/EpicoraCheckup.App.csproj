@@ -20,12 +20,43 @@
     <AssemblyName>EpicoraCheckup</AssemblyName>
 
     <ApplicationManifest>app.manifest</ApplicationManifest>
+
+    <!--
+      Sem App.config e sem .exe.config gerado (ADR-013).
+
+      O que sobrava no arquivo gerado era só o <supportedRuntime> para 4.7.2. Ele muda a
+      mensagem de erro numa máquina sem nenhum runtime 4.x instalado — e não muda mais
+      nada, porque sem runtime o executável não roda de qualquer forma. Windows 10 e 11,
+      que são o alvo declarado no critério de aceite 1, trazem o 4.8 de fábrica.
+
+      Um arquivo de 174 bytes ao lado do executável é pior que nenhum: some ao copiar só o
+      .exe, e o técnico não tem como saber que faltou.
+    -->
+    <GenerateSupportedRuntime>false</GenerateSupportedRuntime>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
   </PropertyGroup>
 
   <ItemGroup>
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Configuration" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      A matriz viaja DENTRO do executável (ADR-013). Sem isto, "arquivo único" seria um
+      exe que não avalia nada sem a pasta ao lado — que é o oposto do ponto.
+
+      O nome lógico fixa o prefixo "rules/", porque o padrão do MSBuild para arquivo fora
+      da pasta do projeto é derivado do caminho relativo e sairia ilegível.
+
+      Os arquivos de apoio (event-ids, windows-builds, win11-cpu-support,
+      startup-exclusions) entram junto de propósito: não são matriz, mas são consumidos
+      pelos coletores, e deixá-los de fora recriaria a dependência de pasta externa.
+    -->
+    <EmbeddedResource Include="..\..\rules\*.json">
+      <LogicalName>rules/%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
@@ -40,6 +71,71 @@
          usa JsonConvert direto para ler a fixture e persistir os campos da tela 1.
          Depender de referência transitiva quebra no dia em que Rules trocar de parser. -->
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+
+    <!-- Ferramenta de build, não dependência do produto: PrivateAssets impede que vaze
+         para quem referenciar este projeto. -->
+    <PackageReference Include="ILRepack.Lib.MSBuild.Task" Version="2.0.34.2" PrivateAssets="all" />
   </ItemGroup>
+
+  <!--
+    Executável único (ADR-013).
+
+    Mescla os quatro assemblies do projeto e o Newtonsoft.Json dentro do .exe. O alvo roda
+    sobre a pasta do PUBLISH, e não sobre a de build: o publish monta a lista de arquivos a
+    partir das referências do projeto, não do que está em bin/ — mesclar antes dele deixaria
+    as DLLs de volta no pacote, ao lado do executável já mesclado.
+
+    Build normal segue produzindo as DLLs soltas, o que é bom: depurar um executável
+    mesclado é pior, e em desenvolvimento não há por que pagar isso.
+
+    `Internalize` torna interno tudo o que foi mesclado. Nada referencia este executável,
+    então não há API pública a preservar, e internalizar evita colisão de tipo com um
+    Newtonsoft.Json que porventura exista no GAC da máquina do cliente.
+
+    O arquivo mesclado substitui o original no mesmo caminho: assim tanto `dotnet publish`
+    quanto quem pega direto de bin/ recebem o executável único, sem passo extra para
+    lembrar de rodar.
+  -->
+  <Target Name="ExecutavelUnico" AfterTargets="Publish" Condition="'$(Configuration)' == 'Release'">
+
+    <ItemGroup>
+      <!-- A ORDEM importa: o primeiro é o assembly primário, de onde saem o ponto de
+           entrada, o manifest e os recursos Win32. -->
+      <ParaMesclar Include="$(PublishDir)$(AssemblyName).exe" />
+      <ParaMesclar Include="$(PublishDir)EpicoraCheckup.Core.dll" />
+      <ParaMesclar Include="$(PublishDir)EpicoraCheckup.Rules.dll" />
+      <ParaMesclar Include="$(PublishDir)EpicoraCheckup.Collectors.dll" />
+      <ParaMesclar Include="$(PublishDir)EpicoraCheckup.Reporting.dll" />
+      <ParaMesclar Include="$(PublishDir)Newtonsoft.Json.dll" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <!-- Onde o ILRepack acha mscorlib e o resto do .NET Framework. Os assemblies de
+           referência vêm do NuGet (Microsoft.NETFramework.ReferenceAssemblies, fixado em
+           Directory.Build.props), e não do targeting pack instalado — é o que faz a
+           mesclagem funcionar tanto no runner do CI quanto no Mac onde se desenvolve. -->
+      <CaminhoDeBusca Include="$(PublishDir)" />
+      <CaminhoDeBusca Include="$(FrameworkPathOverride)" Condition="'$(FrameworkPathOverride)' != ''" />
+    </ItemGroup>
+
+    <ILRepack
+      InputAssemblies="@(ParaMesclar)"
+      OutputFile="$(PublishDir)$(AssemblyName).exe"
+      TargetKind="WinExe"
+      Internalize="true"
+      Parallel="true"
+      LibraryPath="@(CaminhoDeBusca)" />
+
+    <!-- O que foi mesclado não pode sobrar ao lado: um exe único acompanhado das mesmas
+         DLLs é pior que os dois separados, porque parece resolvido e não está. Os .pdb das
+         mescladas vão junto — não servem para nada sem os assemblies. -->
+    <ItemGroup>
+      <SobrasDaMesclagem Include="@(ParaMesclar)" Condition="'%(Filename)' != '$(AssemblyName)'" />
+      <SobrasDaMesclagem Include="$(PublishDir)EpicoraCheckup.Core.pdb;$(PublishDir)EpicoraCheckup.Rules.pdb;$(PublishDir)EpicoraCheckup.Collectors.pdb;$(PublishDir)EpicoraCheckup.Reporting.pdb" />
+    </ItemGroup>
+
+    <Delete Files="@(SobrasDaMesclagem)" />
+
+  </Target>
 
 </Project>
