@@ -12,7 +12,7 @@ O alvo é fixado em `Directory.Build.props` e **nenhum projeto pode sobrescrevê
 | `EpicoraCheckup.Rules` | ✅ | Motor de regras declarativo, lendo `rules/*.json` |
 | `EpicoraCheckup.App` | ✅ | WinForms: telas 1, 2, 3, 4 e 7 |
 | `EpicoraCheckup.Collectors` | ✅ | Os 16 coletores portados do `.ps1` (ADR-012), mais a consolidação dos campos derivados |
-| `EpicoraCheckup.Reporting` | ✅ | JSON do schema 1.0, relatório HTML e log |
+| `EpicoraCheckup.Reporting` | ✅ | Documento do schema 1.0, relatório HTML autocontido e log de execução |
 | `EpicoraCheckup.Optimizers` | ⬜ | Fase 5 |
 | `EpicoraCheckup.Consolidator` | ⬜ | Fase 4 |
 
@@ -84,11 +84,21 @@ Três detalhes do contrato que não são óbvios e que já mordem quem refatora:
 2. **Ausente e nulo-explícito são estados diferentes.** `equals` contra `null` é verdadeiro para um campo nulo e falso para um campo ausente. Por isso existe o tipo `Missing` em vez de usar `null`.
 3. **`notContains` sobre valor que não é texto nem lista devolve falso**, não verdadeiro. Assimetria herdada do motor de referência, e correta: não se afirma "não contém" sobre algo que não pôde ser lido.
 
+## Um documento, dois usos
+
+`CheckupDocument.Build` monta o documento do schema 1.0, e ele é usado **duas vezes**: sem `findings`, é a entrada do motor de regras na tela 2; com eles, é o arquivo que o consolidador lê.
+
+Isso não é economia de código, é correção. OS-004 lê `manual.corporateEnvironment`, que não está dentro de coletor nenhum — avaliar sobre um documento que só tem `collectors` faz a regra perder a marcação do técnico **em silêncio**, sem erro e sem teste vermelho. Foi exatamente o bug da primeira versão, e `ReportingTests.Marcacao_de_ambiente_corporativo_chega_ate_OS004` existe para ele não voltar.
+
+Como só `corporateEnvironment` alimenta regra, e ele vem da tela 1, avaliar na tela 2 — antes da tela 4 — não perde nada.
+
+## A saída é verificada contra o schema
+
+Não há validador de JSON Schema gratuito e decente para net472, então quem confere é o `ajv` que já cobre as fixtures. Os testes gravam amostras em `tests/generated/` e o CI roda `tools/validate-schema.mjs` em cima delas. Sem esse passo, "monta o documento do schema" seria afirmação sem verificação.
+
 ## Pontos abertos, registrados
 
 **Nada disto rodou em Windows ainda.** Os coletores compilam, e a derivação e a gravação têm teste, mas nenhuma linha do porte tocou WMI de verdade. É o mesmo estado do `.ps1` desde os últimos achados de campo, e é o que o pré-voo resolve — ver o README da raiz.
-
-**`manual.corporateEnvironment` não é preenchido.** O campo existe no schema e habilita OS-004 em máquina fora de domínio, mas a tela 4 não tem a marcação, porque o doc 01 §5 não a lista entre os campos dela. Fica `null` — "não marcado" —, e o protótipo tem o parâmetro. Resolver é acrescentar um campo na tela 4 ou aceitar que OS-004 só vale em domínio.
 
 **`tool.rulesVersion` e `tool.commit` saem nulos.** O primeiro exige versionar a matriz; o segundo, o CI carimbar o commit no assembly. Os dois entram na Fase 3, junto com a publicação em release.
 

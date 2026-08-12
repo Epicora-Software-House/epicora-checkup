@@ -54,6 +54,13 @@ namespace EpicoraCheckup.App.Screens
             campos.AddText(Strings.Tela1Diagnostico, Session.Identification.DiagnosticId, true,
                 (s, e) => { Session.Identification.DiagnosticId = ((TextBox)s).Text; RaiseStateChanged(); });
 
+            // Propriedade da VISITA, não da máquina — o protótipo PowerShell já a recebe como
+            // parâmetro de invocação. Fica aqui, e não na tela 4, porque a avaliação das regras
+            // acontece na tela 2, antes de a tela 4 existir: OS-004 precisa dela até lá.
+            campos.AddCheckbox(Strings.Tela1Corporativo, Session.Identification.CorporateEnvironment,
+                (s, e) => Session.Identification.CorporateEnvironment = ((CheckBox)s).Checked,
+                Strings.Tela1CorporativoDica);
+
             Stack(this, campos);
             Stack(this, BuildPrivacyNotice());
             Stack(this, BuildElevationNotice());

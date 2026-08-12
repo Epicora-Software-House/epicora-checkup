@@ -73,6 +73,30 @@ namespace EpicoraCheckup.App.Controls
             return box;
         }
 
+        internal CheckBox AddCheckbox(string label, bool value, EventHandler onChanged, string hint = null)
+        {
+            var box = new CheckBox
+            {
+                Left = 0,
+                Top = _y,
+                Width = 520,
+                Height = 22,
+                Font = Theme.Corpo,
+                ForeColor = Theme.Texto,
+                Checked = value,
+                Text = label
+            };
+
+            if (onChanged != null) box.CheckedChanged += onChanged;
+
+            Controls.Add(box);
+            Grow(box.Height + (hint == null ? Theme.EspacoEntreCampos + 6 : 2));
+
+            if (hint != null) AddHint(hint);
+
+            return box;
+        }
+
         private void AddLabel(string text, bool required)
         {
             var label = new Label

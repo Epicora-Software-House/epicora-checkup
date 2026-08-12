@@ -1,9 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using System.Reflection;
 using System.Windows.Forms;
 using EpicoraCheckup.App.Controls;
 using EpicoraCheckup.Reporting;
@@ -13,6 +11,9 @@ namespace EpicoraCheckup.App.Screens
     /// <summary>
     /// Tela 7 — arquivos gerados, e fim.
     ///
+    /// É aqui que a gravação acontece, e não antes: o documento precisa dos dados manuais da
+    /// tela 4, e escrever mais cedo produziria um arquivo que diverge do que está na tela.
+    ///
     /// Mostra o caminho e abre a pasta. **Nada é enviado para servidor nenhum** — a
     /// afirmação está na tela porque é uma das perguntas que o responsável de TI do cliente
     /// faz, e a resposta precisa estar escrita, não só verdadeira.
@@ -21,8 +22,8 @@ namespace EpicoraCheckup.App.Screens
     {
         private readonly Panel _corpo = new Panel { Dock = DockStyle.Fill, AutoScroll = true, BackColor = Theme.Fundo };
 
-        private IList<string> _avisos = new List<string>();
-        private string _falha;
+        private string _pastaDoCliente;
+        private string _erroDeGravacao;
 
         internal Screen7Save(SessionState session) : base(session)
         {
@@ -33,79 +34,69 @@ namespace EpicoraCheckup.App.Screens
 
         internal override string AdvanceText => Strings.Tela7Encerrar;
 
-        // Voltar da tela final para editar dados manuais e não regravar deixaria o arquivo
-        // em disco divergindo do que está na tela. Terminal.
+        // Voltar da tela final para editar dados manuais deixaria o arquivo em disco
+        // divergindo do que está na tela. Terminal.
         internal override bool CanGoBack => false;
 
         internal override void OnEnter()
         {
             _corpo.Controls.Clear();
 
+            // Demonstração NÃO grava, em nenhuma circunstância. Um relatório derivado de
+            // fixture não pode circular, e depois que o arquivo existe nenhum aviso na tela
+            // impede alguém de entregá-lo.
             if (Session.IsDemo)
             {
                 Stack(_corpo, Note(Strings.DemonstracaoTela7, Theme.DemoFundo));
                 return;
             }
 
-            // Grava ao ENTRAR na tela, não ao sair da tela 4: o arquivo tem que existir antes
-            // de a ferramenta afirmar que existe. Uma vez gravado, não regrava — voltar não é
-            // possível a partir daqui, e regravar duplicaria arquivo por navegação.
-            if (Session.GeneratedFiles.Count == 0 && _falha == null) Save();
-
-            if (_falha != null)
+            if (Session.CollectorResults.Count == 0)
             {
-                Stack(_corpo, Note(string.Format(Strings.Tela7FalhaAoGravar, _falha), Theme.Alto));
+                Stack(_corpo, Note(Strings.SemResultadoDeColeta, Theme.Medio));
+                return;
+            }
+
+            if (Session.GeneratedFiles.Count == 0 && _erroDeGravacao == null) WriteReports();
+
+            if (_erroDeGravacao != null)
+            {
+                Stack(_corpo, Note(string.Format(Strings.Tela7FalhaAoGravar, _erroDeGravacao), Theme.Critico));
                 return;
             }
 
             Stack(_corpo, FileList());
-
-            foreach (var aviso in _avisos)
-                Stack(_corpo, Note(string.Format(Strings.Tela7Aviso, aviso), Theme.Medio));
-
             Stack(_corpo, Note(Strings.Tela7NadaEnviado, Theme.TextoSecundario));
             Stack(_corpo, OpenFolderButton());
         }
 
-        /// <summary>
-        /// Grava JSON, HTML e log.
-        ///
-        /// Falha aqui não fecha a janela nem descarta a coleta: o texto explica o que
-        /// aconteceu, e o técnico ainda pode tratar o problema — pasta somente leitura, disco
-        /// cheio, antivírus bloqueando a escrita — sem refazer a visita.
-        /// </summary>
-        private void Save()
+        private void WriteReports()
         {
             try
             {
-                var arquivos = ReportWriter.Write(
-                    Session.ToRun(VersaoDaFerramenta()), Session.OutputDirectory);
+                Session.Log.Info("montando documento do schema 1.0");
 
-                foreach (var caminho in arquivos.All) Session.GeneratedFiles.Add(caminho);
+                var documento = CheckupDocument.Build(ReportInputFactory.From(Session, withEvaluation: true));
 
-                Session.ReportDirectory = arquivos.Directory;
-                _avisos = arquivos.Warnings;
+                var escritos = ReportWriter.WriteAll(
+                    documento,
+                    Session.OutputDirectory,
+                    Session.Identification.Client,
+                    Session.Log,
+                    Session.FinishedAt ?? DateTimeOffset.Now);
+
+                foreach (var caminho in escritos)
+                    Session.GeneratedFiles.Add(caminho);
+
+                _pastaDoCliente = Path.GetDirectoryName(escritos[0]);
             }
             catch (Exception ex)
             {
-                _falha = ex.Message;
+                // Falhar aqui é o pior momento: a coleta acabou e o dado existe só em memória.
+                // Então a mensagem diz o que houve, em vez de sumir com a tela.
+                Session.Log.Error("falha ao gravar o relatório", ex);
+                _erroDeGravacao = ex.Message;
             }
-        }
-
-        /// <summary>
-        /// Versão gravada no JSON e no rodapé do relatório. Vem do assembly, que o CI carimba —
-        /// é o que permite auditar qual versão produziu qual relatório (doc 02 §8.5).
-        /// </summary>
-        private static string VersaoDaFerramenta()
-        {
-            var assembly = Assembly.GetExecutingAssembly();
-
-            var informacional = assembly
-                .GetCustomAttribute<AssemblyInformationalVersionAttribute>();
-
-            return informacional != null && !string.IsNullOrWhiteSpace(informacional.InformationalVersion)
-                ? informacional.InformationalVersion
-                : assembly.GetName().Version.ToString();
         }
 
         private Control FileList()
@@ -173,20 +164,14 @@ namespace EpicoraCheckup.App.Screens
 
         private void OpenOutputFolder()
         {
+            var pasta = _pastaDoCliente ?? Session.OutputDirectory;
+
             try
             {
-                // A pasta dos arquivos DESTA máquina, não a pasta de saída: com várias máquinas
-                // na mesma visita, abrir a raiz obriga o técnico a procurar.
-                var pasta = Session.ReportDirectory ?? Session.OutputDirectory;
-
                 if (!Directory.Exists(pasta)) return;
 
                 // UseShellExecute para o Explorer abrir a pasta, e não tentar executá-la.
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = pasta,
-                    UseShellExecute = true
-                });
+                Process.Start(new ProcessStartInfo { FileName = pasta, UseShellExecute = true });
             }
             catch (Exception ex)
             {

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using EpicoraCheckup.Core.Contracts;
 using EpicoraCheckup.Core.Model;
@@ -9,42 +8,14 @@ using Newtonsoft.Json;
 
 namespace EpicoraCheckup.App
 {
-    /// <summary>Campos da tela 1. Persistidos entre máquinas da mesma visita.</summary>
-    public sealed class Identification
-    {
-        public string Technician { get; set; }
-        public string Client { get; set; }
-        public string Unit { get; set; }
-        public string DiagnosticId { get; set; }
-
-        public bool IsComplete =>
-            !string.IsNullOrWhiteSpace(Technician) &&
-            !string.IsNullOrWhiteSpace(Client) &&
-            !string.IsNullOrWhiteSpace(DiagnosticId);
-    }
-
-    /// <summary>Campos da tela 4. Os três primeiros são obrigatórios (doc 01 §5).</summary>
-    public sealed class ManualData
-    {
-        public string MachineLabel { get; set; }
-        public string Responsible { get; set; }
-        public string Department { get; set; }
-        public string PhysicalLocation { get; set; }
-        public string AssetTag { get; set; }
-        public string PhysicalCondition { get; set; }
-        public string Notes { get; set; }
-
-        public bool IsComplete =>
-            !string.IsNullOrWhiteSpace(MachineLabel) &&
-            !string.IsNullOrWhiteSpace(Responsible) &&
-            !string.IsNullOrWhiteSpace(Department);
-    }
-
     /// <summary>
     /// Estado da execução, carregado entre as telas.
     ///
     /// Uma instância por execução da ferramenta. Não é singleton estático: a tela recebe a
     /// instância, o que torna possível instanciar uma tela em teste sem montar estado global.
+    ///
+    /// <see cref="Identification"/> e <see cref="ManualData"/> vivem em Core porque Reporting
+    /// também precisa deles, e Reporting não referencia WinForms.
     /// </summary>
     public sealed class SessionState
     {
@@ -74,53 +45,14 @@ namespace EpicoraCheckup.App
 
         public Score Score { get; set; }
 
+        /// <summary>
+        /// Log da execução. Acumula em memória e é gravado no fim, junto com o relatório —
+        /// o nome do arquivo depende do hostname, que só se conhece depois de coletar.
+        /// </summary>
+        public RunLog Log { get; } = new RunLog();
+
         /// <summary>Arquivos efetivamente gravados, para a tela 7. Vazio em demonstração.</summary>
         public IList<string> GeneratedFiles { get; } = new List<string>();
-
-        /// <summary>
-        /// Pasta onde os arquivos desta máquina foram gravados — <c>&lt;saída&gt;\&lt;CLIENTE&gt;\</c>,
-        /// e não a pasta de saída em si. É a que o botão "Abrir pasta" da tela 7 abre.
-        /// </summary>
-        public string ReportDirectory { get; set; }
-
-        /// <summary>
-        /// Converte o estado da sessão no que a gravação precisa.
-        ///
-        /// A conversão mora aqui, e não em Reporting, porque a direção da dependência é essa:
-        /// Reporting não conhece o assistente nem WinForms, e o consolidador da Fase 4 vai
-        /// montar o mesmo tipo a partir de arquivo lido do disco.
-        /// </summary>
-        public CheckupRun ToRun(string toolVersion)
-        {
-            return new CheckupRun
-            {
-                ToolVersion = toolVersion,
-                StartedAt = StartedAt,
-                FinishedAt = FinishedAt ?? DateTimeOffset.Now,
-                Elevated = IsElevated,
-                Technician = Identification.Technician,
-                DiagnosticId = Identification.DiagnosticId,
-                HostLocale = CultureInfo.CurrentCulture.Name,
-                ClientName = Identification.Client,
-                ClientUnit = Identification.Unit,
-                MachineLabel = Manual.MachineLabel,
-                Responsible = Manual.Responsible,
-                Department = Manual.Department,
-                PhysicalLocation = Manual.PhysicalLocation,
-                AssetTag = Manual.AssetTag,
-                PhysicalCondition = Manual.PhysicalCondition,
-                Notes = Manual.Notes,
-
-                // Ponto aberto: a tela 4 não tem esta marcação, porque o doc 01 §5 não a lista
-                // entre os campos dela. Null significa "não marcado", e OS-004 continua sem
-                // base em máquina fora de domínio. Ver src/README.md.
-                CorporateEnvironment = null,
-
-                Collectors = CollectorResults,
-                Findings = Findings,
-                Score = Score
-            };
-        }
 
         public TimeSpan Elapsed =>
             (FinishedAt ?? DateTimeOffset.Now) - StartedAt;
@@ -149,6 +81,7 @@ namespace EpicoraCheckup.App
                 Identification.Client = saved.Client;
                 Identification.Unit = saved.Unit;
                 Identification.DiagnosticId = saved.DiagnosticId;
+                Identification.CorporateEnvironment = saved.CorporateEnvironment;
             }
             catch (Exception)
             {

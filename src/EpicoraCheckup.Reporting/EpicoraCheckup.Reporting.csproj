@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Saída: JSON no schema 1.0, relatório HTML autocontido e log de execução.
+
+    Depende de Core. NÃO referencia WinForms nem App — é o que permite o consolidador
+    da Fase 4 reaproveitar a montagem do documento (doc 02 §2).
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>EpicoraCheckup.Reporting</RootNamespace>
+    <AssemblyName>EpicoraCheckup.Reporting</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EpicoraCheckup.Core\EpicoraCheckup.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+</Project>

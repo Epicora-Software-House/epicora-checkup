@@ -66,12 +66,11 @@ npm run check
 node tools/evaluate-rules.mjs tests/fixtures/sintetica-vermelha.json
 ```
 
-**Testes C#, em Windows** (os três projetos, com o `--settings` obrigatório):
+**Testes C#, em Windows** (os dois projetos, com o `--settings` obrigatório):
 
 ```
 dotnet test tests\EpicoraCheckup.Rules.Tests\EpicoraCheckup.Rules.Tests.csproj --settings tests\x64.runsettings
 dotnet test tests\EpicoraCheckup.Collectors.Tests\EpicoraCheckup.Collectors.Tests.csproj --settings tests\x64.runsettings
-dotnet test tests\EpicoraCheckup.Reporting.Tests\EpicoraCheckup.Reporting.Tests.csproj --settings tests\x64.runsettings
 ```
 
 **Compilar no Mac** funciona, apesar do alvo ser .NET Framework: `Microsoft.NETFramework.ReferenceAssemblies` resolve as referências sem targeting pack instalado. `dotnet build` passa; `dotnet test` não roda, porque net472 precisa de Windows para executar.
