@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Coletores. Um por domínio, portados função a função do protótipo PowerShell
+    (ADR-012 decidiu portar antes de completar a validação de campo).
+
+    O protótipo NÃO é descartado por este projeto: o ADR-009 o mantém como fallback
+    permanente, e a partir daqui toda correção de coleta custa duas implementações.
+    É o custo declarado no ADR-012, e a razão de os comentários de campo estarem
+    repetidos aqui: quem corrigir um lado precisa achar o outro.
+
+    Regra de dependência (doc 02 §2): depende de Core, não de App, e NÃO referencia
+    WinForms. É o que permite exercitar coleta sem UI.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>EpicoraCheckup.Collectors</RootNamespace>
+    <AssemblyName>EpicoraCheckup.Collectors</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- WMI. É a fonte de quase todo o inventário (doc 02 §4). -->
+    <Reference Include="System.Management" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EpicoraCheckup.Core\EpicoraCheckup.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      O payload de cada coletor é montado como JObject, e não como POCO serializado depois.
+
+      Motivo: o schema 1.0 distingue ausente de nulo, e array de um item de objeto solto —
+      as duas armadilhas que morderam o protótipo em campo. JObject torna as duas coisas
+      explícitas no ponto em que o campo é escrito, onde dá para revisar, em vez de
+      depender de atributos de serialização a três arquivos de distância.
+    -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+</Project>

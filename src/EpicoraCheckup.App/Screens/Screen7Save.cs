@@ -53,7 +53,7 @@ namespace EpicoraCheckup.App.Screens
 
             if (Session.CollectorResults.Count == 0)
             {
-                Stack(_corpo, Note(Strings.ColetoresNaoPortados, Theme.Medio));
+                Stack(_corpo, Note(Strings.SemResultadoDeColeta, Theme.Medio));
                 return;
             }
 

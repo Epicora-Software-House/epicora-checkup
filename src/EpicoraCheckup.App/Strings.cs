@@ -30,14 +30,16 @@ namespace EpicoraCheckup.App
 
         internal const string DemonstracaoTela7 =
             "Nenhum arquivo foi gravado porque a ferramenta está em modo demonstração.\n\n" +
-            "Este modo existe para revisar as telas e os textos do relatório antes de os coletores " +
-            "estarem prontos. Um relatório de demonstração nunca pode ser entregue a um cliente, " +
+            "Este modo existe para revisar as telas e os textos do relatório sem tocar nesta " +
+            "máquina. Um relatório de demonstração nunca pode ser entregue a um cliente, " +
             "e é por isso que ele não gera arquivo.";
 
-        internal const string ColetoresNaoPortados =
-            "Os coletores de dados ainda não foram implementados nesta versão.\n\n" +
-            "Para revisar as telas com dados de exemplo, execute com:\n\n" +
-            "    EpicoraCheckup.exe --demonstracao <arquivo.json>";
+        internal const string NenhumColetor =
+            "Nenhuma etapa de coleta foi montada para esta execução.";
+
+        internal const string SemResultadoDeColeta =
+            "Não há resultado de coleta para gravar.\n\n" +
+            "Nenhum arquivo foi gerado. Feche a ferramenta e rode de novo nesta máquina.";
 
         // ---------------------------------------------------------------- tela 1
 

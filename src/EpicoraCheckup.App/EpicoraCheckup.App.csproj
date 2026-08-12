@@ -31,6 +31,7 @@
   <ItemGroup>
     <ProjectReference Include="..\EpicoraCheckup.Core\EpicoraCheckup.Core.csproj" />
     <ProjectReference Include="..\EpicoraCheckup.Rules\EpicoraCheckup.Rules.csproj" />
+    <ProjectReference Include="..\EpicoraCheckup.Collectors\EpicoraCheckup.Collectors.csproj" />
     <ProjectReference Include="..\EpicoraCheckup.Reporting\EpicoraCheckup.Reporting.csproj" />
   </ItemGroup>
 

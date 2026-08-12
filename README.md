@@ -38,17 +38,17 @@ src/        Solução C# — ver src/README.md
 
 O protótipo **não é descartável** — é o fallback permanente para quando o EDR de um cliente bloquear o executável ([ADR-009](docs/adr/009-prototipo-powershell-e-fallback-permanente.md)), e segue em sincronia com o schema.
 
-**Fase 2** em andamento: `Core`, `Rules` e o executável WinForms com as telas 1, 2, 3, 4 e 7 existem, e o motor de regras é verificado contra os *golden files* em `tests/expected/`. Faltam os **coletores** — que dependem do pré-voo — e a gravação de JSON/HTML/log. Ver [`src/README.md`](src/README.md).
+**Fase 2** fecha o fluxo ponta a ponta: `Core`, `Rules`, os **16 coletores** portados do protótipo ([ADR-012](docs/adr/012-ordem-porte-antes-do-campo.md)), a **gravação** de JSON, HTML e log, e o executável WinForms com as telas 1, 2, 3, 4 e 7. O motor de regras é verificado contra os *golden files* em `tests/expected/`, a derivação dos coletores e o contrato do arquivo gravado têm testes próprios. Ver [`src/README.md`](src/README.md).
 
-Até os coletores existirem, a ferramenta roda em **modo demonstração**, que percorre as telas com dados de uma fixture e não grava arquivo nenhum:
+O CI publica o artefato `EpicoraCheckup-teste` com o executável, a matriz e as fixtures. **Não é assinado**, então o SmartScreen vai reclamar (ADR-003, esperado).
+
+O **modo demonstração** continua existindo, para revisar telas e textos sem tocar na máquina e sem gravar arquivo:
 
 ```
 EpicoraCheckup.exe --demonstracao fixtures\sintetica-vermelha.json
 ```
 
-O CI publica o artefato `EpicoraCheckup-teste` com o executável, a matriz e as fixtures — é o pacote para quem for testar as telas. **Não é assinado**, então o SmartScreen vai reclamar (ADR-003, esperado).
-
-> **Pré-voo pendente.** As últimas mudanças no `.ps1` nasceram de dado de campo, mas **nunca rodaram em Windows**. Nada que dependa do coletor é confiável até esse run acontecer.
+> **Pré-voo pendente, agora dos dois lados.** Nem as últimas mudanças do `.ps1` nem uma linha sequer do porte em C# rodaram em Windows — o desenvolvimento acontece em Mac e o CI compila, mas não executa contra WMI. **Nada que dependa de coleta é confiável até esse run acontecer.** O que já está verificado é o que não depende de máquina: compilação, derivação de campo e conformidade do JSON com o schema.
 
 ## Como rodar o que já existe
 
@@ -66,13 +66,16 @@ npm run check
 node tools/evaluate-rules.mjs tests/fixtures/sintetica-vermelha.json
 ```
 
-**Motor de regras C#, só em Windows** — .NET Framework não compila em macOS:
+**Testes C#, em Windows** (os dois projetos, com o `--settings` obrigatório):
 
 ```
 dotnet test tests\EpicoraCheckup.Rules.Tests\EpicoraCheckup.Rules.Tests.csproj --settings tests\x64.runsettings
+dotnet test tests\EpicoraCheckup.Collectors.Tests\EpicoraCheckup.Collectors.Tests.csproj --settings tests\x64.runsettings
 ```
 
-O CI em [`.github/workflows/build.yml`](.github/workflows/build.yml) roda os dois a cada push. Ele é também a máquina de build do projeto, porque o desenvolvimento acontece em Mac.
+**Compilar no Mac** funciona, apesar do alvo ser .NET Framework: `Microsoft.NETFramework.ReferenceAssemblies` resolve as referências sem targeting pack instalado. `dotnet build` passa; `dotnet test` não roda, porque net472 precisa de Windows para executar.
+
+O CI em [`.github/workflows/build.yml`](.github/workflows/build.yml) roda tudo a cada push. Ele é também a máquina de build do projeto, porque o desenvolvimento acontece em Mac.
 
 ## Regras de contribuição que não são negociáveis
 

@@ -120,6 +120,47 @@ function ArrOrEmpty { param($x)
     if ($null -eq $x) { return ,@() }
     return ,@($x)
 }
+# Data de instalacao de hotfix.
+#
+# Win32_QuickFixEngineering.InstalledOn e declarada como TEXTO no MOF, e o conteudo varia
+# com a origem da atualizacao e com o idioma da maquina — o Get-HotFix tem conversao
+# propria justamente por isso. Testar o TIPO ("-is [datetime]") descarta a maioria dos
+# valores reais e deixa daysSinceLastUpdate nulo em maquina que tem historico, perdendo a
+# base de SEC-010.
+#
+# Data implausivel vira null, nunca um palpite: data errada aqui vira "esta maquina esta ha
+# dois anos sem atualizar" num relatorio entregue ao cliente.
+#
+# Espelha HotfixDate de src/EpicoraCheckup.Collectors (ADR-009).
+function HotfixDate { param($Value)
+    if ($null -eq $Value) { return $null }
+
+    $d = [datetime]::MinValue
+
+    if ($Value -is [datetime]) { $d = $Value }
+    else {
+        $t = ([string]$Value).Trim()
+        if ($t -eq '') { return $null }
+
+        $inv = [Globalization.CultureInfo]::InvariantCulture
+        $nada = [Globalization.DateTimeStyles]::None
+
+        # CIM_DATETIME: so a parte da data interessa aqui.
+        if ($t -match '^(\d{8})\d{6}\.\d{6}[+-]\d{3}$') { $t = $Matches[1] }
+
+        if ($t -match '^\d{8}$') {
+            if (-not [datetime]::TryParseExact($t, 'yyyyMMdd', $inv, $nada, [ref]$d)) { return $null }
+        }
+        # Sem formato: o texto vem no idioma da maquina, que e a cultura corrente.
+        elseif (-not [datetime]::TryParse($t, [ref]$d)) { return $null }
+    }
+
+    # Nenhuma maquina foi atualizada antes de o Windows 7 existir nem amanha.
+    if ($d.Year -lt 2009) { return $null }
+    if ($d.Date -gt (Get-Date).Date.AddDays(1)) { return $null }
+
+    return $d.Date
+}
 '@
 
 <#
@@ -357,11 +398,15 @@ Invoke-Collector -Id 'cpu' -DisplayName 'Processador' -RequiresElevation $false 
     # Normalização para casar com a lista oficial de CPUs (ADR-006).
     $norm = $null
     if ($raw) {
+        # O "\bCPU\b" pega o CPU solto, longe do @: "Celeron(R) CPU N4020 @ 1.10GHz" sobrava
+        # como "Intel Celeron CPU N4020", e a lista oficial escreve "Intel Celeron N4020" — o
+        # nome normalizado nao casaria com ela.
         $norm = $raw -replace '\((R|TM|C|r|tm)\)', '' `
                      -replace '(?i)\s*CPU\s*@.*$', '' `
                      -replace '(?i)\s*@\s*[\d.]+\s*GHz.*$', '' `
                      -replace '(?i)^\d+(st|nd|rd|th)\s+Gen\s+', '' `
                      -replace '(?i)\s+with\s+Radeon.*$', '' `
+                     -replace '(?i)\bCPU\b', ' ' `
                      -replace '\s+', ' '
         $norm = $norm.Trim()
     }
@@ -464,7 +509,9 @@ Invoke-Collector -Id 'storage' -DisplayName 'Armazenamento e saúde de disco' -R
         }
     } catch { }
 
-    $mediaMap = @{ 3='HDD'; 4='SSD'; 5='SCM' }
+    # 5 e SCM (memoria persistente) e NAO entra aqui: o schema so admite HDD, SSD e Unknown,
+    # e um quarto valor deixaria o JSON fora do contrato. Codigo desconhecido vira Unknown.
+    $mediaMap = @{ 3='HDD'; 4='SSD' }
     $busMap = @{ 1='SCSI'; 2='ATAPI'; 3='ATA'; 4='1394'; 5='SSA'; 6='Fibre Channel'; 7='USB';
                  8='RAID'; 9='iSCSI'; 10='SAS'; 11='SATA'; 12='SD'; 13='MMC'; 17='NVMe' }
     $healthMap = @{ 0='Healthy'; 1='Warning'; 2='Unhealthy' }
@@ -521,6 +568,8 @@ Invoke-Collector -Id 'storage' -DisplayName 'Armazenamento e saúde de disco' -R
     if ($smart.Count -gt 0) {
         $norm = { param($t) if ($null -eq $t) { '' } else { ([string]$t).ToUpperInvariant() -replace '[^A-Z0-9]', '' } }
 
+        $porDisco = @{}
+
         foreach ($inst in $smart.Keys) {
             $instNorm = & $norm $inst
             $casaram = @()
@@ -538,7 +587,21 @@ Invoke-Collector -Id 'storage' -DisplayName 'Armazenamento e saúde de disco' -R
                 if ($todas) { $casaram += $i }
             }
 
-            if ($casaram.Count -eq 1) { $disks[$casaram[0]].failurePredicted = $smart[$inst] }
+            # Uma leitura que casa com mais de um disco nao identifica nenhum.
+            if ($casaram.Count -ne 1) { continue }
+
+            $idx = $casaram[0]
+            if (-not $porDisco.ContainsKey($idx)) { $porDisco[$idx] = @() }
+            $porDisco[$idx] += $smart[$inst]
+        }
+
+        # E duas leituras que casam com o MESMO disco tambem nao: era o que o comentario
+        # sempre disse e o codigo nao fazia — a segunda leitura sobrescrevia a primeira.
+        # Modelos iguais em duas baias e configuracao real, e apontar falha prevista no disco
+        # errado manda trocar o disco saudavel e deixa o que esta morrendo na maquina.
+        foreach ($idx in @($porDisco.Keys)) {
+            $valores = @($porDisco[$idx])
+            if ($valores.Count -eq 1) { $disks[$idx].failurePredicted = $valores[0] }
         }
     }
 
@@ -752,10 +815,11 @@ Invoke-Collector -Id 'os' -DisplayName 'Sistema operacional e licenciamento' -Re
 Invoke-Collector -Id 'updates' -DisplayName 'Atualizações do Windows' -RequiresElevation $false -Script {
     $hf = @()
     foreach ($h in @(Get-CimInstance Win32_QuickFixEngineering)) {
-        $d = Prop $h 'InstalledOn'
+        # InstalledOn e TEXTO no MOF, em formato que varia. Ver HotfixDate no prelúdio.
+        $d = HotfixDate (Prop $h 'InstalledOn')
         $hf += [ordered]@{
             hotfixId    = Prop $h 'HotFixID'
-            installedOn = if ($d -is [datetime]) { $d.ToString('yyyy-MM-dd') } else { $null }
+            installedOn = if ($null -ne $d) { $d.ToString('yyyy-MM-dd') } else { $null }
             description = Prop $h 'Description'
         }
     }
@@ -1245,7 +1309,13 @@ Invoke-Collector -Id 'network' -DisplayName 'Rede' -RequiresElevation $false -Sc
         if ($connType -eq 'Unknown' -and $desc -match '(?i)wi-?fi|wireless|802\.11|wlan') { $connType = 'Wireless' }
         elseif ($connType -eq 'Unknown' -and $desc -match '(?i)ethernet|gigabit|\bgbe\b') { $connType = 'Wired' }
 
-        $link = if ($ext) { Prop $ext 'Speed' } else { Prop $a 'Speed' }
+        # As DUAS fontes, nesta ordem, e nao uma OU outra: a mesma medicao de campo que mostrou
+        # MSFT_NetAdapter sem LinkSpeed vale para Speed. Escolher a fonte pela existencia do
+        # OBJETO — e nao pela do VALOR — deixava linkSpeedBps nulo justamente onde NET-001 tem
+        # valor comercial.
+        $link = $null
+        if ($ext) { $link = Prop $ext 'Speed' }
+        if ($null -eq $link) { $link = Prop $a 'Speed' }
         $max  = Prop $a 'MaxSpeed'
         if ($null -eq $max -and $desc -match '(?i)gigabit|gbe|\bi2[12]\d\b') { $max = 1000000000 }
 

@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using EpicoraCheckup.App.Demo;
+using EpicoraCheckup.Collectors;
 using EpicoraCheckup.Core.Contracts;
 using EpicoraCheckup.Core.Orchestration;
 using EpicoraCheckup.Reporting;
@@ -92,10 +93,7 @@ namespace EpicoraCheckup.App.Screens
                 var conjunto = BuildCollectors();
 
                 if (conjunto == null || conjunto.Count == 0)
-                {
-                    ShowNoCollectors();
-                    return;
-                }
+                    throw new InvalidOperationException(Strings.NenhumColetor);
 
                 foreach (var collector in conjunto)
                     AddRow(collector);
@@ -125,6 +123,18 @@ namespace EpicoraCheckup.App.Screens
 
                 Session.CollectorResults = resultados;
                 Session.FinishedAt = DateTimeOffset.Now;
+
+                // Campos derivados que dependem de mais de um coletor — o cruzamento
+                // antivírus × software e a elegibilidade de Windows 11. Roda ANTES da
+                // avaliação, senão a matriz lê o payload pela metade.
+                //
+                // Só em coleta real: a fixture já vem consolidada, e reprocessá-la
+                // sobrescreveria o cenário gravado que os golden files esperam.
+                if (!Session.IsDemo)
+                {
+                    Session.Log.Info("consolidando campos derivados");
+                    Consolidation.Apply(resultados);
+                }
 
                 Evaluate();
 
@@ -177,27 +187,9 @@ namespace EpicoraCheckup.App.Screens
 
         private IReadOnlyList<ICollector> BuildCollectors()
         {
-            if (!Session.IsDemo) return null;
-
-            return FixtureCollector.Load(Session.DemoFixturePath);
-        }
-
-        private void ShowNoCollectors()
-        {
-            _cronometro.Stop();
-            _failure = "coletores não implementados";
-
-            _lista.Controls.Add(new Label
-            {
-                Dock = DockStyle.Top,
-                Height = 140,
-                Padding = new Padding(16),
-                Font = Theme.Corpo,
-                ForeColor = Theme.Texto,
-                Text = Strings.ColetoresNaoPortados
-            });
-
-            RaiseStateChanged();
+            return Session.IsDemo
+                ? FixtureCollector.Load(Session.DemoFixturePath)
+                : WindowsCollectorSet.Create();
         }
 
         // ------------------------------------------------------------ linhas
