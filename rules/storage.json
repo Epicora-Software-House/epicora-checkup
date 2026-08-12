@@ -104,8 +104,8 @@
         ]
       },
       "title": "Espaço livre em disco entre 10% e 20%",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "O disco desta máquina está com espaço livre entre 10% e 20%. Nessa faixa o Windows já perde desempenho, e a margem restante costuma acabar em poucas semanas de uso normal. Quando o espaço acaba de fato, as atualizações de segurança param de instalar.",
+      "recommendedAction": "Liberar espaço e acompanhar o crescimento do uso do disco.",
       "evidenceFields": [
         "collectors.storage.data.systemVolume.driveLetter",
         "collectors.storage.data.systemVolume.freeBytes"
@@ -298,8 +298,8 @@
         "value": 240000000000
       },
       "title": "Capacidade do disco de sistema abaixo de 240 GB",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "O disco de sistema desta máquina tem capacidade inferior a 240 GB. Com o Windows, o pacote de escritório e os arquivos do dia a dia, essa capacidade se esgota rapidamente, e o espaço livre volta a ser problema poucos meses depois de cada limpeza.",
+      "recommendedAction": "Avaliar substituição por disco de maior capacidade.",
       "evidenceFields": [
         "collectors.storage.data.systemDisk.model",
         "collectors.storage.data.systemDisk.sizeBytes"

@@ -22,8 +22,8 @@
         ]
       },
       "title": "Mais de 15 programas na inicialização",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "Esta máquina tem mais de 15 programas configurados para abrir junto com o Windows. Cada um consome memória e disco exatamente no momento em que o usuário mais precisa da máquina — o início do expediente — e boa parte deles não é usada no dia a dia.",
+      "recommendedAction": "Revisar os programas de inicialização e desativar os que não forem necessários.",
       "evidenceFields": ["collectors.startup.data.count", "collectors.startup.data.items"],
       "linkedOptimizations": ["OPT-STARTUP"],
       "verdictInfluence": null
@@ -42,8 +42,8 @@
       "indeterminateWhen": null,
       "condition": { "path": "collectors.startup.data.count", "operator": "greaterThan", "value": 25 },
       "title": "Mais de 25 programas na inicialização",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "Esta máquina tem mais de 25 programas configurados para abrir junto com o Windows. Nesse volume, o tempo até o computador ficar realmente utilizável depois de ligado costuma passar de vários minutos, e a lentidão é sentida durante boa parte da manhã.",
+      "recommendedAction": "Revisar os programas de inicialização e desativar os que não forem necessários.",
       "evidenceFields": ["collectors.startup.data.count", "collectors.startup.data.items"],
       "linkedOptimizations": ["OPT-STARTUP"],
       "verdictInfluence": null

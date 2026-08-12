@@ -67,8 +67,8 @@
         ]
       },
       "title": "BIOS/UEFI sem atualização há mais de 5 anos",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "A versão de firmware (BIOS/UEFI) desta máquina é de aproximadamente cinco anos atrás. Atualizações de firmware corrigem falhas de segurança e problemas de compatibilidade que as atualizações do Windows não cobrem. Não é urgente, e é item de manutenção preventiva.",
+      "recommendedAction": "Verificar no site do fabricante se há atualização de firmware para este modelo.",
       "evidenceFields": ["collectors.machine.data.bios.releaseDate", "collectors.machine.data.bios.version"],
       "linkedOptimizations": [],
       "verdictInfluence": null
@@ -92,8 +92,8 @@
         ]
       },
       "title": "Máquina com aproximadamente mais de 7 anos",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "Pela data do firmware, esta máquina tem aproximadamente mais de sete anos. É uma aproximação e não uma data exata, porque uma atualização de firmware altera essa referência. Nessa faixa de idade a probabilidade de falha de componentes cresce, e o custo de manutenção começa a competir com o de substituição.",
+      "recommendedAction": "Incluir esta máquina no plano de renovação do parque.",
       "evidenceFields": [
         "collectors.machine.data.bios.releaseDate",
         "collectors.machine.data.manufacturer",
@@ -116,8 +116,8 @@
       "indeterminateWhen": null,
       "condition": { "path": "collectors.machine.data.approxAgeYears", "operator": "greaterThan", "value": 10 },
       "title": "Máquina com aproximadamente mais de 10 anos",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "Pela data do firmware, esta máquina tem aproximadamente mais de dez anos — aproximação, não data exata. Nessa idade, peça de reposição é escassa, não há garantia há muito tempo, e uma falha significa parada de trabalho sem prazo definido para voltar.",
+      "recommendedAction": "Priorizar a substituição desta máquina.",
       "evidenceFields": [
         "collectors.machine.data.bios.releaseDate",
         "collectors.machine.data.manufacturer",
@@ -140,8 +140,8 @@
       "indeterminateWhen": null,
       "condition": { "path": "collectors.devices.data.problemDeviceCount", "operator": "greaterThan", "value": 0 },
       "title": "Dispositivos sem driver ou com erro",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "O Windows está reportando um ou mais dispositivos com erro ou sem driver instalado nesta máquina. Na prática, isso costuma significar um recurso indisponível sem que o usuário saiba o motivo — leitor de cartão, webcam, som ou um periférico específico — e às vezes aparece como instabilidade intermitente.",
+      "recommendedAction": "Instalar os drivers pendentes a partir do site do fabricante.",
       "evidenceFields": ["collectors.devices.data.problemDevices"],
       "linkedOptimizations": [],
       "verdictInfluence": null

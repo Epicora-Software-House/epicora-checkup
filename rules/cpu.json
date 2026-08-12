@@ -20,8 +20,8 @@
         "value": 3
       },
       "title": "Processador com 2 núcleos físicos ou menos",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "O processador desta máquina tem dois núcleos ou menos. Com o Windows atual, antivírus e navegador abertos ao mesmo tempo, essa configuração opera sem folga: a lentidão aparece mesmo em tarefas simples e não se resolve com limpeza nem com mais memória. Processador é o componente que, nesta faixa de máquina, não se troca isoladamente.",
+      "recommendedAction": "Avaliar substituição da máquina.",
       "evidenceFields": ["collectors.cpu.data.name", "collectors.cpu.data.physicalCores", "collectors.cpu.data.logicalProcessors"],
       "linkedOptimizations": [],
       "verdictInfluence": "Replace"

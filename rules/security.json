@@ -378,8 +378,8 @@
         "operator": "isNotEmpty"
       },
       "title": "Ferramenta de acesso remoto instalada",
-      "clientText": null,
-      "recommendedAction": null,
+      "clientText": "Identificamos ferramenta de acesso remoto instalada nesta máquina. Isso não é necessariamente um problema — é comum para atendimento de suporte —, mas significa que existe um caminho de acesso ao computador a partir de fora da empresa. Vale confirmar quem tem esse acesso e se ele ainda é necessário.",
+      "recommendedAction": "Confirmar a origem e a necessidade da ferramenta de acesso remoto.",
       "evidenceFields": [
         "collectors.software.data.classification.remoteAccessTools"
       ],
