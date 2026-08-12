@@ -360,10 +360,8 @@
     {
       "id": "SEC-011",
       "version": 1,
-      "enabled": false,
-      "enabledBlockedBy": [
-        "clientText"
-      ],
+      "enabled": true,
+      "enabledBlockedBy": [],
       "sourceConfidence": "A",
       "validationNote": "Informativo, peso zero. Ferramenta de acesso remoto normalmente é legítima — pode ser o meio de suporte do próprio cliente. Registrar, não acusar.",
       "category": "Segurança",

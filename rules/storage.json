@@ -76,10 +76,8 @@
     {
       "id": "STO-003",
       "version": 1,
-      "enabled": false,
-      "enabledBlockedBy": [
-        "clientText"
-      ],
+      "enabled": true,
+      "enabledBlockedBy": [],
       "sourceConfidence": "A",
       "validationNote": null,
       "category": "Armazenamento",
@@ -279,10 +277,8 @@
     {
       "id": "STO-008",
       "version": 1,
-      "enabled": false,
-      "enabledBlockedBy": [
-        "clientText"
-      ],
+      "enabled": true,
+      "enabledBlockedBy": [],
       "sourceConfidence": "A",
       "validationNote": null,
       "category": "Armazenamento",

@@ -6,10 +6,8 @@
     {
       "id": "MEM-001",
       "version": 1,
-      "enabled": false,
-      "enabledBlockedBy": [
-        "clientText"
-      ],
+      "enabled": true,
+      "enabledBlockedBy": [],
       "sourceConfidence": "A",
       "validationNote": null,
       "category": "Memória",
@@ -37,10 +35,8 @@
     {
       "id": "MEM-002",
       "version": 1,
-      "enabled": false,
-      "enabledBlockedBy": [
-        "clientText"
-      ],
+      "enabled": true,
+      "enabledBlockedBy": [],
       "sourceConfidence": "A",
       "validationNote": "Dispara apenas quando freeSlots não pôde ser determinado. Se a contagem de slots funcionar em campo, MEM-003 ou MEM-004 assumem e esta praticamente não ocorre.",
       "category": "Memória",
@@ -175,10 +171,8 @@
     {
       "id": "MEM-005",
       "version": 1,
-      "enabled": false,
-      "enabledBlockedBy": [
-        "clientText"
-      ],
+      "enabled": true,
+      "enabledBlockedBy": [],
       "sourceConfidence": "A",
       "validationNote": null,
       "category": "Memória",

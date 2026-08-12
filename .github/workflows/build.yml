@@ -157,9 +157,9 @@ jobs:
               sintetica-amarela.json    execucao SEM elevacao, etapas ignoradas
               sintetica-vermelha.json   achados criticos, veredito Substituir
 
-          A matriz tem 61 regras e 5 habilitadas: a lista de riscos sai curta de
-          proposito. As outras 56 aguardam texto aprovado pelo comercial ou validacao
-          de fonte em campo.
+          A matriz tem 61 regras e 23 habilitadas: a lista de riscos ainda sai curta
+          de proposito. As outras 38 aguardam texto aprovado pelo comercial ou
+          validacao de fonte em campo.
           '@ | Set-Content -Path pacote/LEIA-ME.txt -Encoding UTF8
 
       - uses: actions/upload-artifact@v4

@@ -57,8 +57,8 @@
     {
       "id": "NET-003",
       "version": 1,
-      "enabled": false,
-      "enabledBlockedBy": ["clientText"],
+      "enabled": true,
+      "enabledBlockedBy": [],
       "sourceConfidence": "A",
       "validationNote": "IP fixo é frequentemente intencional. Só vira achado com contexto do padrão de rede do cliente, que a ferramenta não conhece. Peso 2 reflete isso.",
       "category": "Rede",
@@ -77,8 +77,8 @@
     {
       "id": "NET-004",
       "version": 1,
-      "enabled": false,
-      "enabledBlockedBy": ["clientText"],
+      "enabled": true,
+      "enabledBlockedBy": [],
       "sourceConfidence": "A",
       "validationNote": "Máquina em domínio com DNS público configurado tipicamente quebra resolução de nomes internos e é causa de problemas intermitentes difíceis de diagnosticar. Achado de alto valor de suporte.",
       "category": "Rede",

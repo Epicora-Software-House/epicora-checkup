@@ -5,8 +5,8 @@
     {
       "id": "CPU-001",
       "version": 1,
-      "enabled": false,
-      "enabledBlockedBy": ["clientText"],
+      "enabled": true,
+      "enabledBlockedBy": [],
       "sourceConfidence": "A",
       "validationNote": null,
       "category": "Processador",

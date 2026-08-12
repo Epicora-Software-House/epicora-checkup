@@ -39,8 +39,8 @@
     {
       "id": "OS-002",
       "version": 1,
-      "enabled": false,
-      "enabledBlockedBy": ["clientText"],
+      "enabled": true,
+      "enabledBlockedBy": [],
       "sourceConfidence": "A",
       "validationNote": null,
       "category": "Sistema operacional",
@@ -155,8 +155,8 @@
     {
       "id": "OS-006",
       "version": 1,
-      "enabled": false,
-      "enabledBlockedBy": ["clientText"],
+      "enabled": true,
+      "enabledBlockedBy": [],
       "sourceConfidence": "A",
       "validationNote": null,
       "category": "Sistema operacional",
@@ -179,8 +179,8 @@
     {
       "id": "OS-007",
       "version": 1,
-      "enabled": false,
-      "enabledBlockedBy": ["clientText"],
+      "enabled": true,
+      "enabledBlockedBy": [],
       "sourceConfidence": "A",
       "validationNote": null,
       "category": "Sistema operacional",

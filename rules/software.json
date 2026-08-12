@@ -6,8 +6,8 @@
     {
       "id": "SW-001",
       "version": 1,
-      "enabled": false,
-      "enabledBlockedBy": ["clientText"],
+      "enabled": true,
+      "enabledBlockedBy": [],
       "sourceConfidence": "A",
       "validationNote": "Win32_StartupCommand não cobre tarefas agendadas nem alguns mecanismos modernos (doc 02 §4.8). A contagem é piso, não total — o texto de cliente precisa refletir isso.",
       "category": "Software e inicialização",
@@ -31,8 +31,8 @@
     {
       "id": "SW-002",
       "version": 1,
-      "enabled": false,
-      "enabledBlockedBy": ["clientText"],
+      "enabled": true,
+      "enabledBlockedBy": [],
       "sourceConfidence": "A",
       "validationNote": null,
       "category": "Software e inicialização",
