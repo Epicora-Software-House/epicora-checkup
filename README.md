@@ -16,6 +16,7 @@ Produz, por máquina: um **inventário** completo, uma **lista de riscos** em li
 | [`docs/02-especificacao-tecnica.md`](docs/02-especificacao-tecnica.md) | Stack, arquitetura, fontes de dados WMI/registro com nível de confiança, schema JSON, distribuição e assinatura |
 | [`docs/03-matriz-riscos-otimizacoes.md`](docs/03-matriz-riscos-otimizacoes.md) | Matriz de regras, modelo de score, textos de cliente, catálogo de otimizações |
 | [`docs/adr/`](docs/adr/) | Decisões da Fase 0, uma por arquivo |
+| [`docs/pre-voo.md`](docs/pre-voo.md) | **Roteiro do técnico** para a primeira rodada em 10 máquinas: link de download, o que fazer quando o SmartScreen ou o EDR reclamar, quais perfis de máquina cobrir e o que anotar |
 
 Os três documentos de especificação são a fonte de verdade sobre **o que o produto é e o que ele não pode fazer**. Divergência entre código e documento é bug de um dos dois — resolver, não contornar.
 
@@ -46,7 +47,7 @@ O protótipo **não é descartável** — é o fallback permanente para quando o
 
 - **Distribuição** ([ADR-013](docs/adr/013-executavel-unico.md)): o CI mescla os assemblies e embute a matriz, e o artefato `EpicoraCheckup-teste` traz **um arquivo de ~1 MB**, sem DLL nem pasta `rules/` ao lado. Em tag `v*` sai um release com URL estável de download.
 - **Verificação de versão** ([ADR-014](docs/adr/014-verificacao-de-versao.md)): a tela 1 compara a própria versão com o release mais recente e avisa **sem bloquear**. Falha — sem rede, com proxy, no limite de 60 requisições/hora por IP da API não autenticada — dá uma linha no log e o diagnóstico segue.
-- **Procedência do relatório**: `tool.version` e `tool.commit` são carimbados pelo CI, e `tool.rulesVersion` passa a identificar a matriz que avaliou, por data declarada mais impressão digital do conteúdo carregado ([ADR-015](docs/adr/015-versionamento-da-matriz.md)) — `2026.08.12+9f3c1ab2`. Os três juntos respondem "qual versão, com qual matriz, produziu este número", que é a primeira pergunta de um achado contestado.
+- **Procedência do relatório**: `tool.version` e `tool.commit` são carimbados pelo CI, e `tool.rulesVersion` passa a identificar a matriz que avaliou, por data declarada mais impressão digital do conteúdo carregado ([ADR-015](docs/adr/015-versionamento-da-matriz.md)) — hoje `2026.08.12+6cd4167e`. Os três juntos respondem "qual versão, com qual matriz, produziu este número", que é a primeira pergunta de um achado contestado.
 
 **Assinatura de código não entra**, e é decisão registrada, não pendência: o [ADR-003](docs/adr/003-certificado-de-assinatura.md) recusou certificado na v1. Consequência aceita: o SmartScreen reclama de aplicativo não reconhecido em toda máquina, e o SHA-256 publicado ao lado do release é o que permite conferir a origem do arquivo.
 
@@ -57,6 +58,8 @@ EpicoraCheckup.exe --demonstracao fixtures\sintetica-vermelha.json
 ```
 
 > **Pré-voo pendente, agora dos dois lados.** Nem as últimas mudanças do `.ps1` nem uma linha sequer do porte em C# rodaram em Windows — o desenvolvimento acontece em Mac e o CI compila, mas não executa contra WMI. **Nada que dependa de coleta é confiável até esse run acontecer.** O que já está verificado é o que não depende de máquina: compilação, derivação de campo e conformidade do JSON com o schema.
+>
+> O roteiro que fecha essa pendência está em [`docs/pre-voo.md`](docs/pre-voo.md) — é o documento que vai para o técnico, com o link de download, os avisos do Windows que são esperados, os perfis de máquina a cobrir e o que anotar em cada uma.
 
 ## Como rodar o que já existe
 
