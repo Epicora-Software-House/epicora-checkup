@@ -19,6 +19,8 @@ Uma decisão por arquivo. As de 001 a 009 são os nove pontos abertos da seção
 | [011](011-nivel-de-execucao-solicitado.md) | `highestAvailable`, não `requireAdministrator` | ⚠️ Aceita — **confirmar com a direção técnica** | — |
 | [012](012-ordem-porte-antes-do-campo.md) | Portar os coletores antes de completar o campo | ✅ Aceita | — |
 | [013](013-executavel-unico.md) | Assemblies mesclados e matriz embutida no executável | ✅ Aceita | — |
+| [014](014-verificacao-de-versao.md) | Verificação de versão pela API de releases, sem bloquear | ✅ Aceita | — |
+| [015](015-versionamento-da-matriz.md) | Matriz versionada por data declarada + impressão digital | ✅ Aceita | — |
 
 ## Estados
 

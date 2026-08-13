@@ -44,8 +44,12 @@ const OPTIMIZATIONS = new Set([
   'OPT-DUMP', 'OPT-BROWSER', 'OPT-TRIM', 'OPT-DEFRAG', 'OPT-STARTUP',
 ]);
 
+/** Declaração de versão da matriz (ADR-015). Apoio, não regra. */
+const VERSION_FILE = 'matriz.json';
+
 const SUPPORT_FILES = new Set([
   'startup-exclusions.json', 'event-ids.json', 'windows-builds.json', 'win11-cpu-support.json',
+  VERSION_FILE,
 ]);
 
 const schema = readJson(SCHEMA_PATH);
@@ -245,6 +249,31 @@ function validateVerifiedSources(name, doc) {
   }
 }
 
+// A data declarada da matriz vai para tool.rulesVersion de todo relatório (ADR-015). Errar
+// o formato aqui não quebra nada em execução — sai um rótulo torto no relatório do cliente,
+// que é onde ninguém quer descobrir.
+function validateMatrixVersion(name, doc) {
+  const declarada = doc.version;
+
+  if (typeof declarada !== 'string' || !/^\d{4}\.\d{2}\.\d{2}$/.test(declarada)) {
+    errors.push(`${name}: "version" precisa ser a data da revisão da matriz no formato AAAA.MM.DD (ADR-015)`);
+    return;
+  }
+
+  const [ano, mes, dia] = declarada.split('.').map(Number);
+  const data = new Date(Date.UTC(ano, mes - 1, dia));
+
+  if (data.getUTCFullYear() !== ano || data.getUTCMonth() !== mes - 1 || data.getUTCDate() !== dia) {
+    errors.push(`${name}: "version" ${declarada} não é uma data válida`);
+    return;
+  }
+
+  // Um dia de folga cobre a diferença de fuso entre quem edita e quem roda o CI.
+  if (data.getTime() > Date.now() + 86400000) {
+    errors.push(`${name}: "version" ${declarada} está no futuro — provável erro de digitação`);
+  }
+}
+
 function validateSupportFile(name, doc) {
   validateVerifiedSources(name, doc);
   if (!('validUntil' in doc)) return;
@@ -273,6 +302,10 @@ for (const file of readdirSync(RULES_DIR).filter((f) => f.endsWith('.json')).sor
     doc = readJson(join(RULES_DIR, file));
   } catch (err) {
     errors.push(`${file}: JSON inválido — ${err.message}`);
+    continue;
+  }
+  if (file === VERSION_FILE) {
+    validateMatrixVersion(file, doc);
     continue;
   }
   if (SUPPORT_FILES.has(file)) {

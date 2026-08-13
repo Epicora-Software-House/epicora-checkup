@@ -5,6 +5,8 @@ Coletor portátil de inventário e diagnóstico para estações Windows. Execut�
 Produz, por máquina: um **inventário** completo, uma **lista de riscos** em linguagem de cliente com severidade e ação recomendada, e — a partir da Fase 5, só com autorização item por item — um conjunto de **otimizações seguras** com medição de antes e depois.
 
 > **Não é** agente, não fica residente, não instala nada, não abre porta de rede, não faz telemetria.
+>
+> A única conversa com a internet é a **verificação de versão** na abertura: um `GET` ao release mais recente publicado, que não envia nada sobre a máquina, sobre o cliente ou sobre o diagnóstico, e que falha em silêncio sem consequência. Os termos exatos — inclusive o que o GitHub passa a registrar — estão no [ADR-014](docs/adr/014-verificacao-de-versao.md).
 
 ## Documentação
 
@@ -40,7 +42,13 @@ O protótipo **não é descartável** — é o fallback permanente para quando o
 
 **Fase 2** fecha o fluxo ponta a ponta: `Core`, `Rules`, os **16 coletores** portados do protótipo ([ADR-012](docs/adr/012-ordem-porte-antes-do-campo.md)), a **gravação** de JSON, HTML e log, e o executável WinForms com as telas 1, 2, 3, 4 e 7. O motor de regras é verificado contra os *golden files* em `tests/expected/`, a derivação dos coletores e o contrato do arquivo gravado têm testes próprios. Ver [`src/README.md`](src/README.md).
 
-**Fase 3** entregou o executável único ([ADR-013](docs/adr/013-executavel-unico.md)): o CI mescla os assemblies e embute a matriz, e o artefato `EpicoraCheckup-teste` traz **um arquivo de ~1 MB**, sem DLL nem pasta `rules/` ao lado. Em tag `v*` sai um release com URL estável de download. **Não é assinado**, então o SmartScreen vai reclamar (ADR-003, esperado), e o SHA-256 publicado ao lado é o que permite conferir a origem do arquivo.
+**Fase 3** está fechada, nas três frentes que o doc 01 §11 pede:
+
+- **Distribuição** ([ADR-013](docs/adr/013-executavel-unico.md)): o CI mescla os assemblies e embute a matriz, e o artefato `EpicoraCheckup-teste` traz **um arquivo de ~1 MB**, sem DLL nem pasta `rules/` ao lado. Em tag `v*` sai um release com URL estável de download.
+- **Verificação de versão** ([ADR-014](docs/adr/014-verificacao-de-versao.md)): a tela 1 compara a própria versão com o release mais recente e avisa **sem bloquear**. Falha — sem rede, com proxy, no limite de 60 requisições/hora por IP da API não autenticada — dá uma linha no log e o diagnóstico segue.
+- **Procedência do relatório**: `tool.version` e `tool.commit` são carimbados pelo CI, e `tool.rulesVersion` passa a identificar a matriz que avaliou, por data declarada mais impressão digital do conteúdo carregado ([ADR-015](docs/adr/015-versionamento-da-matriz.md)) — `2026.08.12+9f3c1ab2`. Os três juntos respondem "qual versão, com qual matriz, produziu este número", que é a primeira pergunta de um achado contestado.
+
+**Assinatura de código não entra**, e é decisão registrada, não pendência: o [ADR-003](docs/adr/003-certificado-de-assinatura.md) recusou certificado na v1. Consequência aceita: o SmartScreen reclama de aplicativo não reconhecido em toda máquina, e o SHA-256 publicado ao lado do release é o que permite conferir a origem do arquivo.
 
 O **modo demonstração** continua existindo, para revisar telas e textos sem tocar na máquina e sem gravar arquivo:
 

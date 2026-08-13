@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Reflection;
 using EpicoraCheckup.Reporting;
 
 namespace EpicoraCheckup.App
@@ -30,25 +29,15 @@ namespace EpicoraCheckup.App
                 Findings = withEvaluation ? session.Findings : null,
                 Score = withEvaluation ? session.Score : null,
 
-                ToolVersion = ToolVersion,
+                ToolVersion = ToolIdentity.Version,
+                Commit = ToolIdentity.Commit,
+
+                // Preenchida na tela 2, quando a matriz é carregada. Nula em documento
+                // montado antes disso — o que não acontece no fluxo, mas é honesto.
+                RulesVersion = session.RulesVersion,
+
                 HostLocale = CultureInfo.CurrentCulture.Name
             };
-        }
-
-        /// <summary>
-        /// Versão da ferramenta no formato N.N.N que o schema exige. Sem isso é impossível
-        /// auditar qual versão produziu qual relatório, e isso vai importar no primeiro
-        /// relatório contestado por um cliente (doc 02 §8.5).
-        /// </summary>
-        private static string ToolVersion
-        {
-            get
-            {
-                var version = Assembly.GetExecutingAssembly().GetName().Version;
-                return version == null
-                    ? "0.1.0"
-                    : $"{version.Major}.{version.Minor}.{version.Build}";
-            }
         }
     }
 }

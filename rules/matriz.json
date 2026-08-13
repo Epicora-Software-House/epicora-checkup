@@ -1,0 +1,7 @@
+{
+  "version": "2026.08.12",
+
+  "note": "Data da última revisão desta matriz, no formato AAAA.MM.DD (ADR-015). Não é a versão da ferramenta. O relatório grava esta data seguida de um '+' e da impressão digital SHA-256 do conteúdo dos arquivos de regra efetivamente carregados — a data é o rótulo escolhido por quem revisou, a impressão digital é o fato. Bumpar sempre que alterar regra que muda avaliação; esquecer não falsifica o relatório, só deixa a data desatualizada ao lado de uma impressão digital nova.",
+
+  "naoEhRegra": "Este arquivo não contém regras. Está na lista de arquivos de apoio de RuleRepository e de tools/validate-rules.mjs, junto de event-ids, windows-builds, win11-cpu-support e startup-exclusions."
+}

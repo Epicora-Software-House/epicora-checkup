@@ -4,6 +4,14 @@ Um arquivo por categoria, espelhando as seções 4.1–4.10 de `docs/03-matriz-r
 
 **Regras nunca são deletadas.** Marcam-se `enabled: false`, para que relatórios antigos permaneçam auditáveis e reprodutíveis.
 
+## `matriz.json` — a versão da matriz
+
+Não contém regras: declara a **data da revisão** da matriz, no formato `AAAA.MM.DD`. É a metade legível de `tool.rulesVersion`, que o relatório grava como `2026.08.12+9f3c1ab2` — data declarada mais impressão digital do conteúdo carregado ([ADR-015](../docs/adr/015-versionamento-da-matriz.md)).
+
+**Bumpar ao alterar regra que muda avaliação.** Esquecer não falsifica o relatório: sai a data velha ao lado de uma impressão digital nova, o que é legível e é verdade. A impressão digital não depende de ninguém lembrar de nada.
+
+Junto de `event-ids.json`, `windows-builds.json`, `win11-cpu-support.json` e `startup-exclusions.json`, este arquivo está na lista de **apoio** — do `RuleRepository` e do `tools/validate-rules.mjs`. Arquivo de apoio novo precisa entrar nas duas listas, senão o carregamento falha por não achar a lista `rules`.
+
 ## Formato
 
 ```jsonc

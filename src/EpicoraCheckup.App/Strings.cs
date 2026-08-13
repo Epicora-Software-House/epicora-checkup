@@ -70,6 +70,19 @@ namespace EpicoraCheckup.App
             "não poderão ser lidos e aparecerão no relatório como \"não foi possível verificar\". " +
             "Todo o resto é coletado normalmente.";
 
+        /// <summary>
+        /// Aviso de versão desatualizada (doc 01 §4, doc 02 §8.3). {0} instalada, {1} publicada.
+        ///
+        /// Só aparece quando há release mais novo. Falha na verificação não gera aviso nenhum:
+        /// máquina de cliente sem rede é o caso normal, não uma anomalia a relatar ao técnico.
+        /// </summary>
+        internal const string Tela1VersaoDesatualizada =
+            "Esta cópia é a versão {0} e a mais recente publicada é a {1}. Baixe a atual antes de " +
+            "rodar: regra corrigida desde então não está nesta cópia, e o relatório sairia com o " +
+            "critério antigo — sem nada na tela indicando isso.";
+
+        internal const string Tela1VersaoBaixar = "Baixar a versão mais recente";
+
         // ---------------------------------------------------------------- tela 2
 
         internal const string Tela2Titulo = "Coletando dados desta máquina";

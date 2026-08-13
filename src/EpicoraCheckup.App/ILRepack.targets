@@ -1,0 +1,24 @@
+<Project>
+
+  <!--
+    Este arquivo existe VAZIO, e é isso que ele faz: desliga a mesclagem automática do
+    pacote ILRepack.Lib.MSBuild.Task.
+
+    O pacote traz um alvo próprio com `AfterTargets="Build"`, condicionado a
+    `Configuration.Contains('Release')` e a este arquivo NÃO existir. Sem ele, todo build em
+    Release era mesclado — e o ADR-013 diz o contrário, porque depurar binário mesclado é
+    pior e em desenvolvimento não há por que pagar isso.
+
+    Pior que a divergência com o ADR: o publish passava a mesclar um executável JÁ mesclado
+    com as mesmas DLLs de novo. O resultado saía correto por conta de como o ILRepack resolve
+    tipo duplicado, e "correto por acidente" numa etapa que produz o binário do cliente vale
+    tanto quanto errado — a conferência do CI (nenhuma DLL sobrando, tamanho mínimo) passa
+    nos dois casos. Além disso o `Internalize` do alvo ExecutavelUnico não valia para o que a
+    primeira mesclagem já havia trazido para dentro do assembly primário.
+
+    A mesclagem de verdade vive no alvo ExecutavelUnico, em EpicoraCheckup.App.csproj, e
+    roda depois do publish. Não mover para cá: o `UsingTask` que registra a tarefa ILRepack
+    vem do pacote, e este arquivo é importado por ele — o que existe aqui é ausência.
+  -->
+
+</Project>

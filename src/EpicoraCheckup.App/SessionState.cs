@@ -46,6 +46,13 @@ namespace EpicoraCheckup.App
         public Score Score { get; set; }
 
         /// <summary>
+        /// Versão da matriz que avaliou esta execução (ADR-015). Preenchida na tela 2, quando a
+        /// matriz é carregada — antes disso não há resposta honesta, porque a matriz pode vir
+        /// de uma pasta ao lado do executável e não da que veio embutida (ADR-013).
+        /// </summary>
+        public string RulesVersion { get; set; }
+
+        /// <summary>
         /// Log da execução. Acumula em memória e é gravado no fim, junto com o relatório —
         /// o nome do arquivo depende do hostname, que só se conhece depois de coletar.
         /// </summary>

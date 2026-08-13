@@ -10,10 +10,11 @@ namespace EpicoraCheckup.App
     /// <summary>De onde a matriz de regras foi carregada, e as regras em si.</summary>
     internal sealed class LoadedMatrix
     {
-        internal LoadedMatrix(IReadOnlyList<Rule> rules, string origin)
+        internal LoadedMatrix(IReadOnlyList<Rule> rules, string origin, string version)
         {
             Rules = rules;
             Origin = origin;
+            Version = version;
         }
 
         internal IReadOnlyList<Rule> Rules { get; }
@@ -24,6 +25,12 @@ namespace EpicoraCheckup.App
         /// resposta deixa de ser "a que veio no executável".
         /// </summary>
         internal string Origin { get; }
+
+        /// <summary>
+        /// Versão da matriz carregada, para <c>tool.rulesVersion</c> (ADR-015). Vai para o
+        /// arquivo de saída, e é o que amarra um número contestado a um conteúdo de matriz.
+        /// </summary>
+        internal string Version { get; }
     }
 
     /// <summary>
@@ -50,7 +57,14 @@ namespace EpicoraCheckup.App
             var directory = ExternalDirectory();
 
             if (directory != null)
-                return new LoadedMatrix(RuleRepository.LoadFromDirectory(directory), directory);
+            {
+                // Lê o disco uma vez e deriva as duas coisas do MESMO conteúdo: reler para
+                // calcular a versão abriria janela para o arquivo ter mudado no meio.
+                var files = RuleRepository.ReadDirectory(directory);
+
+                return new LoadedMatrix(
+                    RuleRepository.LoadFromFiles(files), directory, RuleRepository.VersionOf(files));
+            }
 
             var embedded = EmbeddedFiles();
 
@@ -61,7 +75,10 @@ namespace EpicoraCheckup.App
                     "Este binário está quebrado — não use o relatório que ele produzir.");
             }
 
-            return new LoadedMatrix(RuleRepository.LoadFromFiles(embedded), "matriz embutida no executável");
+            return new LoadedMatrix(
+                RuleRepository.LoadFromFiles(embedded),
+                "matriz embutida no executável",
+                RuleRepository.VersionOf(embedded));
         }
 
         /// <summary>
