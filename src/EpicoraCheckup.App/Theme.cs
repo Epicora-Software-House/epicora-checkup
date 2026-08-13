@@ -48,6 +48,9 @@ namespace EpicoraCheckup.App
         internal static readonly Color DemoFundo = Color.FromArgb(120, 32, 128);
         internal static readonly Color DemoTexto = Color.White;
 
+        /// <summary>Link clicável. O único da ferramenta é o de download da versão nova.</summary>
+        internal static readonly Color Link = Color.FromArgb(0, 90, 158);
+
         internal const int Margem = 24;
         internal const int EspacoEntreCampos = 10;
         internal const int LarguraRotulo = 260;

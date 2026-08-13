@@ -54,6 +54,10 @@ Dois contratos por fixture, e os dois são verificados:
 
 Mais `SemanticaDoMotorTests`, que cobre o que os golden files não cobrem: os cantos onde um refactor divergiria em silêncio — ausente versus nulo-explícito, o guard de `indeterminateWhen`, a assimetria de `notContains`, os limites das faixas do semáforo.
 
+`OrigemDaMatrizTests` e `VersaoDaMatrizTests` cobrem as duas origens da matriz (ADR-013): pasta e recurso embutido precisam produzir as mesmas regras, na mesma ordem, e a mesma `rulesVersion`. O segundo fixa o que a impressão digital tem de fazer — muda quando alguém edita uma regra ou move uma regra de arquivo, **não** muda quando o único diferente é o fim de linha ou uma tabela de apoio.
+
+`VerificacaoDeVersaoTests` cobre a verificação de versão (ADR-014), e o que ele protege é o requisito de não bloquear: sem rede, com resposta sem `tag_name`, com tag fora do padrão, com exceção no meio — o desfecho é sempre "não verificada" e nunca exceção. Mais a comparação ser numérica e não alfabética, que é como um aviso vira silêncio justamente na versão que mais importa avisar.
+
 Os testes leem a matriz e as fixtures **reais** do repositório, não cópias embutidas. É deliberado: quem edita uma regra e esquece de regenerar os golden files precisa ver o teste ficar vermelho.
 
 ```

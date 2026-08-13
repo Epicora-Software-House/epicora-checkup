@@ -114,14 +114,48 @@ jobs:
     name: executável WinForms
     runs-on: windows-latest
     needs: [motor, coletores]
+    outputs:
+      # Consumido pelo job release: o corpo do release cita a versão que o binário afirma ter.
+      versao: ${{ steps.identidade.outputs.versao }}
     steps:
       - uses: actions/checkout@v4
+
+      # Versionamento semântico, e o número vai gravado no JSON de saída (doc 02 §8.5):
+      # sem isso é impossível auditar qual versão produziu qual relatório, e isso importa no
+      # primeiro relatório contestado por um cliente.
+      #
+      # Em tag v* a versão é a da tag. Fora de tag é a de desenvolvimento fixada em
+      # src/Directory.Build.props, e o commit é o que distingue dois builds dela — por isso
+      # o SourceRevisionId entra sempre. O SDK o deposita no AssemblyInformationalVersion
+      # como sufixo "+sha", que é de onde ToolIdentity.Commit o lê.
+      - name: versão e commit
+        id: identidade
+        shell: pwsh
+        run: |
+          $props = "-p:SourceRevisionId=$($env:GITHUB_SHA.Substring(0, 7))"
+
+          if ($env:GITHUB_REF -like 'refs/tags/*') {
+            $tag = [regex]::Match($env:GITHUB_REF, '^refs/tags/v(\d+\.\d+\.\d+)$')
+
+            # Tag fora do padrão publicaria um release cujo binário afirma ser a versão de
+            # desenvolvimento — e é essa versão que vai gravada em todo relatório que ele
+            # produzir. Falhar aqui é melhor que descobrir no relatório do cliente.
+            if (-not $tag.Success) {
+              throw "tag $($env:GITHUB_REF) fora do padrão vN.N.N — a versão do relatório sai do número da tag (doc 02 §8.5)"
+            }
+
+            $props = "-p:Version=$($tag.Groups[1].Value) $props"
+            "versao=$($tag.Groups[1].Value)" >> $env:GITHUB_OUTPUT
+          }
+
+          "props=$props" >> $env:GITHUB_OUTPUT
+          Write-Host "carimbo: $props"
 
       # A mesclagem acontece dentro do publish, no alvo ExecutavelUnico do csproj
       # (ADR-013). Sai um EpicoraCheckup.exe com os quatro assemblies do projeto, o
       # Newtonsoft.Json e a matriz de regras dentro.
       - name: publish
-        run: dotnet publish src/EpicoraCheckup.App/EpicoraCheckup.App.csproj --configuration Release --output publish
+        run: dotnet publish src/EpicoraCheckup.App/EpicoraCheckup.App.csproj --configuration Release --output publish ${{ steps.identidade.outputs.props }}
 
       # Se a mesclagem falhar, o publish ainda produz um exe — só que dependente das DLLs
       # ao lado. Ele rodaria no runner e quebraria na máquina do cliente, que é o pior
@@ -137,6 +171,24 @@ jobs:
           if ($exe.Length -lt 800KB) { throw "EpicoraCheckup.exe tem $($exe.Length) bytes — pequeno demais para conter a matriz e o Newtonsoft" }
 
           Write-Host "EpicoraCheckup.exe: $([math]::Round($exe.Length / 1MB, 2)) MB"
+
+      # O carimbo tem que sobreviver à mesclagem: o ILRepack preserva os atributos do
+      # assembly primário, e é disso que tool.version e tool.commit saem no relatório. Se
+      # essa passagem quebrar, o relatório sai sem procedência e nada mais reclama.
+      - name: conferir o carimbo de versão e commit
+        shell: pwsh
+        run: |
+          $info = [System.Diagnostics.FileVersionInfo]::GetVersionInfo((Resolve-Path publish/EpicoraCheckup.exe))
+          Write-Host "FileVersion: $($info.FileVersion) · ProductVersion: $($info.ProductVersion)"
+
+          if ($info.ProductVersion -notmatch '\+[0-9a-f]{7}$') {
+            throw "o commit não ficou no assembly (ProductVersion: $($info.ProductVersion)) — tool.commit sairia nulo no relatório"
+          }
+
+          $versao = '${{ steps.identidade.outputs.versao }}'
+          if ($versao -and $info.FileVersion -notlike "$versao*") {
+            throw "a tag pede versão $versao e o binário diz $($info.FileVersion)"
+          }
 
       - name: montar pacote
         shell: pwsh
@@ -154,6 +206,8 @@ jobs:
           # CI produziu.
           $hash = (Get-FileHash pacote/EpicoraCheckup.exe -Algorithm SHA256).Hash.ToLower()
           "$hash  EpicoraCheckup.exe" | Set-Content -Path pacote/EpicoraCheckup.exe.sha256 -Encoding ASCII
+
+          $info = [System.Diagnostics.FileVersionInfo]::GetVersionInfo((Resolve-Path pacote/EpicoraCheckup.exe))
 
           @"
           Epicora Checkup — pacote de teste
@@ -176,6 +230,15 @@ jobs:
 
           SHA-256 do binario: $hash
           Confira com:  Get-FileHash EpicoraCheckup.exe -Algorithm SHA256
+
+          Versao deste binario: $($info.ProductVersion)
+          O numero antes do "+" e a versao, o depois e o commit que a produziu. Os
+          dois vao gravados no JSON de saida, em tool.version e tool.commit.
+
+          A tela 1 consulta o release mais recente publicado e avisa se esta copia
+          estiver atras dele. Neste pacote isso e esperado: pacote de teste carrega
+          versao de desenvolvimento, nao a da tag. O aviso nao bloqueia nada, e sem
+          rede a verificacao apenas nao acontece.
 
           --------------------------------------------------------------------
 
@@ -234,9 +297,17 @@ jobs:
           body: |
             Arquivo único, sem instalação. Baixe o `EpicoraCheckup.exe` e execute.
 
+            Versão **${{ needs.app.outputs.versao }}**, gravada em `tool.version` no JSON de
+            cada relatório junto com o commit que produziu este binário. É o que permite
+            auditar qual versão produziu qual relatório.
+
             **Não é assinado** (ADR-003): o SmartScreen vai avisar que o aplicativo não é
             reconhecido. É esperado — em "Mais informações" > "Executar assim mesmo".
             Confira o SHA-256 publicado ao lado antes de executar.
+
+            A ferramenta compara a própria versão com o release mais recente na abertura e
+            avisa, sem bloquear, quando há versão mais nova. Sem rede a verificação apenas
+            não acontece.
 
             Se o EDR do cliente bloquear o executável, o caminho alternativo é o protótipo
             PowerShell em `tools/prototype/` (ADR-009).

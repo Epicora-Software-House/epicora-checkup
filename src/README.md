@@ -1,4 +1,4 @@
-# Solução C# — Fase 2
+# Solução C#
 
 Alvo: **.NET Framework 4.7.2, x64** ([ADR-001](../docs/adr/001-alvo-net-framework.md)), projetos **SDK-style** com UI escrita em código ([ADR-010](../docs/adr/010-projetos-sdk-style-e-ui-em-codigo.md)).
 
@@ -8,7 +8,7 @@ O alvo é fixado em `Directory.Build.props` e **nenhum projeto pode sobrescrevê
 
 | Projeto | Estado | Conteúdo |
 |---|---|---|
-| `EpicoraCheckup.Core` | ✅ | Contratos (`ICollector`, `CollectorResult`, `CollectionContext`), modelo (`Finding`, `Score`, enums) e orquestrador |
+| `EpicoraCheckup.Core` | ✅ | Contratos (`ICollector`, `CollectorResult`, `CollectionContext`), modelo (`Finding`, `Score`, enums), orquestrador e a verificação de versão |
 | `EpicoraCheckup.Rules` | ✅ | Motor de regras declarativo, lendo `rules/*.json` |
 | `EpicoraCheckup.App` | ✅ | WinForms: telas 1, 2, 3, 4 e 7 |
 | `EpicoraCheckup.Collectors` | ✅ | Os 16 coletores portados do `.ps1` (ADR-012), mais a consolidação dos campos derivados |
@@ -49,7 +49,9 @@ Sem `--demonstracao`, a ferramenta coleta desta máquina e grava em `.\EpicoraCh
 
 O job `app` publica o artefato `EpicoraCheckup-teste`: **o `EpicoraCheckup.exe` sozinho**, o SHA-256 dele, um `LEIA-ME.txt` e as três fixtures sintéticas — que só servem ao modo demonstração. O executável não precisa de nada ao lado (ADR-013).
 
-O job confere isso antes de montar o pacote: se sobrar qualquer `.dll` no publish, ou se o executável for pequeno demais para conter a matriz, o build falha. Um exe que depende de DLL ao lado roda no runner e quebra na máquina do cliente, que é o pior lugar para descobrir.
+O job confere isso antes de montar o pacote: se sobrar qualquer `.dll` no publish, se o executável for pequeno demais para conter a matriz, ou se o commit não tiver ficado no assembly, o build falha. Um exe que depende de DLL ao lado roda no runner e quebra na máquina do cliente, que é o pior lugar para descobrir; um exe sem carimbo produz relatório sem procedência, e nada mais reclamaria disso.
+
+Em tag `v*`, o CI **recusa** tag fora de `vN.N.N`. Sem isso o release sairia com um binário afirmando ser a versão de desenvolvimento — e essa é a versão que vai gravada em todo relatório que ele produzir.
 
 Em tag `v*`, o job `release` publica o executável e o hash num release do GitHub. É o que dá a URL estável do doc 02 §8.1 — `releases/latest/download/EpicoraCheckup.exe` —, que resolve sempre para o binário mais recente e permite guiar o técnico por telefone com um link só.
 
@@ -88,6 +90,31 @@ Três detalhes do contrato que não são óbvios e que já mordem quem refatora:
 2. **Ausente e nulo-explícito são estados diferentes.** `equals` contra `null` é verdadeiro para um campo nulo e falso para um campo ausente. Por isso existe o tipo `Missing` em vez de usar `null`.
 3. **`notContains` sobre valor que não é texto nem lista devolve falso**, não verdadeiro. Assimetria herdada do motor de referência, e correta: não se afirma "não contém" sobre algo que não pôde ser lido.
 
+## Procedência do relatório: versão, commit e matriz
+
+Três campos do bloco `tool`, e nenhum deles é enfeite — juntos respondem "qual versão, com qual matriz, produziu este número", que é a primeira pergunta de um achado contestado meses depois.
+
+| Campo | De onde vem | Nulo quando |
+|---|---|---|
+| `tool.version` | `AssemblyVersion`, que o CI carimba com o número da tag `v*` | nunca — build local usa a versão de desenvolvimento de `Directory.Build.props` |
+| `tool.commit` | sufixo `+sha` do `AssemblyInformationalVersion`, que o CI carimba via `-p:SourceRevisionId` | build sem carimbo, que é o de bancada |
+| `tool.rulesVersion` | `RuleRepository.VersionOf` sobre os arquivos efetivamente carregados ([ADR-015](../docs/adr/015-versionamento-da-matriz.md)) | matriz sem `matriz.json` **e** sem como calcular SHA-256 |
+
+Duas coisas que morderiam quem mexer:
+
+1. **O carimbo tem que sobreviver ao ILRepack.** Sobrevive porque a mesclagem preserva os atributos do assembly primário, e o CI confere isso lendo o `ProductVersion` do binário mesclado antes de empacotar. Sem essa conferência, a passagem quebraria em silêncio e o relatório sairia sem procedência.
+2. **`rulesVersion` é preenchida na tela 2**, quando a matriz carrega — e o documento de entrada do motor é montado **depois** disso. Montar antes gravaria o campo vazio justamente no lugar em que a auditoria vai procurá-lo.
+
+## Verificação de versão
+
+`Core/Update` tem as duas metades, e a separação é a mesma dos coletores: `UpdateCheck` decide e tem teste, `ReleaseFeed` fala com a rede e não tem — fonte se exercita em campo.
+
+O contrato é curto e o que importa nele é o que **não** acontece: nenhuma falha bloqueia, nenhuma exceção propaga, nenhum dado da máquina sai. Sem rede, com proxy que recusa, no limite de 60 requisições/hora por IP da API não autenticada, com o repositório sem release nenhum publicado — todos terminam em `NotChecked`, uma linha no log (doc 02 §9) e o diagnóstico seguindo. Ver [ADR-014](../docs/adr/014-verificacao-de-versao.md).
+
+Tag fora de `vN.N.N` não gera aviso. É deliberado: comparar `v1.2.0-rc1` com `1.2.0` produziria um aviso que o técnico não tem como interpretar na frente do cliente.
+
+O disparo fica em `OnHandleCreated` da tela 1, e não em `OnEnter`. A tela 1 entra durante o construtor do `MainForm`, antes de `Application.Run` — ali não há `SynchronizationContext` de WinForms garantido, e a continuação do `await` voltaria numa thread de pool, tocando controle e o `RunLog` de fora da thread da UI.
+
 ## Um documento, dois usos
 
 `CheckupDocument.Build` monta o documento do schema 1.0, e ele é usado **duas vezes**: sem `findings`, é a entrada do motor de regras na tela 2; com eles, é o arquivo que o consolidador lê.
@@ -104,9 +131,9 @@ Não há validador de JSON Schema gratuito e decente para net472, então quem co
 
 **Nada disto rodou em Windows ainda.** Os coletores compilam, e a derivação e a gravação têm teste, mas nenhuma linha do porte tocou WMI de verdade. É o mesmo estado do `.ps1` desde os últimos achados de campo, e é o que o pré-voo resolve — ver o README da raiz.
 
-**`tool.rulesVersion` e `tool.commit` saem nulos.** O primeiro exige versionar a matriz; o segundo, o CI carimbar o commit no assembly. Os dois entram na Fase 3, junto com a publicação em release.
-
 **Executável único — resolvido ([ADR-013](../docs/adr/013-executavel-unico.md)).** O `publish` em Release mescla os quatro assemblies e o `Newtonsoft.Json` dentro do `.exe` com ILRepack, e a matriz de regras viaja embutida como recurso. Sai um arquivo de ~1 MB, sem `.exe.config` e sem pasta `rules/` ao lado. O `build` normal continua produzindo as DLLs soltas, porque depurar binário mesclado é pior e em desenvolvimento não há motivo para pagar isso.
+
+O arquivo **vazio** `EpicoraCheckup.App/ILRepack.targets` é o que garante essa última frase: o pacote ILRepack traz um alvo próprio `AfterTargets="Build"` que mescla todo build em Release, e ele só se desliga se esse arquivo existir. Sem isso o `publish` mesclava um executável **já mesclado** com as mesmas DLLs de novo — saía correto por conta de como o ILRepack resolve tipo duplicado, e o `Internalize` do alvo do projeto não valia para o que a primeira mesclagem já tinha trazido para dentro. Nenhuma das duas conferências do CI pega isso.
 
 Uma pasta `rules/` ao lado do executável **tem precedência** sobre a matriz embutida — é o que atende o doc 02 §3.5, que exige trocar regra sem recompilar. O log registra de onde a matriz veio em toda execução: com sobreposição, "qual matriz produziu este número" deixa de ter resposta óbvia, e é a primeira pergunta de um achado contestado.
 

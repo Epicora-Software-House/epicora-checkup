@@ -173,8 +173,14 @@ namespace EpicoraCheckup.App.Screens
 
             // Qual matriz produziu este relatório: com a sobreposição por pasta (ADR-013), a
             // resposta deixa de ser óbvia, e é a primeira pergunta de um achado contestado.
-            Session.Log.Info($"matriz carregada de {matriz.Origin} — {matriz.Rules.Count} regras");
+            // A versão vai para o log E para o arquivo de saída (ADR-015).
+            Session.RulesVersion = matriz.Version;
+            Session.Log.Info($"matriz carregada de {matriz.Origin} — {matriz.Rules.Count} regras, " +
+                             $"versão {matriz.Version ?? "não identificada"}");
 
+            // Depois de RulesVersion estar preenchida: este documento é entrada do motor, mas
+            // é montado pelo mesmo caminho do arquivo de saída, e montá-lo antes gravaria o
+            // campo vazio no lugar em que a auditoria vai procurá-lo.
             var documento = CheckupDocument.Build(ReportInputFactory.From(Session, withEvaluation: false));
 
             var avaliacao = new RuleEngine(matriz.Rules).Evaluate(documento);

@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -17,29 +20,44 @@ namespace EpicoraCheckup.Rules
     /// </summary>
     public sealed class RuleRepository
     {
+        /// <summary>Arquivo que declara a versão da matriz (ADR-015). Não contém regras.</summary>
+        public const string VersionFileName = "matriz.json";
+
         /// <summary>
         /// Arquivos de apoio, que não contêm regras. Não são matriz: são tabelas
-        /// consumidas pelos coletores (IDs de evento, builds do Windows, CPUs do Win11)
-        /// e a lista de exclusões da Fase 5.
+        /// consumidas pelos coletores (IDs de evento, builds do Windows, CPUs do Win11),
+        /// a lista de exclusões da Fase 5 e a declaração de versão da matriz.
         /// </summary>
         private static readonly HashSet<string> SupportFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "startup-exclusions.json",
             "event-ids.json",
             "windows-builds.json",
-            "win11-cpu-support.json"
+            "win11-cpu-support.json",
+            VersionFileName
         };
 
         public static IReadOnlyList<Rule> LoadFromDirectory(string rulesDirectory)
         {
+            return LoadFromFiles(ReadDirectory(rulesDirectory));
+        }
+
+        /// <summary>
+        /// Lê o conteúdo dos arquivos de uma pasta <c>rules/</c>, sem interpretá-los.
+        ///
+        /// Existe para que quem precisa da matriz E da versão dela leia o disco UMA vez: a
+        /// versão é a impressão digital do conteúdo carregado (ADR-015), e conteúdo lido de
+        /// novo pode não ser o mesmo — o arquivo pode ter mudado entre as duas leituras.
+        /// </summary>
+        public static IList<KeyValuePair<string, string>> ReadDirectory(string rulesDirectory)
+        {
             if (!Directory.Exists(rulesDirectory))
                 throw new DirectoryNotFoundException($"pasta de regras não encontrada: {rulesDirectory}");
 
-            var files = Directory.GetFiles(rulesDirectory, "*.json")
+            return Directory.GetFiles(rulesDirectory, "*.json")
                 .Select(path => new KeyValuePair<string, string>(
-                    Path.GetFileName(path), ReadWithoutBom(path)));
-
-            return LoadFromFiles(files);
+                    Path.GetFileName(path), ReadWithoutBom(path)))
+                .ToList();
         }
 
         /// <summary>
@@ -54,10 +72,7 @@ namespace EpicoraCheckup.Rules
         {
             if (files == null) throw new ArgumentNullException(nameof(files));
 
-            var ordered = files
-                .Where(file => !SupportFiles.Contains(file.Key))
-                .OrderBy(file => file.Key, StringComparer.Ordinal)
-                .ToList();
+            var ordered = MatrixFiles(files);
 
             var rules = new List<Rule>();
             foreach (var file in ordered)
@@ -72,6 +87,131 @@ namespace EpicoraCheckup.Rules
                 throw new InvalidDataException($"id de regra duplicado na matriz: {string.Join(", ", duplicates)}");
 
             return rules;
+        }
+
+        // ------------------------------------------------------------ versão da matriz
+
+        /// <summary>
+        /// Versão da matriz, para gravar em <c>tool.rulesVersion</c> (ADR-015).
+        ///
+        /// Duas partes, e a segunda é o que dá valor à primeira:
+        /// <c>2026.08.12+9f3c1ab2</c>. A data vem declarada em <c>matriz.json</c> e é rótulo
+        /// escolhido por quem revisou; a impressão digital é do conteúdo dos arquivos de regra
+        /// efetivamente carregados, e não depende de ninguém lembrar de nada.
+        ///
+        /// A distinção importa porque a matriz pode vir de uma pasta <c>rules/</c> ao lado do
+        /// executável (ADR-013). Nesse caso a data declarada é a de quem montou aquela pasta,
+        /// e só a impressão digital responde "foi esta matriz que produziu este número".
+        ///
+        /// Devolve <c>null</c> se não houver nem declaração nem como calcular impressão —
+        /// campo ausente é <c>null</c>, e o schema aceita.
+        /// </summary>
+        public static string VersionOf(IEnumerable<KeyValuePair<string, string>> files)
+        {
+            if (files == null) throw new ArgumentNullException(nameof(files));
+
+            var all = files.ToList();
+            var declared = DeclaredVersion(all);
+            var fingerprint = Fingerprint(MatrixFiles(all));
+
+            if (fingerprint == null) return declared;
+
+            return declared == null ? fingerprint : declared + "+" + fingerprint;
+        }
+
+        /// <summary>
+        /// Data declarada em <c>matriz.json</c>, ou <c>null</c>.
+        ///
+        /// Ausência não é erro: matriz montada à mão numa pasta ao lado do executável não
+        /// precisa declarar nada, e a impressão digital sozinha ainda identifica o conteúdo.
+        /// </summary>
+        private static string DeclaredVersion(IEnumerable<KeyValuePair<string, string>> files)
+        {
+            var file = files.FirstOrDefault(f => string.Equals(f.Key, VersionFileName, StringComparison.OrdinalIgnoreCase));
+
+            if (file.Key == null || string.IsNullOrWhiteSpace(file.Value)) return null;
+
+            try
+            {
+                var declared = (string)JObject.Parse(file.Value)["version"];
+                return string.IsNullOrWhiteSpace(declared) ? null : declared.Trim();
+            }
+            catch (Exception)
+            {
+                // Declaração ilegível não pode impedir a avaliação: a matriz em si carregou.
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Impressão digital do conteúdo, em 8 dígitos hexadecimais.
+        ///
+        /// Sobre os arquivos de REGRA, na ordem de carga, e não sobre a pasta inteira: as
+        /// tabelas de apoio alimentam coletor, não matriz, e mexer numa delas não muda o
+        /// critério de avaliação.
+        ///
+        /// O conteúdo é normalizado para <c>\n</c> antes de entrar no hash. Sem isso, o mesmo
+        /// arquivo salvo por um editor de Windows produziria versão diferente sem nenhuma
+        /// regra ter mudado — e a primeira vez que isso acontecesse ninguém confiaria mais no
+        /// campo.
+        /// </summary>
+        private static string Fingerprint(IEnumerable<KeyValuePair<string, string>> orderedFiles)
+        {
+            var material = new StringBuilder();
+
+            foreach (var file in orderedFiles)
+            {
+                // O nome entra junto: mover uma regra de arquivo muda a ordem de carga, e a
+                // ordem de carga é parte da saída (Score.VerdictDrivenBy).
+                material.Append(file.Key).Append('\n').Append(Normalize(file.Value)).Append('\n');
+            }
+
+            try
+            {
+                using (var sha = SHA256.Create())
+                {
+                    var hash = sha.ComputeHash(new UTF8Encoding(false).GetBytes(material.ToString()));
+                    var hex = new StringBuilder(8);
+
+                    // Quatro bytes bastam: isto identifica uma revisão de matriz para auditoria,
+                    // não protege contra ninguém forjando colisão.
+                    for (var i = 0; i < 4; i++)
+                        hex.Append(hash[i].ToString("x2", CultureInfo.InvariantCulture));
+
+                    return hex.ToString();
+                }
+            }
+            catch (Exception)
+            {
+                // Política FIPS da máquina pode barrar a implementação de SHA-256. Perder a
+                // impressão digital é ruim; não gerar o relatório por causa dela é pior.
+                return null;
+            }
+        }
+
+        private static string Normalize(string content)
+        {
+            if (string.IsNullOrEmpty(content)) return string.Empty;
+
+            var text = content[0] == '\uFEFF' ? content.Substring(1) : content;
+            return text.Replace("\r\n", "\n");
+        }
+
+        // ------------------------------------------------------------ carga
+
+        /// <summary>
+        /// Os arquivos que são matriz, na ordem de carga — ordinal por nome.
+        ///
+        /// Um só lugar, porque as duas coisas que dependem dela têm de concordar: a ordem em
+        /// que as regras entram (que o <c>Score.VerdictDrivenBy</c> preserva) e a ordem em que
+        /// o conteúdo entra na impressão digital.
+        /// </summary>
+        private static List<KeyValuePair<string, string>> MatrixFiles(IEnumerable<KeyValuePair<string, string>> files)
+        {
+            return files
+                .Where(file => !SupportFiles.Contains(file.Key))
+                .OrderBy(file => file.Key, StringComparer.Ordinal)
+                .ToList();
         }
 
         private static IEnumerable<Rule> LoadFile(string name, string content)
