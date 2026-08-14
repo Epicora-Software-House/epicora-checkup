@@ -21,6 +21,12 @@
 
     <ApplicationManifest>app.manifest</ApplicationManifest>
 
+    <!-- Isotipo roxo. É o que o Windows mostra no Explorer, na barra de tarefas e no
+         alt-tab — inclusive na pasta de Downloads, antes de a ferramenta abrir pela
+         primeira vez. O recurso Win32 sobrevive ao ILRepack porque vem do assembly
+         primário, que é este (ADR-013). -->
+    <ApplicationIcon>Marca\epicora.ico</ApplicationIcon>
+
     <!--
       Sem App.config e sem .exe.config gerado (ADR-013).
 
@@ -56,6 +62,22 @@
     -->
     <EmbeddedResource Include="..\..\rules\*.json">
       <LogicalName>rules/%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
+
+    <!--
+      Identidade visual, embutida pelo mesmo motivo da matriz: arquivo ao lado do .exe
+      some na primeira vez que alguém copia só o executável (ADR-013).
+
+      A Alexandria vai em dois cortes ESTÁTICOS, e não na variável do kit de marca: o GDI
+      do Windows não interpola eixo de peso, e carregar a variável entregaria sempre a
+      instância padrão. Cada corte é um subconjunto latin + latin-ext, ~30 KB — cabe
+      porque só pinta texto de Strings.cs, que é pt-BR por ADR-008.
+
+      OFL.txt viaja junto por exigência da própria licença: embutir a fonte no executável
+      é redistribuição, e a licença tem que acompanhar.
+    -->
+    <EmbeddedResource Include="Marca\Alexandria-Regular.ttf;Marca\Alexandria-SemiBold.ttf;Marca\logo-branco.png;Marca\epicora.ico;Marca\OFL.txt">
+      <LogicalName>marca/%(Filename)%(Extension)</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
 

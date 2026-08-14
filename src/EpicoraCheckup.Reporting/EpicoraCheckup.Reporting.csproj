@@ -20,4 +20,29 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!--
+      Identidade visual do relatório. Vira data URI dentro do HTML, e é o que mantém a
+      promessa do doc 02 §6: arquivo único, sem CDN, sem fonte remota, legível daqui a
+      cinco anos numa máquina sem internet.
+
+      O logotipo é o ROXO sobre branco, e não o branco sobre faixa: navegador imprime com
+      "gráficos de fundo" desligado por padrão, então uma faixa colorida sairia branca no
+      papel — com o logotipo branco em cima dela, invisível. Sobre branco, imprime igual
+      na tela e no papel.
+
+      A Alexandria aqui é WOFF2 e só o corte SemiBold: o HTML só a usa em título, e um
+      peso que não está embutido faria o navegador engrossar o desenho por conta própria.
+    -->
+    <!--
+      Prefixo próprio, e não o "marca/" do App: os dois projetos embutem a mesma OFL.txt, e
+      o ILRepack mescla tudo num assembly só (ADR-013). Nome lógico repetido ali é resolvido
+      ficando com um dos dois, em silêncio — hoje daria no mesmo porque o conteúdo é igual,
+      e deixaria de dar no dia em que um dos lados atualizar a fonte.
+    -->
+    <EmbeddedResource Include="Marca\logo-roxo.svg;Marca\Alexandria-SemiBold.woff2;Marca\OFL.txt">
+      <LogicalName>marca-html/%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>

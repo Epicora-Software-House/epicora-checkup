@@ -258,6 +258,16 @@ jobs:
           A matriz tem 61 regras e 23 habilitadas: a lista de riscos ainda sai curta
           de proposito. As outras 38 aguardam texto aprovado pelo comercial ou
           validacao de fonte em campo.
+
+          --------------------------------------------------------------------
+
+          A janela e o relatorio usam a identidade visual da Epicora (ADR-016). A
+          tipografia e a Alexandria, sob SIL Open Font License 1.1 — o texto da
+          licenca viaja dentro do executavel e no rodape de cada relatorio HTML.
+
+          E a PRIMEIRA vez que a tipografia roda em Windows. Se algum titulo sair
+          em Arial, ou se o texto de um cartao da tela 3 terminar cortado, mande
+          uma captura de tela: e o ponto que este pre-voo precisa conferir.
           "@ | Set-Content -Path pacote/LEIA-ME.txt -Encoding UTF8
 
       - uses: actions/upload-artifact@v4

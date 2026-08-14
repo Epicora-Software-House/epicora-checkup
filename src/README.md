@@ -31,6 +31,32 @@ Três coisas que não são óbvias e que mordem quem mexer:
 2. **`RequiresElevation` é `false` em quase tudo, e isso foi medido.** Só TPM, BitLocker e SMART exigem privilégio, e as três degradam para null isoladamente. Marcar um coletor inteiro descartaria de graça a família de achados mais valiosa em toda visita sem senha de administrador.
 3. **A consolidação roda depois da coleta, não dentro dela.** `Consolidation.Apply` preenche o que depende de mais de um coletor — o cruzamento antivírus × software e a elegibilidade de Windows 11. Acoplar coletores entre si faria o tempo limite de um derrubar o outro.
 
+## Identidade visual
+
+A marca entra pelo cromo — cabeçalho roxo com o logotipo, ação principal, link e tipografia de
+título ([ADR-016](../docs/adr/016-identidade-visual.md)). Os ativos vivem em
+`EpicoraCheckup.App/Marca/` e `EpicoraCheckup.Reporting/Marca/`, embutidos pelo mesmo motivo da
+matriz: arquivo ao lado do `.exe` some na primeira cópia (ADR-013).
+
+Quatro coisas que mordem quem mexer:
+
+1. **O semáforo não obedece à marca.** Verde-água `#14FFB9` sobre branco tem contraste perto de
+   1,5:1. As cores de severidade e de faixa continuam as escurecidas de sempre, e a razão está
+   comentada em `Theme.BandaVerde`.
+2. **A fonte precisa dos DOIS registros.** `AddMemoryFont` atende o GDI+, que desenha;
+   `AddFontMemResourceEx` atende o GDI, que é quem o `TextRenderer` da tela 3 usa para **medir**
+   a altura dos cartões. Só um dos dois faz medida e desenho usarem fontes diferentes, e o
+   cartão corta o texto do cliente na última linha.
+3. **O ponteiro da fonte nunca é liberado.** `AddMemoryFont` guarda o ponteiro, não uma cópia.
+   Liberar depois de carregar funciona no desenvolvimento e desenha lixo na máquina do cliente.
+4. **`marca/` e `marca-html/` são prefixos separados de propósito.** Os dois projetos embutem a
+   mesma `OFL.txt`, e o ILRepack mescla tudo num assembly só: nome lógico repetido é resolvido
+   ficando com um dos dois, em silêncio.
+
+No relatório HTML o logotipo é o **roxo sobre branco**, como `<img>` e não `background-image`:
+navegador imprime com "gráficos de fundo" desligado por padrão, e uma faixa colorida sairia
+branca no papel com o logotipo branco em cima dela.
+
 ## Modo demonstração
 
 ```
