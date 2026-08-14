@@ -195,8 +195,15 @@ namespace EpicoraCheckup.Rules.Tests
             var html = HtmlReportWriter.Render(CheckupDocument.Build(input));
 
             // Precisa abrir em máquina sem internet e continuar legível daqui a cinco anos.
-            Assert.DoesNotContain("http://", html);
-            Assert.DoesNotContain("https://", html);
+            //
+            // A verificação é por REFERÊNCIA QUE O NAVEGADOR BUSCA, e não por ocorrência da
+            // string "http". Procurar a string voltava falso positivo desde que a licença da
+            // fonte passou a viajar no rodapé: o texto da SIL OFL cita a URL da própria
+            // licença, que é citação e não recurso a carregar. O que quebra a promessa é
+            // src=, href= e url() apontando para fora — e é isso que está testado aqui.
+            foreach (var atributo in new[] { "src=\"http", "src='http", "href=\"http", "href='http", "url(http", "url('http", "url(\"http" })
+                Assert.DoesNotContain(atributo, html);
+
             Assert.DoesNotContain("<script", html);
             Assert.Contains("&lt;script&gt;", html);
             Assert.Contains("&amp;", html);

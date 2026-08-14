@@ -64,6 +64,12 @@ namespace EpicoraCheckup.Reporting
             var execution = document["execution"] as JObject ?? new JObject();
 
             html.Append("<header>\n");
+
+            // <img> e não background-image em CSS: navegador imprime com "gráficos de fundo"
+            // desligado por padrão, e background some no papel. Imagem é conteúdo e sai.
+            if (MarcaDoRelatorio.LogotipoDataUri.Length > 0)
+                html.Append("<img class=\"marca\" src=\"").Append(MarcaDoRelatorio.LogotipoDataUri).Append("\" alt=\"Epicora\">\n");
+
             html.Append("<h1>Diagnóstico de estação de trabalho</h1>\n");
             html.Append("<div class=\"ident\">\n");
 
@@ -310,7 +316,20 @@ namespace EpicoraCheckup.Reporting
             html.Append("</p>\n<p>Coleta iniciada em ").Append(E(LocalDateTime((string)execution["startedAt"])))
                 .Append(", concluída em ").Append(E(LocalDateTime((string)execution["finishedAt"])))
                 .Append(" (").Append((int?)execution["durationSeconds"] ?? 0).Append(" s).</p>\n");
-            html.Append("<p>Nenhum dado foi enviado para servidor algum.</p>\n</footer>\n");
+            html.Append("<p>Nenhum dado foi enviado para servidor algum.</p>\n");
+
+            // A licença acompanha porque o arquivo REDISTRIBUI a fonte: o WOFF2 vai embutido
+            // em cada relatório que sai daqui, e a SIL OFL exige que o texto vá junto. Fica
+            // recolhido para não competir com o conteúdo, e fora da impressão — no papel não
+            // há fonte embutida, logo não há redistribuição a licenciar.
+            if (MarcaDoRelatorio.LicencaDaFonte.Length > 0)
+            {
+                html.Append("<details class=\"licenca\"><summary>Tipografia: Alexandria, sob SIL Open Font License 1.1</summary><pre>")
+                    .Append(E(MarcaDoRelatorio.LicencaDaFonte))
+                    .Append("</pre></details>\n");
+            }
+
+            html.Append("</footer>\n");
         }
 
         // ------------------------------------------------------------ auxiliares
@@ -448,15 +467,32 @@ namespace EpicoraCheckup.Reporting
 
         // ------------------------------------------------------------ estilo
 
-        private const string Css = @"
-:root { --texto:#202020; --secundario:#696969; --borda:#dedede; --fundo:#fafafa; }
+        private static readonly string Css = @"
+/*
+  Tipografia da marca só nos títulos, e um peso só embutido.
+  O corrido segue no Segoe UI: é onde está o clientText, lido em parágrafo longo, e o
+  peso 400 da Alexandria não viaja aqui — declará-lo faria o navegador afinar o desenho
+  por conta própria em vez de usar o corte certo.
+*/
+@font-face {
+  font-family:'Alexandria'; font-style:normal; font-weight:600; font-display:swap;
+  src:url(" + MarcaDoRelatorio.FonteDataUri + @") format('woff2');
+}
+
+:root { --texto:#202020; --secundario:#696969; --borda:#dedede; --fundo:#fafafa;
+        --roxo:#6100ff; --ink:#08080a; }
 * { box-sizing: border-box; }
 body { margin:0; padding:32px; font-family:'Segoe UI',system-ui,-apple-system,Arial,sans-serif;
        font-size:14px; line-height:1.55; color:var(--texto); background:#fff; max-width:1000px; }
-h1 { font-size:24px; font-weight:600; margin:0 0 18px; }
-h2 { font-size:18px; font-weight:600; margin:34px 0 14px; padding-bottom:6px; border-bottom:2px solid var(--borda); }
-h3 { font-size:15px; font-weight:600; margin:22px 0 10px; }
-h4 { font-size:14px; font-weight:600; margin:0 0 6px; }
+
+.marca { display:block; height:34px; width:auto; margin:0 0 22px; }
+
+h1, h2, h3, h4, .veredito, .score-num {
+  font-family:'Alexandria','Segoe UI',Arial,sans-serif; font-weight:600; }
+h1 { font-size:24px; margin:0 0 18px; color:var(--ink); letter-spacing:-.2px; }
+h2 { font-size:18px; margin:34px 0 14px; padding-bottom:6px; border-bottom:2px solid var(--roxo); color:var(--ink); }
+h3 { font-size:15px; margin:22px 0 10px; }
+h4 { font-size:14px; margin:0 0 6px; }
 p { margin:0 0 8px; }
 
 header .ident { display:flex; flex-wrap:wrap; gap:4px 32px; margin-bottom:14px; }
@@ -469,7 +505,7 @@ header dd { margin:0 0 6px; font-weight:600; }
 
 .score { display:flex; align-items:center; gap:22px; padding:18px 22px; margin:22px 0;
          border:1px solid var(--borda); border-left-width:6px; background:var(--fundo); }
-.score-num { font-size:52px; font-weight:700; line-height:1; }
+.score-num { font-size:52px; line-height:1; }
 .score-rot { font-size:12px; text-transform:uppercase; letter-spacing:.5px; color:var(--secundario); }
 .veredito { font-size:22px; font-weight:600; }
 .drivers { font-size:12px; color:var(--secundario); }
@@ -505,17 +541,25 @@ th { font-weight:500; color:var(--secundario); width:38%; }
 .motivo { font-size:12px; color:var(--secundario); }
 .vazio { color:#1c7a3e; font-weight:600; }
 
-footer { margin-top:40px; padding-top:12px; border-top:1px solid var(--borda);
+footer { margin-top:40px; padding-top:12px; border-top:2px solid var(--roxo);
          font-size:11px; color:var(--secundario); }
+.licenca { margin-top:10px; }
+.licenca summary { cursor:pointer; color:var(--secundario); }
+.licenca pre { white-space:pre-wrap; font-size:10px; line-height:1.4; color:var(--secundario);
+               margin:8px 0 0; }
 
 @media print {
   @page { size:A4; margin:14mm; }
   body { padding:0; max-width:none; font-size:11px; }
+  .marca { height:26px; margin-bottom:16px; }
   /* Cartão de achado partido entre páginas é o que torna um relatório impresso
      confuso: o título fica numa folha e a ação recomendada na seguinte. */
   .achado, .coletor, .score, section { break-inside:avoid; page-break-inside:avoid; }
   h2 { break-after:avoid; page-break-after:avoid; }
   .score-num { font-size:40px; }
+  /* No papel não há fonte embutida, logo não há redistribuição a licenciar — e três
+     páginas de licença atrás do diagnóstico é o tipo de anexo que desqualifica a entrega. */
+  .licenca { display:none; }
 }
 ";
     }

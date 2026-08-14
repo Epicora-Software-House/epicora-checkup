@@ -122,6 +122,7 @@ Isto é o produto do pré-voo. Um relatório bonito que ninguém conferiu não v
 4. **Algum achado com que você discorda?** Marque como falso positivo na tela 3, com o motivo.
 5. **A janela travou ou congelou** em algum momento?
 6. **SmartScreen, antivírus ou EDR atrapalharam?** Qual produto, qual mensagem.
+7. **Texto cortado ou fonte errada?** O cabeçalho roxo, o título de cada tela e o número grande do score usam a tipografia da Epicora, e **esta é a primeira vez que ela roda em Windows**. Se algum título aparecer em Arial, ou se o texto de um cartão da tela 3 terminar cortado no fim da última linha, é isso — mande uma captura de tela. Vale conferir também em máquina com escala de 125% ou 150%, que é a de fábrica em boa parte dos notebooks.
 
 Não precisa formatar nada: um bloco de texto por máquina, junto do ZIP, resolve.
 

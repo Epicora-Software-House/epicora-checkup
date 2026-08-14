@@ -38,6 +38,13 @@ namespace EpicoraCheckup.App
             BackColor = Theme.Fundo;
             Font = Theme.Corpo;
 
+            if (Marca.Icone != null) Icon = Marca.Icone;
+
+            // A falha da marca não impede nada, mas some se ninguém registrar. O log é o
+            // mesmo lugar onde já fica a procedência do relatório — quem for explicar uma
+            // captura de tela com a tipografia errada procura ali.
+            if (Marca.Falha != null) _session.Log.Warn(Marca.Falha);
+
             BuildChrome();
             BuildScreens();
 
@@ -51,6 +58,10 @@ namespace EpicoraCheckup.App
             var rodape = new Panel { Dock = DockStyle.Bottom, Height = 62, BackColor = Theme.FundoCartao };
             var separadorRodape = new Panel { Dock = DockStyle.Top, Height = 1, BackColor = Theme.Borda };
 
+            // Segue nativo, e é decisão e não esquecimento: o único botão que sai do desenho
+            // do Windows é a ação principal. Repintar também os secundários obrigaria a
+            // reproduzir à mão foco, hover e estado desabilitado de cada um — e a tela 3 e a
+            // tela 7 têm os seus próprios, que ficariam fora de sintonia no primeiro descuido.
             _voltar.Text = Strings.BotaoVoltar;
             _voltar.Size = new Size(110, 34);
             _voltar.Location = new Point(Theme.Margem, 14);
@@ -59,8 +70,8 @@ namespace EpicoraCheckup.App
 
             _avancar.Text = Strings.BotaoAvancar;
             _avancar.Size = new Size(160, 34);
-            _avancar.FlatStyle = FlatStyle.System;
             _avancar.Click += (s, e) => Advance();
+            EstiloPrimario(_avancar);
 
             _bloqueio.AutoSize = false;
             _bloqueio.Size = new Size(430, 34);
@@ -74,24 +85,32 @@ namespace EpicoraCheckup.App
             rodape.Controls.Add(separadorRodape);
             rodape.Resize += (s, e) => PositionFooter(rodape);
 
-            var cabecalho = new Panel { Dock = DockStyle.Top, Height = 74, BackColor = Theme.FundoCartao };
-            var separadorCabecalho = new Panel { Dock = DockStyle.Bottom, Height = 1, BackColor = Theme.Borda };
+            // Cabeçalho na cor da marca, com a mesma composição dos decks comerciais: o
+            // logotipo pequeno no alto à esquerda e o título da tela logo abaixo dele.
+            //
+            // Fundir a faixa da marca com a barra de título da tela, em vez de empilhar as
+            // duas, é o que mantém a altura do cromo igual à de antes. Em janela de 660 px
+            // de altura mínima, uma faixa a mais sairia da área útil da tela 3.
+            var cabecalho = new Panel { Dock = DockStyle.Top, Height = 96, BackColor = Theme.Roxo };
+
+            cabecalho.Paint += (s, e) => Marca.Desenhar(e.Graphics, new Point(Theme.Margem, 18), AlturaDoLogo);
 
             _titulo.Font = Theme.Titulo;
-            _titulo.ForeColor = Theme.Texto;
+            _titulo.ForeColor = Color.White;
+            _titulo.BackColor = Theme.Roxo;
             _titulo.AutoSize = false;
-            _titulo.Location = new Point(Theme.Margem, 18);
+            _titulo.Location = new Point(Theme.Margem, 52);
             _titulo.Size = new Size(700, 30);
 
             _passo.Font = Theme.Rotulo;
-            _passo.ForeColor = Theme.TextoSecundario;
+            _passo.ForeColor = Theme.SobreRoxoSuave;
+            _passo.BackColor = Theme.Roxo;
             _passo.AutoSize = false;
             _passo.TextAlign = ContentAlignment.MiddleRight;
             _passo.Size = new Size(200, 20);
 
             cabecalho.Controls.Add(_titulo);
             cabecalho.Controls.Add(_passo);
-            cabecalho.Controls.Add(separadorCabecalho);
             cabecalho.Resize += (s, e) => PositionHeader(cabecalho);
 
             _conteudo.Dock = DockStyle.Fill;
@@ -125,9 +144,45 @@ namespace EpicoraCheckup.App
             PositionFooter(rodape);
         }
 
+        /// <summary>Altura do logotipo no cabeçalho. A largura sai da proporção do arquivo.</summary>
+        private const int AlturaDoLogo = 22;
+
         private void PositionHeader(Control cabecalho)
         {
-            _passo.Location = new Point(Math.Max(Theme.Margem, cabecalho.Width - _passo.Width - Theme.Margem), 26);
+            // Alinhado com o logotipo, não com o título: os dois são a moldura da marca, e o
+            // título é o conteúdo que muda a cada tela.
+            _passo.Location = new Point(Math.Max(Theme.Margem, cabecalho.Width - _passo.Width - Theme.Margem), 22);
+        }
+
+        /// <summary>
+        /// Ação principal na cor da marca.
+        ///
+        /// <see cref="FlatStyle.Flat"/> e não <see cref="FlatStyle.System"/> porque botão
+        /// desenhado pelo tema do Windows ignora <see cref="Control.BackColor"/> — é o
+        /// motivo de o botão colorido em WinForms exigir sair do desenho nativo.
+        ///
+        /// O estado desabilitado precisa de tratamento explícito: o Flat mantém o fundo e só
+        /// acinzenta o texto, o que deixaria um botão roxo de aparência ativa com legenda
+        /// apagada. Aqui o fundo inteiro esmaece, e o rodapé já diz por que está bloqueado.
+        /// </summary>
+        private static void EstiloPrimario(Button botao)
+        {
+            botao.FlatStyle = FlatStyle.Flat;
+            botao.FlatAppearance.BorderSize = 0;
+            botao.FlatAppearance.MouseOverBackColor = Theme.RoxoProfundo;
+            botao.ForeColor = Color.White;
+            botao.Font = Theme.CorpoNegrito;
+            botao.UseVisualStyleBackColor = false;
+            botao.Cursor = Cursors.Hand;
+
+            EventHandler pintar = (s, e) =>
+            {
+                botao.BackColor = botao.Enabled ? Theme.Roxo : Color.FromArgb(214, 210, 222);
+                botao.ForeColor = botao.Enabled ? Color.White : Color.FromArgb(122, 118, 130);
+            };
+
+            botao.EnabledChanged += pintar;
+            pintar(botao, EventArgs.Empty);
         }
 
         private void PositionFooter(Control rodape)

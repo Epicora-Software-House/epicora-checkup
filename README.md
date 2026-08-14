@@ -49,6 +49,8 @@ O protótipo **não é descartável** — é o fallback permanente para quando o
 - **Verificação de versão** ([ADR-014](docs/adr/014-verificacao-de-versao.md)): a tela 1 compara a própria versão com o release mais recente e avisa **sem bloquear**. Falha — sem rede, com proxy, no limite de 60 requisições/hora por IP da API não autenticada — dá uma linha no log e o diagnóstico segue.
 - **Procedência do relatório**: `tool.version` e `tool.commit` são carimbados pelo CI, e `tool.rulesVersion` passa a identificar a matriz que avaliou, por data declarada mais impressão digital do conteúdo carregado ([ADR-015](docs/adr/015-versionamento-da-matriz.md)) — hoje `2026.08.12+6cd4167e`. Os três juntos respondem "qual versão, com qual matriz, produziu este número", que é a primeira pergunta de um achado contestado.
 
+**Identidade visual da Epicora** aplicada ao executável e ao relatório ([ADR-016](docs/adr/016-identidade-visual.md)): cabeçalho roxo com o logotipo, ação principal e link na cor da marca, Alexandria nos títulos, e o logotipo roxo no relatório HTML — que continua sendo um arquivo só, sem CDN e sem fonte remota. As cores de severidade **não** mudaram: o semáforo é semântico e é lido em projetor, onde quem manda é contraste, não paleta.
+
 **Assinatura de código não entra**, e é decisão registrada, não pendência: o [ADR-003](docs/adr/003-certificado-de-assinatura.md) recusou certificado na v1. Consequência aceita: o SmartScreen reclama de aplicativo não reconhecido em toda máquina, e o SHA-256 publicado ao lado do release é o que permite conferir a origem do arquivo.
 
 O **modo demonstração** continua existindo, para revisar telas e textos sem tocar na máquina e sem gravar arquivo:
